@@ -1505,7 +1505,7 @@ export function ClassDetailPage() {
 
 
             <div className="flex flex-wrap gap-2">
-              {cyclePlan.focusAbilities.map((ability) => {
+              {(Array.isArray(cyclePlan.focusAbilities) ? cyclePlan.focusAbilities : []).map((ability) => {
                 const quality = qualityLookup[ability];
                 return (
                   <span
@@ -1943,7 +1943,7 @@ export function ClassDetailPage() {
                 <p className="mt-1 text-xs text-slate-500">{templateOption.goal}</p>
                 <p className="mt-2 text-xs text-slate-400">周期 {templateOption.durationWeeks} 周</p>
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {templateOption.focusAbilities.map((ability) => {
+                  {(Array.isArray(templateOption.focusAbilities) ? templateOption.focusAbilities : []).map((ability) => {
                     const quality = qualityLookup[ability];
                     return (
                       <span
