@@ -1446,62 +1446,132 @@ export function ClassDetailPage() {
     );
   }
 
+  const studentCount = students.length;
+  const presentCount = attendance.filter((item) => item.present).length;
+  const totalEnergy = students.reduce((sum, student) => sum + (student.energy ?? 0), 0);
+  const currentWeekLabel = selectedSession
+    ? `第${selectedSession.week}周`
+    : cyclePlan
+      ? `第${cyclePlan.currentWeek}周`
+      : null;
+  const nextSessionLabel = selectedSession?.plannedDate
+    ? formatDate(selectedSession.plannedDate)
+    : cyclePlan
+      ? '等待排期'
+      : '尚未生成课表';
+  const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
+  const missionBlockCount = missionBlockEntries.length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            {classEntity?.name ?? "训练营作战台"}
-          </h1>
-          <p className="text-sm text-slate-500">
-            主教练：{classEntity?.coachName} · 训练时间：
-            {classEntity?.schedule ?? "未设置"}
-          </p>
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#7c5bff] via-[#6cb7ff] to-[#ff7db8] p-6 text-white shadow-xl">
+        <div className="pointer-events-none absolute -left-20 top-10 h-52 w-52 rounded-full bg-white/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-60px] right-[-40px] h-64 w-64 rounded-full bg-white/15 blur-3xl" />
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+              <span>勇士课堂</span>
+              {currentWeekLabel ? (
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">
+                  {currentWeekLabel}
+                </span>
+              ) : null}
+            </div>
+            <h1 className="text-3xl font-black drop-shadow-sm">
+              {classEntity?.name ?? '训练营作战台'}
+            </h1>
+            <p className="max-w-xl text-sm text-white/80">
+              主教练：{classEntity?.coachName ?? '未设置'} · 训练时间：
+              {classEntity?.schedule ?? '未设置'}
+            </p>
+            {cyclePlan?.goal ? (
+              <p className="max-w-xl text-sm text-white/80">
+                🌟 {cyclePlan.goal}
+              </p>
+            ) : null}
+            {status ? (
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white shadow-sm backdrop-blur">
+                <span className="text-lg">🎉</span>
+                <span>{status}</span>
+              </div>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
+                  <span>今日勇士</span>
+                  <span className="text-lg">🧑‍🚀</span>
+                </div>
+                <p className="mt-2 text-2xl font-black">
+                  {presentCount}
+                  <span className="ml-1 text-base font-semibold text-white/70">/{studentCount}</span>
+                </p>
+                <p className="mt-1 text-xs text-white/70">已到场人数</p>
+              </div>
+              <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
+                  <span>今日任务</span>
+                  <span className="text-lg">🪐</span>
+                </div>
+                <p className="mt-2 text-lg font-semibold leading-snug">{missionName}</p>
+                <p className="mt-1 text-xs text-white/70">
+                  {cyclePlan ? `第${cyclePlan.currentWeek}周目标` : '等待选择任务'}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
+                  <span>能量池</span>
+                  <span className="text-lg">⚡</span>
+                </div>
+                <p className="mt-2 text-2xl font-black">{totalEnergy}</p>
+                <p className="mt-1 text-xs text-white/70">勇士已累计的能量值</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-start gap-3 text-sm lg:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              {classEntity && (
+                <Link
+                  to={`/classes/${classEntity.id}/edit`}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
+                >
+                  ✏️ 调整训练营
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={startSession}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg transition hover:from-amber-200 hover:via-orange-200 hover:to-pink-200"
+              >
+                🚀 开启本次挑战
+              </button>
+              <ExportPdfButton
+                targetId="class-report"
+                filename={`${classEntity?.name ?? 'class'}-report.pdf`}
+                className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </div>
+            <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 shadow-sm backdrop-blur">
+              📅 下次集结：{nextSessionLabel} · 训练环节 {missionBlockCount} 个
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {classEntity && (
-            <Link
-              to={`/classes/${classEntity.id}/edit`}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-            >
-              调整训练营
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={startSession}
-            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
-          >
-            开启本次挑战
-          </button>
-          <ExportPdfButton
-            targetId="class-report"
-            filename={`${classEntity?.name ?? "class"}-report.pdf`}
-          />
-        </div>
-      </div>
+      </section>
 
-  {status && (
-    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-      {status}
-    </div>
-  )}
-
-  <section className="rounded-3xl bg-white/80 p-6 shadow-md backdrop-blur">
+      <section className="rounded-3xl border border-slate-100/80 bg-white/95 p-6 shadow-lg">
     {cyclePlan ? (
 
 
-      <div className="space-y-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-600">
               <span>当前周期</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+              <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-fuchsia-600">
                 {cyclePlan.durationWeeks} 周
               </span>
             </div>
-            <h2 className="text-xl font-semibold text-slate-900">{cyclePlan.cycleName}</h2>
-            <p className="text-sm text-slate-500">{cyclePlan.goal}</p>
+            <h2 className="text-2xl font-black text-slate-900">{cyclePlan.cycleName}</h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-500">{cyclePlan.goal}</p>
 
 
             <div className="flex flex-wrap gap-2">
@@ -1510,68 +1580,87 @@ export function ClassDetailPage() {
                 return (
                   <span
                     key={ability}
-                    className="rounded-full border px-2 py-0.5 text-xs font-semibold"
-                    style={{ borderColor: quality?.color ?? '#cbd5f5', color: quality?.color ?? '#475569' }}
+                    className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200"
+                    style={{ color: quality?.color ?? '#475569', borderColor: quality?.color ? `${quality.color}33` : undefined }}
                   >
-                    {quality?.icon ?? '🏋️'} {quality?.name ?? ability.toUpperCase()}
+                    <span>{quality?.icon ?? '🏋️'}</span>
+                    <span>{quality?.name ?? ability.toUpperCase()}</span>
                   </span>
                 );
               })}
             </div>
-
-
           </div>
-          <div className="w-full max-w-md space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs text-slate-500">当前周次</p>
-                <p className="text-sm font-semibold text-slate-800">
-                  {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
-                </p>
-                <p className="text-[11px] text-slate-400">计划日期：{selectedSession ? formatDate(selectedSession.plannedDate) : '未排期'}</p>
-              </div>
-              <div className="text-left sm:text-right">
-                <p className="text-xs text-slate-500">今日任务卡</p>
-                <p className="text-sm font-semibold text-slate-800">{selectedMission?.name ?? '请选择任务卡'}</p>
-                {selectedMission?.durationMin ? (
-                  <p className="text-[11px] text-slate-400">建议时长 {selectedMission.durationMin} 分钟</p>
-                ) : null}
-              </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[280px]">
+            <div className="rounded-2xl bg-sky-50 p-4 text-sky-700 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">计划周数</p>
+              <p className="mt-2 text-2xl font-black">{cyclePlan.durationWeeks}</p>
+              <p className="mt-1 text-xs text-sky-500">{cyclePlan.cycleName}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {selectedMission?.focusAbilities?.map((ability) => {
-                const quality = qualityLookup[ability];
-                return (
-                  <span
-                    key={ability}
-                    className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600"
-                    style={{ borderColor: quality?.color ?? '#cbd5f5', color: quality?.color ?? '#475569', borderWidth: 1 }}
-                  >
-                    {quality?.icon ?? '🏋️'} {quality?.name ?? ability.toUpperCase()}
-                  </span>
-                );
-              })}
-              {!selectedMission && (
-                <span className="text-xs text-slate-400">选择任务卡后可查看主攻素质</span>
-              )}
+            <div className="rounded-2xl bg-amber-50 p-4 text-amber-700 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">当前进度</p>
+              <p className="mt-2 text-2xl font-black">
+                {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
+              </p>
+              <p className="mt-1 text-xs text-amber-500">{nextSessionLabel}</p>
             </div>
-            <label className="block text-xs text-slate-500">
-              <span>切换本节任务</span>
-              <select
-                value={selectedSessionId ?? ''}
-                onChange={(event) => setSelectedSessionId(event.target.value || null)}
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">请选择任务卡</option>
-                {missionChoices.map((choice, index) => (
-                  <option key={`${choice.value}-${index}`} value={choice.value}>
-                    {choice.label}
-                    {choice.status === 'completed' ? ' · 已完成' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-700 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">任务卡</p>
+              <p className="mt-2 text-2xl font-black">{missionChoices.length}</p>
+              <p className="mt-1 text-xs text-emerald-500">活跃环节 {missionBlockCount} 个</p>
+            </div>
           </div>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-white via-indigo-50 to-sky-50 p-5 shadow-lg ring-1 ring-indigo-100">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">当前周次</p>
+              <p className="text-lg font-bold text-indigo-700">
+                {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
+              </p>
+              <p className="text-xs text-indigo-400">计划日期：{selectedSession ? formatDate(selectedSession.plannedDate) : '未排期'}</p>
+            </div>
+            <div className="space-y-2 text-left sm:text-right">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-500">今日任务卡</p>
+              <p className="text-lg font-bold text-pink-600">{selectedMission?.name ?? '请选择任务卡'}</p>
+              {selectedMission?.durationMin ? (
+                <p className="text-xs text-pink-400">建议时长 {selectedMission.durationMin} 分钟</p>
+              ) : null}
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selectedMission?.focusAbilities?.map((ability) => {
+              const quality = qualityLookup[ability];
+              return (
+                <span
+                  key={ability}
+                  className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-100"
+                  style={{ color: quality?.color ?? '#475569', borderColor: quality?.color ? `${quality.color}33` : undefined }}
+                >
+                  <span>{quality?.icon ?? '🏋️'}</span>
+                  <span>{quality?.name ?? ability.toUpperCase()}</span>
+                </span>
+              );
+            })}
+            {!selectedMission && (
+              <span className="text-xs text-indigo-400">选择任务卡后可查看主攻素质</span>
+            )}
+          </div>
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500">
+            <span>切换本节任务</span>
+            <select
+              value={selectedSessionId ?? ''}
+              onChange={(event) => setSelectedSessionId(event.target.value || null)}
+              className="mt-2 w-full rounded-2xl border-none bg-white/90 px-4 py-2 text-sm font-semibold text-indigo-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            >
+              <option value="">请选择任务卡</option>
+              {missionChoices.map((choice, index) => (
+                <option key={`${choice.value}-${index}`} value={choice.value}>
+                  {choice.label}
+                  {choice.status === 'completed' ? ' · 已完成' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div className="space-y-2">
           <div className="h-2 overflow-hidden rounded-full bg-slate-200">
