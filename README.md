@@ -34,6 +34,12 @@ npm run dev
 
 默认开发端口：`5173`。
 
+## 🧹 开发自查脚本
+
+- `npm run lint`：运行 `scripts/theme-check.mjs`，确保主题令牌、Tailwind 配置与工具函数完整。
+- `npm run build`：生成生产构建用于验证打包是否通过。
+- `npm run check`：串行执行 `lint` 与 `build`，用于提交前快速自查。
+
 ## 📦 生产构建与部署
 
 项目已经将 Vite 的 `base` 配置为相对路径，构建出的资源可以直接部署在域名根目录或任意子目录而无需额外改写路径。
@@ -59,6 +65,19 @@ npm run preview # 本地验证生产包是否正常工作
 
 > 项目使用 IndexedDB 持久化数据，推送到 GitHub 后即可在任意浏览器中访问并独立使用，互不影响；若需多端同步，可在后续接入云端仓库实现。
 
+## 🎨 主题系统
+
+- 主题切换：调用 `setTheme('classic' | 'game')` 或使用 `<ThemeToggle />` 组件，全局在 `HashRouter` 之外初始化的 `initTheme()` 会
+  自动读取本地偏好。
+- Classic 主题：延续原有的玻璃拟态浅色渐变背景与卡片视觉，不改变现有页面的教练/家长端体验。
+- Game 主题：参照学员端电竞面板，提供霓虹深色背景、发光导航、渐变按钮与数据卡片，可在任何容器上通过 `data-theme="game"` 单独开启。
+- 设计令牌：所有语义色通过 `theme.css` 注册为 CSS Variables，并在 `tailwind.config.cjs` 中映射为 `bg-*`、`text-*`、`border-*` 等
+  语义类名；额外的 `ui-card`、`ui-button`、`glass-tile`、`chip-badge` 等基类同样基于令牌自动适配主题。
+- 组件使用：新建页面/组件时，请直接使用语义类（如 `bg-bg`、`text-text`、`border-card`、`bg-surface`、`text-mute`、`bg-grad-primary`）。无需关心浅色/深色的具体色值。
+- 局部覆盖：任何容器上添加 `data-theme="game"` 即可在局部启用学员端深色主题，不影响其它区域。
+- 原子组件：`Button` 与 `Card` 组件已经内置语义色映射，可作为基础 UI 直接复用并扩展。
+
+> 主题效果预览（Classic / Game）请见下方截图。
 ## 🧪 种子数据
 
 首次打开应用时会自动写入 `src/seed/seed.json` 中的演示数据：
