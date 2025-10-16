@@ -1680,6 +1680,9 @@ export function StudentDetailPage() {
         </div>
 
 
+        
+
+
         <LessonLedgerPanel
           entries={lessonLedger}
           sessions={lessonSessionRows}
@@ -1779,6 +1782,8 @@ function FreestylePassCarousel({ cards }: { cards: FreestylePassCardData[] }) {
   );
 }
 
+
+
 const BLIND_CARD_MESSAGES = [
   '盲卡提示：菜就多练，越练越灵活！',
   '盲卡鼓励：勇敢的人先享受世界。',
@@ -1801,6 +1806,7 @@ function pickBlindCardMessage(moveId: string): string {
   return BLIND_CARD_MESSAGES[index];
 }
 
+
 function FreestylePassCard({
   data,
   isActive,
@@ -1811,7 +1817,10 @@ function FreestylePassCard({
   onActivate: () => void;
 }) {
   const {
+
+    
     moveId,
+
     name,
     rank,
     rewardPoints,
@@ -1823,7 +1832,10 @@ function FreestylePassCard({
     isSurprise,
     surpriseBonus,
   } = data;
+
+  
   const blindCardMessage = pickBlindCardMessage(moveId);
+
   const formattedDate = formatIsoDateLabel(clearedAt);
   const attemptsLabel = !cleared
     ? '等待首通'
@@ -1878,7 +1890,10 @@ function FreestylePassCard({
             </div>
           ) : (
             <div className="flex flex-col items-end text-[11px] text-white/70">
+
+              
               <span className="rounded-full bg-white/10 px-2 py-1 font-medium">待翻开盲卡</span>
+
               <span className="mt-2 text-[10px] tracking-[0.25em]">KEEP TRYING</span>
             </div>
           )}
@@ -1921,7 +1936,10 @@ function FreestylePassCard({
             </div>
           ) : (
             <div className="space-y-3 text-xs">
+
+              
               <p className="text-center text-[13px] font-medium text-white/80">{blindCardMessage}</p>
+
               <div className="flex items-center justify-between text-white/70">
                 <span className="flex items-center gap-1 font-medium">🕹️ 未通关</span>
                 <span>{attemptsLabel}</span>
