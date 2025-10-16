@@ -5,9 +5,10 @@ import { useState } from 'react';
 interface ExportPdfButtonProps {
   targetId: string;
   filename: string;
+  className?: string;
 }
 
-export function ExportPdfButton({ targetId, filename }: ExportPdfButtonProps) {
+export function ExportPdfButton({ targetId, filename, className }: ExportPdfButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
@@ -37,7 +38,10 @@ export function ExportPdfButton({ targetId, filename }: ExportPdfButtonProps) {
       type="button"
       onClick={handleExport}
       disabled={loading}
-      className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+      className={
+        className ??
+        'inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60'
+      }
     >
       {loading ? '生成中...' : '导出报告'}
     </button>

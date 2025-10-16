@@ -1,3 +1,5 @@
+
+
 import { useMemo } from 'react';
 import {
   Bar,
@@ -103,6 +105,7 @@ const skillAssessments = [
     bestClass: '雷霆战队',
     trend: 5,
     insight: '4x200m 分组接力与家庭打卡结合成效显著。',
+
   },
 ];
 
@@ -198,6 +201,8 @@ export function TrialArenaPage() {
       </header>
 
       <section className="grid gap-6 lg:grid-cols-3">
+
+        
         {fitnessHighlights.map((item) => {
           const sparklineData = item.trend.map((value, index) => ({ step: index + 1, value }));
           const changeLabel = item.change >= 0 ? `+${item.change}` : item.change.toString();
@@ -297,6 +302,7 @@ export function TrialArenaPage() {
         </div>
       </section>
 
+
       <section className="grid gap-6 2xl:grid-cols-[1.4fr,1fr]">
         <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
           <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -306,6 +312,8 @@ export function TrialArenaPage() {
             </div>
             <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-500">近 6 次测评均值</span>
           </header>
+
+          
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
             <div className="h-80 rounded-2xl bg-white/60 p-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -331,6 +339,7 @@ export function TrialArenaPage() {
                 </li>
               ))}
             </ul>
+
           </div>
         </div>
 
@@ -342,6 +351,8 @@ export function TrialArenaPage() {
             </div>
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">Top 3</span>
           </header>
+
+          
           <div className="grid gap-4">
             <div className="h-64 rounded-2xl bg-white/60 p-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -371,6 +382,7 @@ export function TrialArenaPage() {
               ))}
             </ul>
           </div>
+
         </div>
       </section>
 
@@ -400,6 +412,8 @@ export function TrialArenaPage() {
     </div>
   );
 }
+
+
 
 function formatHighlightValue(title: string, value: number) {
   if (title.includes('技能熟练度')) {
@@ -441,10 +455,13 @@ function ClassRadarTooltip({ active, payload, label }: TooltipProps<ValueType, N
           );
         })}
       </ul>
+
     </div>
   );
 }
 
+
+              
 function SkillTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
   if (!active || !payload?.length) return null;
   const dataPoint = payload[0]?.payload as {
@@ -477,6 +494,7 @@ function ProgressTooltip({ active, payload }: TooltipProps<ValueType, NameType>)
     </div>
   );
 }
+
 
 function SuggestionCard({ title, details }: { title: string; details: string }) {
   return (

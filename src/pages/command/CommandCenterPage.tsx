@@ -1,3 +1,5 @@
+
+
 import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
@@ -19,6 +21,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { TooltipProps, ValueType, NameType } from 'recharts';
+
 import { EnergyBoard } from '../../components/EnergyBoard';
 import type { Student } from '../../types';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
@@ -56,15 +59,20 @@ const kpiCards = [
 
 const monthlyCourseRhythm = [
   {
+
+    
     month: '2024年1月',
     lessons: 1186,
     attendanceRate: 87,
     change: 4,
     highlight: '寒假战队营带动，周末场次满班率 96%。',
+
   },
   {
     month: '2024年2月',
     lessons: 1104,
+
+    
     attendanceRate: 82,
     change: -6,
     highlight: '春节假期影响，营地课程贡献 320 课时。',
@@ -75,11 +83,14 @@ const monthlyCourseRhythm = [
     attendanceRate: 90,
     change: 16,
     highlight: '开学季返课高峰，家庭陪练打卡提升 12%。',
+
   },
 ];
 
 const revenueTimeline = [
   {
+
+    
     month: '2024年1月',
     total: 40400,
     course: 65,
@@ -102,20 +113,26 @@ const revenueTimeline = [
     camp: 27,
     private: 15,
     cashflow: 9300,
+
   },
 ];
 
 const lessonStructure = [
+
+  
   { label: '体能基础课', hours: 420, share: 32, detail: '低龄勇士班，高频课消支撑稳定现金流。' },
   { label: '进阶战术课', hours: 318, share: 24, detail: '力量 + 速度双模组，报名转介绍提升 14%。' },
   { label: '营地集训', hours: 276, share: 21, detail: '营地打包附带装备组合，ARPU 较常规课高 42%。' },
   { label: '私教/专项', hours: 192, share: 15, detail: '私教续费率 88%，建议保持排班弹性。' },
   { label: '家庭陪练', hours: 82, share: 8, detail: '线上打卡任务带动能量值增长与裂变。' },
+
 ];
 
 const studentHourDistribution = [
   {
     segment: '≥ 16 课时 / 月',
+
+    
     ratio: 28,
     delta: 6,
     insight: '高粘进阶班，输出冠军故事做口碑裂变。',
@@ -145,6 +162,7 @@ const studentHourDistribution = [
     insight: '集中在新生体验阶段，安排班主任 48 小时回访。',
     color: '#ef4444',
     fill: '#ef4444',
+
   },
 ];
 
@@ -234,6 +252,8 @@ export function CommandCenterPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
+
+  
   const revenueChartData = useMemo(
     () =>
       revenueTimeline.map((item) => ({
@@ -264,6 +284,7 @@ export function CommandCenterPage() {
       })),
     [],
   );
+
 
   useEffect(() => {
     let active = true;
@@ -349,6 +370,8 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">自动拉取近 90 天</span>
           </header>
+
+          
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
             <div className="h-72 rounded-2xl bg-white/60 p-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -407,6 +430,7 @@ export function CommandCenterPage() {
                   </li>
                 ))}
             </ul>
+
           </div>
         </div>
 
@@ -418,6 +442,8 @@ export function CommandCenterPage() {
             </div>
             <span className="text-xs text-slate-400">单位：人民币</span>
           </header>
+
+          
           <div className="h-72 rounded-2xl bg-white/60 p-3">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueChartData} margin={{ top: 10, right: 24, left: -10, bottom: 0 }}>
@@ -441,6 +467,7 @@ export function CommandCenterPage() {
               </li>
             ))}
           </ul>
+
         </div>
       </section>
 
@@ -453,6 +480,8 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">更新于本周例会</span>
           </header>
+
+          
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
             <div className="h-72 rounded-2xl bg-white/60 p-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -486,6 +515,7 @@ export function CommandCenterPage() {
                 </li>
               ))}
             </ul>
+
           </div>
         </div>
 
@@ -497,6 +527,8 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">162 位勇士</span>
           </header>
+
+          
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
             <div className="h-72 rounded-2xl bg-white/60 p-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -532,6 +564,7 @@ export function CommandCenterPage() {
                 </li>
               ))}
             </ul>
+
           </div>
         </div>
       </section>
