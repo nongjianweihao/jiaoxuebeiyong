@@ -1,5 +1,7 @@
 import clsx from 'classnames';
+import { Fragment } from 'react';
 import { DEFAULT_AVATAR_PRESET_ID, getAvatarPreset } from '../config/avatarPresets';
+import { getVirtualAssetById } from '../config/virtualWardrobe';
 
 const sizeMap = {
   xs: 'h-8 w-8 text-base',
@@ -8,13 +10,16 @@ const sizeMap = {
   lg: 'h-20 w-20 text-3xl',
 } as const;
 
+export type StudentAvatarSize = keyof typeof sizeMap;
+
 export interface StudentAvatarProps {
   name: string;
   avatarUrl?: string | null;
   avatarPresetId?: string | null;
-  size?: keyof typeof sizeMap;
+  size?: StudentAvatarSize;
   className?: string;
   badge?: React.ReactNode;
+  equippedVirtualItems?: string[] | null;
 }
 
 function getInitials(name: string) {
@@ -32,9 +37,13 @@ export function StudentAvatar({
   size = 'sm',
   className,
   badge,
+  equippedVirtualItems,
 }: StudentAvatarProps) {
   const preset = getAvatarPreset(avatarPresetId ?? DEFAULT_AVATAR_PRESET_ID);
   const initials = getInitials(name);
+  const overlays = (equippedVirtualItems ?? [])
+    .map((itemId) => getVirtualAssetById(itemId))
+    .filter((asset): asset is NonNullable<ReturnType<typeof getVirtualAssetById>> => Boolean(asset));
 
   return (
     <div className={clsx('relative inline-flex items-center justify-center rounded-2xl font-semibold shadow-inner', sizeMap[size], className)}>
@@ -65,6 +74,9 @@ export function StudentAvatar({
           {initials}
         </span>
       ) : null}
+      {overlays.map((asset) => (
+        <Fragment key={asset.id}>{asset.overlay({ size })}</Fragment>
+      ))}
       {badge ? (
         <span className="absolute -bottom-1 -right-1 inline-flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-slate-700 shadow-lg">
           {badge}

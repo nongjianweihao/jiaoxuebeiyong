@@ -332,6 +332,8 @@ export interface Student {
   birth?: ISODate;
   avatarUrl?: string;
   avatarPresetId?: string;
+  virtualInventory?: string[];
+  equippedVirtualItems?: string[];
   guardian?: { name: string; phone?: string };
   joinDate?: ISODate;
   currentRank?: number;
