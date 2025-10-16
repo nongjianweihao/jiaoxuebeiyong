@@ -1,4 +1,7 @@
+
+
 import { ChangeEvent, FormEvent, useCallback, useMemo, useRef, useState } from 'react';
+
 import type { LessonLedgerEntry, LessonLedgerEntryType } from '../../types';
 
 export interface LessonLedgerFormValues {
@@ -7,6 +10,8 @@ export interface LessonLedgerFormValues {
   lessons: string;
   summary?: string;
 }
+
+
 
 export interface LessonSessionRecord {
   id: string;
@@ -25,6 +30,7 @@ interface LessonLedgerPanelProps {
   onUpdate(id: string, values: LessonLedgerFormValues): Promise<void>;
   onDelete(id: string): Promise<void>;
   onImport?(rows: LessonLedgerFormValues[]): Promise<void>;
+
 }
 
 const TYPE_OPTIONS: Array<{ value: LessonLedgerEntryType; label: string }> = [
@@ -36,6 +42,8 @@ const TYPE_OPTIONS: Array<{ value: LessonLedgerEntryType; label: string }> = [
   { value: 'other', label: '其他记录' },
 ];
 
+
+
 const FILTER_OPTIONS: Array<{ value: LedgerTypeFilter; label: string }> = [
   { value: 'all', label: '全部类型' },
   ...TYPE_OPTIONS,
@@ -43,6 +51,7 @@ const FILTER_OPTIONS: Array<{ value: LedgerTypeFilter; label: string }> = [
 ];
 
 type LedgerTypeFilter = 'all' | LessonLedgerEntryType | 'session';
+
 
 function createDefaultFormValues(): LessonLedgerFormValues {
   return {
@@ -59,6 +68,8 @@ function formatDateInput(value: string): string {
   if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toISOString().slice(0, 10);
 }
+
+
 
 function toCsvCell(value: string) {
   if (value === undefined || value === null) {
@@ -124,11 +135,7 @@ export function LessonLedgerPanel({
   const [formValues, setFormValues] = useState<LessonLedgerFormValues>(() => createDefaultFormValues());
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<LedgerTypeFilter>('all');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
 
   const numberFormatter = useMemo(
     () =>
@@ -139,6 +146,8 @@ export function LessonLedgerPanel({
     [],
   );
 
+
+  
   const typeLabelLookup = useMemo(() => {
     const map: Record<string, string> = Object.fromEntries(
       TYPE_OPTIONS.map((option) => [option.value, option.label]),
@@ -148,6 +157,7 @@ export function LessonLedgerPanel({
   }, []);
 
   const manualTotals = useMemo(() => {
+
     return entries.reduce(
       (acc, entry) => {
         if (entry.lessons >= 0) {
@@ -161,6 +171,8 @@ export function LessonLedgerPanel({
     );
   }, [entries]);
 
+
+  
   const sessionTotals = useMemo(() => {
     return sessions.reduce(
       (acc, entry) => {
@@ -242,6 +254,7 @@ export function LessonLedgerPanel({
         } else if (entry.type !== typeFilter) {
           return false;
         }
+
       }
       if (from && entry.date < from) {
         return false;
@@ -250,6 +263,8 @@ export function LessonLedgerPanel({
         return false;
       }
       if (!term) return true;
+
+      
       const summary = entry.summary.toLowerCase();
       const detail = entry.detail.toLowerCase();
       const typeLabel = typeLabelLookup[entry.type]?.toLowerCase() ?? entry.type.toLowerCase();
@@ -264,6 +279,7 @@ export function LessonLedgerPanel({
   }, [rows, from, to, searchTerm, typeFilter, typeLabelLookup]);
 
   const manualNetChange = manualTotals.added - manualTotals.consumed;
+
 
   const resetForm = () => {
     setEditingId(null);
@@ -317,6 +333,8 @@ export function LessonLedgerPanel({
     setFormValues(createDefaultFormValues());
   };
 
+
+  
   const handleDownloadTemplate = useCallback(() => {
     const rows: string[][] = [
       ['date', 'type', 'lessons', 'summary'],
@@ -460,6 +478,8 @@ export function LessonLedgerPanel({
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
+
+          
           <h2 className="text-lg font-semibold text-slate-800">课时 & 挑战记录</h2>
           <p className="text-xs text-slate-500">
             汇总课堂挑战消耗与手动补录的课时变动，支持筛选、导入导出和概要备注。
@@ -503,10 +523,13 @@ export function LessonLedgerPanel({
             className="hidden"
           />
         </div>
+
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs text-slate-600">
         <span className="rounded-full bg-slate-100 px-3 py-1">
+
+          
           课堂累计消耗 {numberFormatter.format(sessionTotals.consumed)} 课时
         </span>
         <span className="rounded-full bg-slate-100 px-3 py-1">
@@ -521,6 +544,7 @@ export function LessonLedgerPanel({
           }`}
         >
           手动净变动 {manualNetChange >= 0 ? '+' : '-'}{numberFormatter.format(Math.abs(manualNetChange))} 课时
+
         </span>
       </div>
 
@@ -608,7 +632,10 @@ export function LessonLedgerPanel({
           onChange={(event) => setTypeFilter(event.target.value as LedgerTypeFilter)}
           className="rounded-md border border-slate-200 px-3 py-2 text-sm"
         >
+
+          
           {FILTER_OPTIONS.map((option) => (
+
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -650,6 +677,8 @@ export function LessonLedgerPanel({
               <th className="px-4 py-3 text-left">类型</th>
               <th className="px-4 py-3 text-left">课时变动</th>
               <th className="px-4 py-3 text-left">概要</th>
+
+              
               <th className="px-4 py-3 text-right">来源</th>
               <th className="px-4 py-3 text-right">操作</th>
             </tr>
@@ -672,6 +701,8 @@ export function LessonLedgerPanel({
                       {sign}
                       {value}
                     </td>
+
+                    
                     <td className="px-4 py-3 text-slate-600">
                       <div className="text-sm font-medium text-slate-700">
                         {entry.summary?.trim() ? entry.summary : '—'}
@@ -704,14 +735,18 @@ export function LessonLedgerPanel({
                       ) : (
                         <span className="text-xs text-slate-400">自动记录</span>
                       )}
+
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
+
+                      
                 <td colSpan={6} className="px-4 py-6 text-center text-sm text-slate-400">
                   暂无课时记录，可点击「新增记录」或导入模板补录。
+
                 </td>
               </tr>
             )}

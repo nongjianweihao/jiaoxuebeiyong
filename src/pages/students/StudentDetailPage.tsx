@@ -7,11 +7,14 @@ import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from '../../config/
 import { BadgeWall } from '../../components/BadgeWall';
 import { AssessmentReportPanel } from '../../components/assessment/AssessmentReportPanel';
 import { AssessmentReportModal } from '../../components/assessment/AssessmentReportModal';
+
+
 import {
   LessonLedgerPanel,
   type LessonLedgerFormValues,
   type LessonSessionRecord,
 } from '../../components/lesson/LessonLedgerPanel';
+
 import { sessionsRepo } from '../../store/repositories/sessionsRepo';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
 import { testsRepo } from '../../store/repositories/testsRepo';
@@ -278,6 +281,8 @@ export function StudentDetailPage() {
     setWallet(walletInfo);
   }, [studentId]);
 
+
+  
   const normalizeLedgerForm = useCallback((values: LessonLedgerFormValues) => {
     const parsed = Number(values.lessons);
     return {
@@ -296,17 +301,23 @@ export function StudentDetailPage() {
         id: generateId(),
         studentId,
         ...normalized,
+
         createdAt: now,
         updatedAt: now,
       };
       await lessonLedgerRepo.upsert(record);
       await refreshLedgerAndWallet();
     },
+
+    
     [normalizeLedgerForm, studentId, refreshLedgerAndWallet],
+
   );
 
   const handleUpdateLedger = useCallback(
     async (id: string, values: LessonLedgerFormValues) => {
+
+      
       const normalized = normalizeLedgerForm(values);
       const existing = lessonLedger.find((entry) => entry.id === id);
       const now = new Date().toISOString();
@@ -314,13 +325,17 @@ export function StudentDetailPage() {
         id,
         studentId,
         ...normalized,
+
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };
       await lessonLedgerRepo.upsert(record);
       await refreshLedgerAndWallet();
     },
+
+    
     [lessonLedger, normalizeLedgerForm, studentId, refreshLedgerAndWallet],
+
   );
 
   const handleDeleteLedger = useCallback(
@@ -331,6 +346,8 @@ export function StudentDetailPage() {
     [refreshLedgerAndWallet],
   );
 
+
+  
   const handleImportLedger = useCallback(
     async (rows: LessonLedgerFormValues[]) => {
       const base = Date.now();
@@ -350,6 +367,7 @@ export function StudentDetailPage() {
     },
     [normalizeLedgerForm, studentId, refreshLedgerAndWallet],
   );
+
 
   const classLookup = useMemo(
     () => Object.fromEntries(classes.map((item) => [item.id, item.name])),
@@ -690,6 +708,10 @@ export function StudentDetailPage() {
             <InfoItem label="课时余额" value={`${wallet?.remaining ?? 0} 课时`} />
           </div>
           </div>
+
+          
+          
+
         </div>
         <div className="space-y-4">
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
