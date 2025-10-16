@@ -258,6 +258,7 @@ export function GrowthMarketPage() {
           </div>
 
           
+
         <div className="space-y-2 rounded-2xl bg-white/15 p-4 text-sm backdrop-blur">
           <div className="text-white/80">当前查看勇士</div>
           {activeStudent ? (
@@ -285,13 +286,14 @@ export function GrowthMarketPage() {
                 className="w-full rounded-xl border border-white/30 bg-white/20 p-3 text-base font-semibold text-white shadow-inner placeholder:text-white/60 focus:border-white focus:outline-none"
                 displayValue={(id: string) => students.find((student) => student.id === id)?.name ?? ''}
 
+                
+
                   onChange={(event) => setStudentQuery(event.target.value)}
                   placeholder="输入姓名或手机号搜索"
                   autoComplete="off"
                 />
                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70">
 
-                  
                   
                   <ChevronsUpDown className="h-4 w-4" aria-hidden />
 
@@ -426,11 +428,14 @@ export function GrowthMarketPage() {
                         <div className="flex items-center gap-3">
 
                           
+
                           <RewardArtwork
                             reward={reward}
                             variant="table"
                             className="h-12 w-12 rounded-xl border border-slate-200 bg-white"
                           />
+
+                          
 
                           <div className="min-w-0">
                             <div className="font-medium text-slate-800">{reward.name}</div>
@@ -565,10 +570,13 @@ export function GrowthMarketPage() {
                   <div className="space-y-3">
 
                     
+
                     <RewardArtwork
                       reward={reward}
                       className="h-40 w-full rounded-xl border border-slate-200 bg-white"
                     />
+
+                    
 
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
@@ -793,6 +801,13 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
     defaultValues: toFormValues(initialReward),
   });
 
+
+  
+  const selectedType = watch('type');
+  const virtualAssetId = watch('virtualAssetId');
+  const imagePreview = watch('imageUrl');
+
+
   useEffect(() => {
     if (open) {
       reset(toFormValues(initialReward));
@@ -800,7 +815,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
   }, [initialReward, open, reset]);
 
 
-                      
+  
+
   useEffect(() => {
     if (selectedType === 'virtual') {
       setValue('imageUrl', '');
@@ -809,9 +825,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
     }
   }, [selectedType, setValue]);
 
-  const imagePreview = watch('imageUrl');
-  const selectedType = watch('type');
-  const virtualAssetId = watch('virtualAssetId');
+
+  
   const selectedAsset = getVirtualAssetById(virtualAssetId);
 
 
@@ -823,11 +838,14 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
 
 
     
+
     if (values.type === 'virtual' && !values.virtualAssetId) {
       setError('virtualAssetId', { type: 'manual', message: '请选择一个虚拟配件' });
       return;
     }
 
+
+        
 
     const payload: RewardItem = {
       id: initialReward?.id ?? uuidv4(),
@@ -838,7 +856,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
       stock: normalizeOptionalNumber(values.stock),
       description: values.description.trim(),
 
-      
+        
+
       imageUrl:
         values.type === 'virtual'
           ? undefined
@@ -846,6 +865,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
           ? values.imageUrl.trim()
           : undefined,
       virtualAssetId: values.type === 'virtual' ? values.virtualAssetId : undefined,
+
+        
 
       visible: values.visible,
       levelLimit: normalizeOptionalNumber(values.levelLimit),
@@ -1014,6 +1035,7 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
                     <div className="space-y-4">
 
                       
+
                       {selectedType === 'virtual' ? (
                         <div className="space-y-3">
                           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -1054,6 +1076,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
                         </div>
                       ) : null}
 
+                      
+
                       <div>
                         <label className="text-sm font-medium text-slate-700">奖励描述</label>
                         <textarea
@@ -1071,6 +1095,7 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
                           type="url"
 
                           
+
                           disabled={selectedType === 'virtual'}
                           className={classNames(
                             'mt-1 w-full rounded-xl border bg-slate-50 px-3 py-2 text-sm focus:border-violet-500 focus:bg-white focus:outline-none',
@@ -1090,6 +1115,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
                         {selectedType === 'virtual' && selectedAsset ? (
                           <VirtualAssetPreview asset={selectedAsset} variant="card" className="h-full w-full" />
                         ) : imagePreview ? (
+
+                          
 
                           <img src={imagePreview} alt="奖励图片预览" className="h-full w-full object-cover" />
                         ) : (
@@ -1170,7 +1197,8 @@ function RewardEditorDialog({ open, onClose, onSubmit, initialReward, isSaving }
       </Dialog>
     </Transition>
 
-    
+      
+
   );
 }
 
@@ -1205,6 +1233,57 @@ function RewardArtwork({
       )}
     >
       <span>{TYPE_ICONS[reward.type]}</span>
+
+      
+    </div>
+  );
+}
+
+function VirtualAssetPreview({
+  asset,
+  className,
+  variant = 'card',
+}: {
+  asset: VirtualAsset;
+  className?: string;
+  variant?: RewardArtworkVariant;
+}) {
+  const paddingMap: Record<RewardArtworkVariant, string> = {
+    card: 'p-5',
+    form: 'p-3',
+    table: 'p-2',
+  };
+  const sizeMap: Record<RewardArtworkVariant, 'lg' | 'md' | 'sm'> = {
+    card: 'lg',
+    form: 'md',
+    table: 'sm',
+  };
+  const labelClassMap: Record<RewardArtworkVariant, string> = {
+    card: 'bottom-3 left-3 text-[10px]',
+    form: 'bottom-2 left-2 text-[10px]',
+    table: 'bottom-1 left-1 text-[9px]',
+  };
+
+  return (
+    <div
+      className={classNames(
+        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner',
+        paddingMap[variant],
+        className,
+      )}
+    >
+      <div className={classNames('absolute inset-0 opacity-80', `bg-gradient-to-br ${asset.previewGradient}`)} aria-hidden />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),rgba(255,255,255,0))]" aria-hidden />
+      <StudentAvatar name={`虚拟配件-${asset.name}`} size={sizeMap[variant]} avatarPresetId={undefined} equippedVirtualItems={[asset.id]} />
+      <span
+        className={classNames(
+          'absolute rounded-full bg-white/85 px-2 py-0.5 font-medium text-slate-500 shadow-sm backdrop-blur',
+          labelClassMap[variant],
+        )}
+      >
+        虚拟形象
+      </span>
+
     </div>
   );
 }
