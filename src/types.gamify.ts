@@ -104,6 +104,7 @@ export type EnergySource =
   | 'attendance'
   | 'mission'
   | 'assessment'
+  | 'freestyle_pass'
   | 'kudos'
   | 'squad_milestone'
   | 'squad_completion'

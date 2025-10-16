@@ -4,6 +4,7 @@ import { ExportPdfButton } from '../../components/ExportPdfButton';
 import { ProgressChart, type LineSeries } from '../../components/ProgressChart';
 import { RadarChart } from '../../components/RadarChart';
 import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from '../../config/performance';
+import { getFreestyleReward } from '../../config/freestyleRewards';
 import { BadgeWall } from '../../components/BadgeWall';
 import { AssessmentReportPanel } from '../../components/assessment/AssessmentReportPanel';
 import { AssessmentReportModal } from '../../components/assessment/AssessmentReportModal';
@@ -58,6 +59,7 @@ import type {
   PerformanceDimensionId,
   SessionPerformanceEntry,
   WindowSec,
+  RankExamRecord,
   FitnessTestResult,
 } from '../../types';
 
@@ -115,6 +117,20 @@ type ChartSeries = {
   data: Array<{ date: string; score: number }>;
 };
 
+type FreestylePassSource = 'class' | 'assessment';
+
+type FreestylePassCardData = {
+  moveId: string;
+  rank: number;
+  name: string;
+  rewardPoints: number;
+  rewardEnergy: number;
+  cleared: boolean;
+  clearedAt?: string;
+  attempts: number;
+  sources: FreestylePassSource[];
+};
+
 type HeightRecord = {
   date: string;
   height: number;
@@ -147,6 +163,7 @@ export function StudentDetailPage() {
   const [squadEnergy, setSquadEnergy] = useState<SquadEnergySummary>({ total: 0, weekly: 0 });
   const [assessmentReport, setAssessmentReport] = useState<WarriorAssessmentReport | null>(null);
   const [fitnessTests, setFitnessTests] = useState<FitnessTestResult[]>([]);
+  const [rankExams, setRankExams] = useState<RankExamRecord[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedWindow, setSelectedWindow] = useState<WindowSec>(30);
   const energy = student?.energy ?? 0;
@@ -162,6 +179,7 @@ export function StudentDetailPage() {
         moves,
         items,
         tests,
+        examList,
         events,
         missionProgressList,
         badgeList,
@@ -181,6 +199,7 @@ export function StudentDetailPage() {
         db.rankMoves.toArray(),
         db.fitnessTestItems.toArray(),
         testsRepo.listResultsByStudent(studentId),
+        testsRepo.listRankExams(studentId),
         pointEventsRepo.listByStudent(studentId),
         db.missionsProgress.where('studentId').equals(studentId).toArray(),
         db.badges.where('studentId').equals(studentId).toArray(),
@@ -203,6 +222,7 @@ export function StudentDetailPage() {
       );
       setNodes(nodesData);
       setRankMoves(moves);
+      setRankExams(examList);
       setPointEvents(events);
       setPointsSummary(buildPointsSnapshot(events));
       setMissionHistory(
@@ -712,23 +732,97 @@ export function StudentDetailPage() {
   const genderLabel = student?.gender === 'M' ? '男' : student?.gender === 'F' ? '女' : '—';
 
 
-  const passesByRank = useMemo(() => {
-    const map = new Map<number, Set<string>>();
+  const freestylePassGroups = useMemo(() => {
+    if (!rankMoves.length) return [] as Array<{ rank: number; cards: FreestylePassCardData[] }>;
+
+    const moveMap = new Map(rankMoves.map((move) => [move.id, move]));
+    const accumulators = new Map<
+      string,
+      {
+        base: FreestylePassCardData;
+        sourceSet: Set<FreestylePassSource>;
+      }
+    >();
+
+    rankMoves.forEach((move) => {
+      const reward = getFreestyleReward(move.rank);
+      accumulators.set(move.id, {
+        base: {
+          moveId: move.id,
+          rank: move.rank,
+          name: move.name,
+          rewardPoints: reward.points,
+          rewardEnergy: reward.energy,
+          cleared: false,
+          attempts: 0,
+          sources: [],
+        },
+        sourceSet: new Set(),
+      });
+    });
+
     sessions.forEach((session) => {
       session.freestyle
         .filter((record) => record.studentId === studentId && record.passed)
         .forEach((record) => {
-          const meta = rankMoves.find((move) => move.id === record.moveId);
+          const meta = moveMap.get(record.moveId);
           if (!meta) return;
-          const set = map.get(meta.rank) ?? new Set<string>();
-          set.add(meta.name);
-          map.set(meta.rank, set);
+          const bucket = accumulators.get(record.moveId);
+          if (!bucket) return;
+          bucket.base.cleared = true;
+          bucket.base.attempts += 1;
+          bucket.sourceSet.add('class');
+          if (!bucket.base.clearedAt || new Date(session.date).getTime() < new Date(bucket.base.clearedAt).getTime()) {
+            bucket.base.clearedAt = session.date;
+          }
         });
     });
-    return Array.from(map.entries())
+
+    const assessmentUnlocks = new Map<number, string>();
+    rankExams
+      .filter((exam) => exam.passed)
+      .forEach((exam) => {
+        for (let rank = exam.fromRank + 1; rank <= exam.toRank; rank += 1) {
+          const existing = assessmentUnlocks.get(rank);
+          if (!existing || new Date(exam.date).getTime() < new Date(existing).getTime()) {
+            assessmentUnlocks.set(rank, exam.date);
+          }
+        }
+      });
+
+    assessmentUnlocks.forEach((date, rank) => {
+      rankMoves
+        .filter((move) => move.rank === rank)
+        .forEach((move) => {
+          const bucket = accumulators.get(move.id);
+          if (!bucket) return;
+          bucket.base.cleared = true;
+          bucket.base.attempts = Math.max(bucket.base.attempts, 1);
+          if (!bucket.base.clearedAt || new Date(date).getTime() < new Date(bucket.base.clearedAt).getTime()) {
+            bucket.base.clearedAt = date;
+          }
+          bucket.sourceSet.add('assessment');
+        });
+    });
+
+    const grouped = new Map<number, FreestylePassCardData[]>();
+    accumulators.forEach(({ base, sourceSet }) => {
+      const card: FreestylePassCardData = {
+        ...base,
+        sources: Array.from(sourceSet),
+      };
+      const list = grouped.get(card.rank) ?? [];
+      list.push(card);
+      grouped.set(card.rank, list);
+    });
+
+    return Array.from(grouped.entries())
       .sort((a, b) => a[0] - b[0])
-      .map(([rank, set]) => ({ rank, moves: Array.from(set).sort() }));
-  }, [sessions, rankMoves, studentId]);
+      .map(([rank, cards]) => ({
+        rank,
+        cards: cards.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')),
+      }));
+  }, [rankMoves, sessions, studentId, rankExams]);
 
   const performanceHistory = useMemo(() => {
     const rows: Array<{ date: string; entry: SessionPerformanceEntry }> = [];
@@ -1454,16 +1548,40 @@ export function StudentDetailPage() {
         </div>
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
-          <div className="grid gap-3">
-            {passesByRank.length ? (
-              passesByRank.map((group) => (
-                <div key={group.rank} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-sm font-semibold text-slate-700">段位 L{group.rank}</p>
-                  <p className="mt-1 text-xs text-slate-500">{group.moves.join(' · ')}</p>
-                </div>
-              ))
+          <div className="space-y-4">
+            {freestylePassGroups.length ? (
+              freestylePassGroups.map((group) => {
+                const clearedCount = group.cards.filter((card) => card.cleared).length;
+                const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+                const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+                return (
+                  <div
+                    key={group.rank}
+                    className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-inner backdrop-blur"
+                  >
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                          段位 L{group.rank}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          可领取奖励 +{totalPoints} 分 · +{totalEnergy} ⚡
+                        </p>
+                      </div>
+                      <div className="text-xs font-medium text-slate-500">
+                        已通关 {clearedCount}/{group.cards.length}
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {group.cards.map((card) => (
+                        <FreestylePassCard key={card.moveId} data={card} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
             ) : (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-slate-400">
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
                 暂无通关记录
               </div>
             )}
@@ -1502,6 +1620,79 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
+  const { name, rank, rewardPoints, rewardEnergy, cleared, clearedAt, attempts, sources } = data;
+  const formattedDate = formatIsoDateLabel(clearedAt);
+  const attemptsLabel = !cleared
+    ? '等待首通'
+    : attempts > 1
+      ? `复练 ×${attempts - 1}`
+      : '首通完成';
+  const cardClass = cleared
+    ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80'
+    : 'border-slate-200 bg-white/70';
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border px-4 py-4 shadow-sm transition ${cardClass}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">L{rank}</p>
+          <h4 className="mt-1 text-base font-semibold text-slate-800">{name}</h4>
+        </div>
+        <div className="text-right text-xs font-semibold">
+          <div className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-1 text-purple-600">
+            +{rewardPoints}
+            <span className="text-[11px] font-medium">分</span>
+          </div>
+          <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-amber-500">
+            +{rewardEnergy}
+            <span className="text-[11px] font-medium">⚡</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between text-xs">
+        <div className={`flex items-center gap-1 ${cleared ? 'text-emerald-600' : 'text-slate-400'}`}>
+          {cleared ? '✅ 已通关' : '🕹️ 未通关'}
+          {cleared && formattedDate ? <span className="text-slate-400">（{formattedDate}）</span> : null}
+        </div>
+        <span className="text-slate-400">{attemptsLabel}</span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {sources.length ? (
+          sources.map((source) => (
+            <span
+              key={source}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                source === 'class' ? 'bg-sky-100 text-sky-600' : 'bg-rose-100 text-rose-600'
+              }`}
+            >
+              {source === 'class' ? '课堂挑战' : '测评晋级'}
+            </span>
+          ))
+        ) : (
+          <span className="text-[11px] text-slate-400">待记录</span>
+        )}
+      </div>
+      <div className="mt-4 h-1.5 w-full rounded-full bg-slate-200/70">
+        <div
+          className={`h-full rounded-full transition-all ${
+            cleared
+              ? 'w-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400'
+              : 'w-[24%] bg-slate-300'
+          }`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function formatIsoDateLabel(iso?: string) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('zh-CN');
+}
+
 function formatWindowLabel(window: WindowSec) {
   return window === 60 ? '1分钟' : `${window}s`;
 }
@@ -1529,6 +1720,8 @@ function labelForEnergySource(source: EnergySource): string {
       return '任务评星';
     case 'assessment':
       return '测评晋级';
+    case 'freestyle_pass':
+      return '花样通关';
     case 'kudos':
       return '荣耀点赞';
     case 'squad_milestone':

@@ -15,6 +15,8 @@ import { sessionsRepo } from '../../store/repositories/sessionsRepo';
 import { generateId } from '../../store/repositories/utils';
 import { AwardEngine } from '../../gamify/awardEngine';
 import { maybeUpgradeRank } from '../../utils/calc';
+import { pointEventsRepo } from '../../store/repositories/pointEventsRepo';
+import { sumFreestyleRewards } from '../../config/freestyleRewards';
 import { db } from '../../store/db';
 import { ASSESSMENT_METRICS } from '../../config/assessment';
 import { calculateWarriorAssessmentReport } from '../../utils/warriorAssessment';
@@ -302,28 +304,56 @@ export function AssessmentsIndexPage() {
     });
 
     if (record.passed) {
-
-
       const student = await studentsRepo.get(record.studentId);
       if (student) {
         const before = student.currentRank ?? 0;
         await studentsRepo.upsert({ ...student, currentRank: record.toRank });
-
-
         setStudents((prev) =>
           prev.map((item) => (item.id === student.id ? { ...item, currentRank: record.toRank } : item)),
         );
         if (record.toRank > before) {
-
-
           const reward = await AwardEngine.awardAssessmentRankUp(
             record.studentId,
             `RANK_${record.toRank}`,
             `段位 L${record.toRank}`,
           );
-
           setToastMessage(`段位晋级 +${reward} 能量`);
+        }
+      }
 
+      const previouslyReached = existing?.passed ? existing.toRank : record.fromRank;
+      if (record.toRank > previouslyReached) {
+        const ranksToReward = Array.from(
+          { length: record.toRank - previouslyReached },
+          (_, index) => previouslyReached + index + 1,
+        );
+        const totals = sumFreestyleRewards(ranksToReward);
+        const sessionId = `rank-exam:${record.id}`;
+
+        if (totals.points > 0) {
+          await pointEventsRepo.add({
+            id: generateId(),
+            studentId: record.studentId,
+            sessionId,
+            date: record.date,
+            type: 'freestyle_pass',
+            points: totals.points,
+            reason: `段位测评通关 L${previouslyReached} → L${record.toRank}`,
+          });
+        }
+
+        if (totals.energy > 0) {
+          await AwardEngine.grantEnergy(
+            record.studentId,
+            totals.energy,
+            'freestyle_pass',
+            sessionId,
+            {
+              fromRank: previouslyReached,
+              toRank: record.toRank,
+            },
+            new Date(record.date),
+          );
         }
       }
     }
