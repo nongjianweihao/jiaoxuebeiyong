@@ -1413,6 +1413,97 @@ export function StudentDetailPage() {
         <BadgeWall badges={badges} />
       </section>
 
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
+        <div className="space-y-4">
+          {freestylePassGroups.length ? (
+            <>
+              <div className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white shadow-xl">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/70">段位巡礼</p>
+                    <h4 className="mt-1 text-lg font-semibold">选择要冲刺的段位，领取荣耀奖励</h4>
+                  </div>
+                  <p className="max-w-xs text-xs leading-relaxed text-white/80">
+                    每个段位都有独特的动作挑战与积分、能量奖励。挑选目标段位，查看待解锁动作卡片，逐个点亮你的晋级路线！
+                  </p>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {freestylePassGroups.map((group) => {
+                    const clearedCount = group.cards.filter((card) => card.cleared).length;
+                    const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+                    const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+                    const totalCards = Math.max(group.cards.length, 1);
+                    const progress = Math.round((clearedCount / totalCards) * 100);
+                    const isActive = activeFreestyleRank === group.rank;
+                    return (
+                      <button
+                        type="button"
+                        key={group.rank}
+                        onClick={() => setActiveFreestyleRank(group.rank)}
+                        className={`group relative overflow-hidden rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-500 ${
+                          isActive ? 'border-white/80 bg-white/20 shadow-lg' : 'border-white/20 bg-white/10 hover:bg-white/20'
+                        }`}
+                      >
+                        <div className="absolute -top-8 right-0 h-20 w-20 rounded-full bg-white/20 blur-2xl transition group-hover:bg-white/30" />
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70">
+                              L{group.rank}
+                            </p>
+                            <p className="mt-1 text-sm font-semibold">累计奖励 +{totalPoints} 分</p>
+                            <p className="text-xs text-white/80">能量 +{totalEnergy}⚡</p>
+                          </div>
+                          <div className="text-right text-xs font-semibold text-white/80">
+                            <span>{clearedCount}</span>
+                            <span className="text-white/50">/{group.cards.length}</span>
+                            <p className="mt-1 text-[11px]">完成度 {progress}%</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 h-1.5 w-full rounded-full bg-white/20">
+                          <div
+                            className={`h-full rounded-full ${
+                              isActive ? 'bg-gradient-to-r from-white via-white to-amber-200' : 'bg-white/70'
+                            }`}
+                            style={{ width: `${Math.min(Math.max(progress, 8), 100)}%` }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {activeFreestyleGroup ? (
+                <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-inner backdrop-blur">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">段位 L{activeFreestyleGroup.rank}</p>
+                      <h4 className="mt-1 text-lg font-semibold text-slate-800">段位任务卡片</h4>
+                      <p className="mt-1 text-xs text-slate-500">
+                        完成所有动作即可领取本段位全部积分与能量奖励，让晋级更有仪式感！
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-900/90 px-4 py-3 text-xs text-slate-100 shadow-lg">
+                      <p className="text-[11px] text-slate-300">奖励概览</p>
+                      <p className="mt-1 text-sm font-semibold">积分 +{activeFreestyleSummary?.totalPoints ?? 0}</p>
+                      <p className="text-sm font-semibold">能量 +{activeFreestyleSummary?.totalEnergy ?? 0}⚡</p>
+                      <p className="mt-1 text-[11px] text-slate-300">
+                        已通关 {activeFreestyleSummary?.clearedCount ?? 0}/{activeFreestyleSummary?.totalCards ?? 0}
+                      </p>
+                    </div>
+                  </div>
+                  <FreestylePassCarousel cards={activeFreestyleGroup.cards} />
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
+              暂无通关记录
+            </div>
+          )}
+        </div>
+      </section>
+
       <section
         id="student-report"
         className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
@@ -1587,105 +1678,10 @@ export function StudentDetailPage() {
             </div>
           </div>
         </div>
-        <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
-          <div className="space-y-4">
-            {freestylePassGroups.length ? (
 
-              
-              <>
-                <div className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white shadow-xl">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.4em] text-white/70">段位巡礼</p>
-                      <h4 className="mt-1 text-lg font-semibold">选择要冲刺的段位，领取荣耀奖励</h4>
-                    </div>
-                    <p className="max-w-xs text-xs leading-relaxed text-white/80">
-                      每个段位都有独特的动作挑战与积分、能量奖励。挑选目标段位，查看待解锁动作卡片，逐个点亮你的晋级路线！
-                    </p>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {freestylePassGroups.map((group) => {
-                      const clearedCount = group.cards.filter((card) => card.cleared).length;
-                      const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
-                      const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
-                      const totalCards = Math.max(group.cards.length, 1);
-                      const progress = Math.round((clearedCount / totalCards) * 100);
-                      const isActive = activeFreestyleRank === group.rank;
-                      return (
-                        <button
-                          type="button"
-                          key={group.rank}
-                          onClick={() => setActiveFreestyleRank(group.rank)}
-                          className={`group relative overflow-hidden rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-500 ${
-                            isActive
-                              ? 'border-white/80 bg-white/20 shadow-lg'
-                              : 'border-white/20 bg-white/10 hover:bg-white/20'
-                          }`}
-                        >
-                          <div className="absolute -top-8 right-0 h-20 w-20 rounded-full bg-white/20 blur-2xl transition group-hover:bg-white/30" />
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70">
-                                L{group.rank}
-                              </p>
-                              <p className="mt-1 text-sm font-semibold">累计奖励 +{totalPoints} 分</p>
-                              <p className="text-xs text-white/80">能量 +{totalEnergy}⚡</p>
-                            </div>
-                            <div className="text-right text-xs font-semibold text-white/80">
-                              <span>{clearedCount}</span>
-                              <span className="text-white/50">/{group.cards.length}</span>
-                              <p className="mt-1 text-[11px]">完成度 {progress}%</p>
-                            </div>
-                          </div>
-                          <div className="mt-3 h-1.5 w-full rounded-full bg-white/20">
-                            <div
-                              className={`h-full rounded-full ${
-                                isActive ? 'bg-gradient-to-r from-white via-white to-amber-200' : 'bg-white/70'
-                              }`}
-                              style={{ width: `${Math.min(Math.max(progress, 8), 100)}%` }}
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                {activeFreestyleGroup ? (
-                  <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-inner backdrop-blur">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                          段位 L{activeFreestyleGroup.rank}
-                        </p>
-                        <h4 className="mt-1 text-lg font-semibold text-slate-800">段位任务卡片</h4>
-                        <p className="mt-1 text-xs text-slate-500">
-                          完成所有动作即可领取本段位全部积分与能量奖励，让晋级更有仪式感！
-                        </p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-900/90 px-4 py-3 text-xs text-slate-100 shadow-lg">
-                        <p className="text-[11px] text-slate-300">奖励概览</p>
-                        <p className="mt-1 text-sm font-semibold">积分 +{activeFreestyleSummary?.totalPoints ?? 0}</p>
-                        <p className="text-sm font-semibold">能量 +{activeFreestyleSummary?.totalEnergy ?? 0}⚡</p>
-                        <p className="mt-1 text-[11px] text-slate-300">
-                          已通关 {activeFreestyleSummary?.clearedCount ?? 0}/{activeFreestyleSummary?.totalCards ?? 0}
-                        </p>
-                      </div>
-                    </div>
-                    <FreestylePassCarousel cards={activeFreestyleGroup.cards} />
-                  </div>
 
-                  
-                ) : null}
-              </>
+        
 
-            ) : (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
-                暂无通关记录
-              </div>
-            )}
-          </div>
-        </section>
 
         <LessonLedgerPanel
           entries={lessonLedger}
@@ -1786,6 +1782,31 @@ function FreestylePassCarousel({ cards }: { cards: FreestylePassCardData[] }) {
   );
 }
 
+
+
+const BLIND_CARD_MESSAGES = [
+  '盲卡提示：菜就多练，越练越灵活！',
+  '盲卡鼓励：勇敢的人先享受世界。',
+  '盲卡宣言：战胜自己就是勇者。',
+  '盲卡提醒：别人快不代表你差，稳稳向前就好。',
+  '盲卡心声：倾听心声，放飞梦想。',
+  '盲卡能量：我运动，我健康，我快乐。',
+  '盲卡应援：加油，见证你的成长。',
+  '盲卡寄语：错了没关系，每次都是积累经验。',
+  '盲卡祝福：保持温柔且上进。',
+  '盲卡伙伴：累了可以休息，运动不能丢。',
+];
+
+function pickBlindCardMessage(moveId: string): string {
+  if (!BLIND_CARD_MESSAGES.length) {
+    return '盲卡提示：继续坚持，就能见证惊喜！';
+  }
+  const random = pseudoRandomFromString(`blind-card-${moveId}`);
+  const index = Math.floor(random * BLIND_CARD_MESSAGES.length) % BLIND_CARD_MESSAGES.length;
+  return BLIND_CARD_MESSAGES[index];
+}
+
+
 function FreestylePassCard({
   data,
   isActive,
@@ -1796,6 +1817,10 @@ function FreestylePassCard({
   onActivate: () => void;
 }) {
   const {
+
+    
+    moveId,
+
     name,
     rank,
     rewardPoints,
@@ -1807,6 +1832,10 @@ function FreestylePassCard({
     isSurprise,
     surpriseBonus,
   } = data;
+
+  
+  const blindCardMessage = pickBlindCardMessage(moveId);
+
   const formattedDate = formatIsoDateLabel(clearedAt);
   const attemptsLabel = !cleared
     ? '等待首通'
@@ -1861,7 +1890,10 @@ function FreestylePassCard({
             </div>
           ) : (
             <div className="flex flex-col items-end text-[11px] text-white/70">
-              <span className="rounded-full bg-white/10 px-2 py-1 font-medium">待翻开</span>
+
+              
+              <span className="rounded-full bg-white/10 px-2 py-1 font-medium">待翻开盲卡</span>
+
               <span className="mt-2 text-[10px] tracking-[0.25em]">KEEP TRYING</span>
             </div>
           )}
@@ -1904,9 +1936,10 @@ function FreestylePassCard({
             </div>
           ) : (
             <div className="space-y-3 text-xs">
-              <p className="text-center text-[13px] font-medium text-white/80">
-                再坚持一次，就能翻开这张盲盒卡！
-              </p>
+
+              
+              <p className="text-center text-[13px] font-medium text-white/80">{blindCardMessage}</p>
+
               <div className="flex items-center justify-between text-white/70">
                 <span className="flex items-center gap-1 font-medium">🕹️ 未通关</span>
                 <span>{attemptsLabel}</span>
