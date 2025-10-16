@@ -501,6 +501,8 @@ export function StudentDetailPage() {
     [pointsSummary.series],
   );
   const sortedEnergyLogs = useMemo(
+
+    
     () =>
       [...energyLogs].sort(
         (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -585,6 +587,7 @@ export function StudentDetailPage() {
         ? [{ label: '成长能量', color: '#fbbf24', data: energyCurve }]
         : [],
     [energyCurve],
+
   );
 
 
@@ -1328,6 +1331,8 @@ export function StudentDetailPage() {
 
 
         
+
+        
         <div className="grid gap-6 xl:grid-cols-2">
           <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50 to-slate-100 p-6 shadow-lg">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1346,6 +1351,7 @@ export function StudentDetailPage() {
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
                 <p className="text-xs text-slate-500">积分构成</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {Object.entries(pointsSummary.breakdown).map(([type, value]) => (
                     <li key={type} className="flex items-center justify-between text-xs">
@@ -1356,14 +1362,20 @@ export function StudentDetailPage() {
                 </ul>
               </div>
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+
+                
                 <p className="text-xs text-slate-500">近期积分事件</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {lastEvents.length ? (
                     lastEvents.map((event) => (
                       <li key={event.id} className="text-xs">
                         <span className="text-slate-400">{new Date(event.date).toLocaleDateString()} · </span>
+
+                        
                         <span className="font-semibold text-violet-600">{labelForPointType(event.type)}</span>
                         <span className="text-violet-500"> +{event.points}</span>
+
                         {event.reason && <span className="text-slate-500"> · {event.reason}</span>}
                       </li>
                     ))
@@ -1372,6 +1384,8 @@ export function StudentDetailPage() {
                   )}
                 </ul>
               </div>
+
+              
             </div>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-amber-50 to-rose-50 p-6 shadow-lg">
@@ -1389,15 +1403,19 @@ export function StudentDetailPage() {
               <ProgressChart series={energySeries} />
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
                 <p className="text-xs text-slate-500">能量构成</p>
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {energyBreakdownEntries.length ? (
+
+                    
                     energyBreakdownEntries.map((entry) => (
                       <li key={entry.key} className="flex items-center justify-between text-xs">
                         <span>{entry.label}</span>
                         <span className={entry.value >= 0 ? 'font-semibold text-amber-600' : 'font-semibold text-rose-500'}>
                           {entry.value > 0 ? `+${entry.value}` : entry.value}⚡
+
                         </span>
                       </li>
                     ))
@@ -1407,7 +1425,11 @@ export function StudentDetailPage() {
                 </ul>
               </div>
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+
+                
+                
                 <p className="text-xs text-slate-500">近期能量流水</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {recentEnergyLogs.length ? (
                     recentEnergyLogs.map((log, index) => {
