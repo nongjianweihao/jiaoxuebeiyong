@@ -1,6 +1,5 @@
 
-
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -20,491 +19,712 @@ import {
 } from 'recharts';
 import type { NameType, TooltipProps, ValueType } from 'recharts';
 
-const fitnessHighlights = [
-  {
-    title: '综合体能指数',
-    value: 86,
-    change: 3.2,
-    description: '较上月提升 3.2 分，高于同龄运动员平均水平 12%。',
-    trend: [80, 81, 83, 86],
-  },
-  {
-    title: '技能熟练度',
-    value: 4.3,
-    change: 0.4,
-    description: '动作规范评分持续攀升，专项技巧完成度突破 85%。',
-    trend: [3.5, 3.7, 3.9, 4.3],
-  },
-  {
-    title: '耐力指数',
-    value: 82,
-    change: 2.8,
-    description: '60 秒波比跳与折返跑平均完成度稳定增长。',
-    trend: [74, 76, 79, 82],
-  },
-];
+import { db } from '../../store/db';
+import { studentsRepo } from '../../store/repositories/studentsRepo';
+import { classesRepo } from '../../store/repositories/classesRepo';
+import type { ClassEntity, FitnessTestItem, FitnessTestResult, Student } from '../../types';
 
-const classFitnessMatrix = [
-  {
-    id: 'thunder',
-    className: '雷霆战队',
-    speed: 88,
-    strength: 90,
-    endurance: 84,
-    agility: 86,
-    highlight: '力量维度较上月 +6 pts，来源于周三力量加餐。',
-    color: '#6366f1',
-  },
-  {
-    id: 'lightning',
-    className: 'Lightning Squad',
-    speed: 86,
-    strength: 82,
-    endurance: 88,
-    agility: 84,
-    highlight: '耐力表现领跑，长距离跑步训练执行到位。',
-    color: '#22d3ee',
-  },
-  {
-    id: 'sparks',
-    className: 'Energy Sparks',
-    speed: 81,
-    strength: 84,
-    endurance: 79,
-    agility: 83,
-    highlight: '灵敏协调优势明显，建议补充力量模块。',
-    color: '#f97316',
-  },
-];
+const dimensionLabels: Record<string, string> = {
+  speed: '速度',
+  power: '力量',
+  endurance: '耐力',
+  coordination: '协调',
+  agility: '灵敏',
+  balance: '平衡',
+  flexibility: '柔韧',
+  core: '核心',
+  accuracy: '准确',
+  morphology: '形态',
+};
 
-const skillAssessments = [
-  {
-    skill: '敏捷步伐',
-    passRate: 82,
-    bestClass: 'Lightning Squad',
-    trend: 4,
-    insight: '梯子步 + 折返跑组合训练贡献主要增量。',
-  },
-  {
-    skill: '力量爆发',
-    passRate: 78,
-    bestClass: '雷霆战队',
-    trend: 6,
-    insight: '杠铃推举 + 核心抗阻强化了力量输出。',
-  },
-  {
-    skill: '核心稳定',
-    passRate: 74,
-    bestClass: 'Energy Sparks',
-    trend: 3,
-    insight: '平板支撑延时训练让核心稳定性稳步提升。',
-  },
-  {
-    skill: '速度耐力',
-    passRate: 69,
-    bestClass: '雷霆战队',
-    trend: 5,
-    insight: '4x200m 分组接力与家庭打卡结合成效显著。',
+interface MonthlyCoveragePoint {
+  monthKey: string;
+  monthLabel: string;
+  coverageRate: number;
+  testers: number;
+  sessions: number;
+}
 
-  },
-];
+interface SkillStat {
+  itemId: string;
+  name: string;
+  unit?: string;
+  quality?: string;
+  testers: number;
+  average: number;
+  improvement: number;
+  bestClass?: string;
+}
 
-const studentProgress = [
-  {
-    name: '王小远',
-    improvement: 12,
-    focus: '50m 冲刺成绩从 8.2s 提升至 7.4s，步频练习成效显著。',
-  },
-  {
-    name: '李可心',
-    improvement: 9,
-    focus: '核心稳定性评分上升 0.6，家庭陪练坚持 18 天。',
-  },
-  {
-    name: '陈一帆',
-    improvement: 7,
-    focus: '立定跳远提升 18cm，力量与爆发力训练协同完成。',
-  },
-];
+interface RosterRow {
+  id: string;
+  name: string;
+  className: string;
+  status: '已完成' | '待安排';
+  latestDate?: string;
+  latestQuarter?: string;
+  coachComment?: string;
+  score: number | null;
+  improvement: number | null;
+}
 
-const riskAlerts = [
-  {
-    title: '柔韧性预警',
-    detail: 'Sit-and-reach 平均得分 7.8，低于俱乐部目标 8.5。建议安排专项拉伸营。',
-    level: 'bg-amber-50 text-amber-600',
-  },
-  {
-    title: '心肺耐力关注',
-    detail: 'SR60 疲劳指数连续 2 周上升，注意控制负荷与恢复周期。',
-    level: 'bg-rose-50 text-rose-600',
-  },
-];
+interface ImprovementRow {
+  studentId: string;
+  name: string;
+  delta: number;
+  className?: string;
+  latestDate?: string;
+}
 
-const fitnessDimensions = [
-  { key: 'speed', label: '速度' },
-  { key: 'strength', label: '力量' },
-  { key: 'endurance', label: '耐力' },
-  { key: 'agility', label: '灵敏' },
-] as const;
+function formatMonthLabel(monthKey: string) {
+  const [year, month] = monthKey.split('-');
+  if (!year || !month) return monthKey;
+  return `${year}年${Number(month)}月`;
+}
+
+function formatDateLabel(iso?: string, withYear = false) {
+  if (!iso) return '暂无记录';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '暂无记录';
+  return date.toLocaleDateString('zh-CN', withYear ? { year: 'numeric', month: 'long', day: 'numeric' } : { month: 'long', day: 'numeric' });
+}
+
+function safeAverage(values: number[]) {
+  if (!values.length) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function compositeScore(result?: FitnessTestResult) {
+  if (!result?.radar) return null;
+  const values = Object.values(result.radar).filter((value): value is number => typeof value === 'number' && !Number.isNaN(value));
+  if (!values.length) return null;
+  return safeAverage(values);
+}
+
+function formatNumber(value: number | null, digits = 1) {
+  if (value == null || Number.isNaN(value)) return '--';
+  return value.toFixed(digits);
+}
+
+function CoverageTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const testers = payload.find((item) => item.dataKey === 'testers');
+  const coverage = payload.find((item) => item.dataKey === 'coverageRate');
+  const sessions = payload.find((item) => item.dataKey === 'sessions');
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white/90 p-3 text-xs text-slate-600 shadow">
+      <p className="font-semibold text-slate-900">{label}</p>
+      <p className="mt-1">覆盖率：{coverage?.value}%</p>
+      <p>完成测评人数：{testers?.value} 人</p>
+      <p>测评记录：{sessions?.value} 次</p>
+    </div>
+  );
+}
+
+function DimensionTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const datum = payload[0];
+  return (
+    <div className="rounded-xl border border-indigo-100 bg-white/95 p-3 text-xs text-slate-600 shadow">
+      <p className="font-semibold text-indigo-600">{datum.name}</p>
+      <p className="mt-1">平均得分：{datum.value}</p>
+    </div>
+  );
+}
 
 export function TrialArenaPage() {
-  const classRadarData = useMemo(() => {
-    return fitnessDimensions.map((dimension) => {
-      const row: Record<string, string | number> = { dimension: dimension.label };
-      classFitnessMatrix.forEach((item) => {
-        row[item.id] = item[dimension.key as keyof typeof item] as number;
-      });
-      return row;
-    });
+  const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassEntity[]>([]);
+  const [items, setItems] = useState<FitnessTestItem[]>([]);
+  const [results, setResults] = useState<FitnessTestResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [rosterExpanded, setRosterExpanded] = useState(false);
+
+  useEffect(() => {
+    let disposed = false;
+
+    async function load() {
+      setLoading(true);
+      try {
+        const [studentList, classList, itemList, resultList] = await Promise.all([
+          studentsRepo.list(),
+          classesRepo.list(),
+          db.fitnessTestItems.toArray(),
+          db.fitnessTests.orderBy('date').toArray(),
+        ]);
+        if (disposed) return;
+        setStudents(studentList);
+        setClasses(classList);
+        setItems(itemList as FitnessTestItem[]);
+        setResults(resultList as FitnessTestResult[]);
+      } catch (error) {
+        console.error('加载体能测评数据失败', error);
+      } finally {
+        if (!disposed) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      disposed = true;
+    };
   }, []);
 
-  const skillBarData = useMemo(
-    () =>
-      skillAssessments.map((item) => ({
-        技能: item.skill,
-        通过率: item.passRate,
-        trend: item.trend,
-        bestClass: item.bestClass,
-        insight: item.insight,
-      })),
-    [],
-  );
+  const totalStudents = students.length;
 
-  const progressChartData = useMemo(
-    () =>
-      studentProgress.map((item) => ({
-        name: item.name,
-        提升幅度: item.improvement,
-        focus: item.focus,
-      })),
-    [],
-  );
+  const classById = useMemo(() => new Map(classes.map((cls) => [cls.id, cls])), [classes]);
+
+  const classByStudent = useMemo(() => {
+    const map = new Map<string, ClassEntity>();
+    classes.forEach((cls) => {
+      cls.studentIds.forEach((studentId) => map.set(studentId, cls));
+    });
+    return map;
+  }, [classes]);
+
+  const studentById = useMemo(() => new Map(students.map((student) => [student.id, student])), [students]);
+
+  const resultsByStudent = useMemo(() => {
+    const map = new Map<string, FitnessTestResult[]>();
+    results.forEach((result) => {
+      const list = map.get(result.studentId) ?? [];
+      list.push(result);
+      map.set(result.studentId, list);
+    });
+    map.forEach((list, key) => {
+      list.sort((a, b) => a.date.localeCompare(b.date));
+      map.set(key, list);
+    });
+    return map;
+  }, [results]);
+
+  const latestResults = useMemo(() => {
+    const map = new Map<string, FitnessTestResult>();
+    resultsByStudent.forEach((list, studentId) => {
+      if (list.length) {
+        map.set(studentId, list[list.length - 1]);
+      }
+    });
+    return map;
+  }, [resultsByStudent]);
+
+  const previousResults = useMemo(() => {
+    const map = new Map<string, FitnessTestResult>();
+    resultsByStudent.forEach((list, studentId) => {
+      if (list.length > 1) {
+        map.set(studentId, list[list.length - 2]);
+      }
+    });
+    return map;
+  }, [resultsByStudent]);
+
+  const coverageRate = totalStudents ? Math.round((latestResults.size / totalStudents) * 100) : 0;
+  const pendingCount = Math.max(totalStudents - latestResults.size, 0);
+  const lastTestDate = useMemo(() => {
+    if (!results.length) return null;
+    return results.reduce((latest, result) => (latest && latest > result.date ? latest : result.date), results[0].date);
+  }, [results]);
+
+  const compositeAverage = useMemo(() => {
+    const scores: number[] = [];
+    latestResults.forEach((result) => {
+      const score = compositeScore(result);
+      if (score != null) {
+        scores.push(score);
+      }
+    });
+    if (!scores.length) return null;
+    return parseFloat(safeAverage(scores).toFixed(1));
+  }, [latestResults]);
+
+  const monthlySeries: MonthlyCoveragePoint[] = useMemo(() => {
+    if (!results.length) return [];
+    const map = new Map<string, { results: number; testers: Set<string> }>();
+    results.forEach((result) => {
+      const monthKey = result.date.slice(0, 7);
+      const bucket = map.get(monthKey) ?? { results: 0, testers: new Set<string>() };
+      bucket.results += 1;
+      bucket.testers.add(result.studentId);
+      map.set(monthKey, bucket);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([monthKey, bucket]) => ({
+        monthKey,
+        monthLabel: formatMonthLabel(monthKey),
+        coverageRate: totalStudents ? Math.round((bucket.testers.size / totalStudents) * 100) : 0,
+        testers: bucket.testers.size,
+        sessions: bucket.results,
+      }));
+  }, [results, totalStudents]);
+
+  const dimensionAverages = useMemo(() => {
+    const totals = new Map<string, { sum: number; count: number }>();
+    latestResults.forEach((result) => {
+      Object.entries(result.radar ?? {}).forEach(([quality, value]) => {
+        if (typeof value !== 'number' || Number.isNaN(value)) return;
+        const bucket = totals.get(quality) ?? { sum: 0, count: 0 };
+        bucket.sum += value;
+        bucket.count += 1;
+        totals.set(quality, bucket);
+      });
+    });
+    return Array.from(totals.entries())
+      .map(([quality, { sum, count }]) => ({
+        quality,
+        label: dimensionLabels[quality] ?? quality,
+        value: count ? parseFloat((sum / count).toFixed(1)) : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [latestResults]);
+
+  const improvementLeaders: ImprovementRow[] = useMemo(() => {
+    const rows: ImprovementRow[] = [];
+    students.forEach((student) => {
+      const latest = latestResults.get(student.id);
+      const previous = previousResults.get(student.id);
+      if (!latest || !previous) return;
+      const latestScore = compositeScore(latest);
+      const previousScore = compositeScore(previous);
+      if (latestScore == null || previousScore == null) return;
+      rows.push({
+        studentId: student.id,
+        name: student.name,
+        delta: parseFloat((latestScore - previousScore).toFixed(1)),
+        className: classByStudent.get(student.id)?.name,
+        latestDate: latest.date,
+      });
+    });
+    return rows.sort((a, b) => b.delta - a.delta).slice(0, 4);
+  }, [students, latestResults, previousResults, classByStudent]);
+
+  const itemMap = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
+
+  const skillStats: SkillStat[] = useMemo(() => {
+    if (!items.length) return [];
+    const totals = new Map<string, { sum: number; count: number; classTotals: Map<string, { sum: number; count: number }>; improvements: number[] }>();
+
+    latestResults.forEach((result, studentId) => {
+      result.items.forEach(({ itemId, value }) => {
+        const stat = totals.get(itemId) ?? {
+          sum: 0,
+          count: 0,
+          classTotals: new Map<string, { sum: number; count: number }>(),
+          improvements: [] as number[],
+        };
+        stat.sum += value;
+        stat.count += 1;
+        const classId = classByStudent.get(studentId)?.id;
+        if (classId) {
+          const classStat = stat.classTotals.get(classId) ?? { sum: 0, count: 0 };
+          classStat.sum += value;
+          classStat.count += 1;
+          stat.classTotals.set(classId, classStat);
+        }
+        totals.set(itemId, stat);
+      });
+    });
+
+    resultsByStudent.forEach((list) => {
+      if (list.length < 2) return;
+      const previous = list[list.length - 2];
+      const latest = list[list.length - 1];
+      latest.items.forEach((item) => {
+        const previousItem = previous.items.find((entry) => entry.itemId === item.itemId);
+        if (!previousItem) return;
+        const stat = totals.get(item.itemId);
+        if (stat) {
+          stat.improvements.push(item.value - previousItem.value);
+        }
+      });
+    });
+
+    return Array.from(totals.entries())
+      .map(([itemId, stat]) => {
+        const item = itemMap.get(itemId);
+        let bestClass: string | undefined;
+        let bestAverage = -Infinity;
+        stat.classTotals.forEach((value, classId) => {
+          if (!value.count) return;
+          const avg = value.sum / value.count;
+          if (avg > bestAverage) {
+            bestAverage = avg;
+            bestClass = classById.get(classId)?.name ?? classId;
+          }
+        });
+        const average = stat.count ? stat.sum / stat.count : 0;
+        const improvement = stat.improvements.length
+          ? stat.improvements.reduce((sum, value) => sum + value, 0) / stat.improvements.length
+          : 0;
+        return {
+          itemId,
+          name: item?.name ?? itemId,
+          unit: item?.unit,
+          quality: item?.quality,
+          testers: stat.count,
+          average: parseFloat(average.toFixed(1)),
+          improvement: parseFloat(improvement.toFixed(1)),
+          bestClass,
+        };
+      })
+      .sort((a, b) => b.average - a.average);
+  }, [items, latestResults, resultsByStudent, classByStudent, classById, itemMap]);
+
+  const classAssessments = useMemo(() => {
+    return classes.map((cls) => {
+      const roster = cls.studentIds
+        .map((studentId) => studentById.get(studentId))
+        .filter((student): student is Student => Boolean(student));
+      const tested = roster.filter((student) => latestResults.has(student.id));
+      const coverage = roster.length ? Math.round((tested.length / roster.length) * 100) : 0;
+      let compositeTotal = 0;
+      let compositeCount = 0;
+      let lastDate: string | undefined;
+      tested.forEach((student) => {
+        const result = latestResults.get(student.id);
+        const score = compositeScore(result);
+        if (score != null) {
+          compositeTotal += score;
+          compositeCount += 1;
+        }
+        if (result?.date && (!lastDate || result.date > lastDate)) {
+          lastDate = result.date;
+        }
+      });
+      return {
+        id: cls.id,
+        name: cls.name,
+        headcount: roster.length,
+        coverage,
+        testedCount: tested.length,
+        averageScore: compositeCount ? parseFloat((compositeTotal / compositeCount).toFixed(1)) : null,
+        lastTestDate: lastDate,
+      };
+    });
+  }, [classes, studentById, latestResults]);
+
+  const rosterRows: RosterRow[] = useMemo(() => {
+    return students
+      .map((student) => {
+        const latest = latestResults.get(student.id);
+        const previous = previousResults.get(student.id);
+        const score = compositeScore(latest);
+        const improvement = latest && previous ? compositeScore(latest)! - (compositeScore(previous) ?? 0) : null;
+        return {
+          id: student.id,
+          name: student.name,
+          className: classByStudent.get(student.id)?.name ?? '未分班',
+          status: latest ? '已完成' : '待安排',
+          latestDate: latest?.date,
+          latestQuarter: latest?.quarter,
+          coachComment: latest?.coachComment,
+          score: score != null ? parseFloat(score.toFixed(1)) : null,
+          improvement: improvement != null ? parseFloat(improvement.toFixed(1)) : null,
+        };
+      })
+      .sort((a, b) => {
+        if (a.status !== b.status) return a.status === '待安排' ? 1 : -1;
+        if (a.latestDate && b.latestDate) return b.latestDate.localeCompare(a.latestDate);
+        if (a.latestDate) return -1;
+        if (b.latestDate) return 1;
+        return a.name.localeCompare(b.name, 'zh-CN');
+      });
+  }, [students, latestResults, previousResults, classByStudent]);
+
+  const visibleRoster = rosterExpanded ? rosterRows : rosterRows.slice(0, 6);
+  const hasMoreRoster = rosterRows.length > 6;
 
   return (
     <div className="space-y-8">
       <header className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="uppercase tracking-[0.4em] text-slate-400">Warrior Performance Lab</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">勇士试炼场 · 体能测评塔</h1>
             <p className="mt-2 text-sm text-slate-500">
-              聚焦学员体能、技能、耐力与爆发力的综合测评，输出班级对比、技能热力、个体突破与风险预警。
+              实时汇总学员测评覆盖率、专项指标与班级体能表现，帮助教练精准安排下一轮测评计划。
             </p>
           </div>
-          <div className="flex flex-col gap-3 text-xs text-slate-500">
-            <span className="self-start rounded-full bg-indigo-50 px-4 py-2 text-indigo-500">周期：最近 4 周测评</span>
-            <button className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:scale-105">
-              导出体能战报
-            </button>
+          <div className="grid gap-2 text-xs text-slate-500">
+            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
+              总学员 {totalStudents} 人 · 覆盖 {coverageRate}%
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-600">
+              最近测评 {lastTestDate ? formatDateLabel(lastTestDate, true) : '尚未开展'}
+            </span>
           </div>
         </div>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-3">
-
-        
-        {fitnessHighlights.map((item) => {
-          const sparklineData = item.trend.map((value, index) => ({ step: index + 1, value }));
-          const changeLabel = item.change >= 0 ? `+${item.change}` : item.change.toString();
-
-          return (
-            <article key={item.title} className="space-y-4 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">{item.title}</h2>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">{changeLabel}</span>
+      {loading ? (
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white/70 p-10 text-center text-sm text-slate-500">
+          正在加载体能测评数据…
+        </div>
+      ) : (
+        <>
+          <section className="grid gap-6 lg:grid-cols-3">
+            <article className="rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span className="font-semibold uppercase tracking-[0.3em] text-slate-400">覆盖率</span>
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-600">测评进行中</span>
               </div>
-              <p className="text-3xl font-bold text-slate-900">{formatHighlightValue(item.title, item.value)}</p>
-              <div className="h-20 rounded-2xl bg-slate-50/60 p-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={sparklineData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="step" hide />
-                    <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                    <Tooltip content={<HighlightTooltip />} />
-                    <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-sm leading-relaxed text-slate-500">{item.description}</p>
+              <p className="mt-4 text-4xl font-bold text-slate-900">{coverageRate}%</p>
+              <p className="mt-2 text-sm text-slate-500">已完成 {latestResults.size} / {totalStudents} 名勇士的体能测评。</p>
             </article>
-          );
-        })}
-      </section>
-
-      <section className="grid gap-6 2xl:grid-cols-[1.7fr,1fr]">
-        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">班级体能对比矩阵</h2>
-              <p className="text-sm text-slate-500">速度、力量、耐力、灵敏 4 维评分，发现班级优势与短板。</p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">评分基于 500+ 测评样本</span>
-          </header>
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
-            <div className="h-80 rounded-2xl bg-white/60 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={classRadarData} outerRadius="70%">
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="dimension" stroke="#64748b" tick={{ fontSize: 12 }} />
-                  <PolarRadiusAxis angle={30} domain={[70, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <Tooltip content={<ClassRadarTooltip />} />
-                  {classFitnessMatrix.map((cls) => (
-                    <Radar
-                      key={cls.id}
-                      name={cls.className}
-                      dataKey={cls.id}
-                      stroke={cls.color}
-                      fill={cls.color}
-                      fillOpacity={0.25}
-                    />
-                  ))}
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    formatter={(value) => classFitnessMatrix.find((cls) => cls.id === value)?.className ?? value}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="space-y-3 text-xs text-slate-600">
-              {classFitnessMatrix.map((row) => (
-                <li key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                  <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
-                    <span className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
-                      {row.className}
-                    </span>
-                    <span>综合均分 {Math.round((row.speed + row.strength + row.endurance + row.agility) / 4)}</span>
-                  </div>
-                  <p className="mt-2 leading-relaxed">{row.highlight}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-          <header className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">风险与恢复提示</h2>
-              <p className="text-sm text-slate-500">从疲劳指数、柔韧与心肺数据中自动识别预警。</p>
-            </div>
-            <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-500">即时提醒</span>
-          </header>
-          <div className="space-y-3 text-xs">
-            {riskAlerts.map((alert) => (
-              <div key={alert.title} className={`rounded-2xl p-4 ${alert.level}`}>
-                <p className="text-sm font-semibold">{alert.title}</p>
-                <p className="mt-2 leading-relaxed">{alert.detail}</p>
+            <article className="rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span className="font-semibold uppercase tracking-[0.3em] text-slate-400">综合得分</span>
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-600">雷达均值</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <p className="mt-4 text-4xl font-bold text-slate-900">{formatNumber(compositeAverage)}</p>
+              <p className="mt-2 text-sm text-slate-500">结合 10 大体能维度的最新雷达均分。</p>
+            </article>
+            <article className="rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span className="font-semibold uppercase tracking-[0.3em] text-slate-400">待安排</span>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-600">提醒排期</span>
+              </div>
+              <p className="mt-4 text-4xl font-bold text-slate-900">{pendingCount} 人</p>
+              <p className="mt-2 text-sm text-slate-500">尚未完成本周期测评的勇士，建议优先跟进。</p>
+            </article>
+          </section>
 
+          <section className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
+            <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+              <header className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">测评进度</h2>
+                  <p className="text-sm text-slate-500">按月追踪覆盖率与测评场次，辅助排期节奏。</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">最近 {monthlySeries.length} 个月</span>
+              </header>
+              {monthlySeries.length ? (
+                <div className="h-64 rounded-2xl bg-white/60 p-3">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlySeries}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="monthLabel" stroke="#94a3b8" tickLine={false} />
+                      <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} tickFormatter={(value) => `${value}%`} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} />
+                      <Tooltip content={<CoverageTooltip />} />
+                      <Legend verticalAlign="top" height={32} />
+                      <Line yAxisId="left" type="monotone" dataKey="coverageRate" stroke="#6366f1" strokeWidth={3} name="覆盖率" />
+                      <Line yAxisId="right" type="monotone" dataKey="testers" stroke="#0ea5e9" strokeWidth={2} name="测评人数" />
+                      <Line yAxisId="right" type="monotone" dataKey="sessions" stroke="#f97316" strokeWidth={2} strokeDasharray="6 3" name="测评次数" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-center text-xs text-slate-500">
+                  尚无测评记录，完成首次测评后即可查看趋势。
+                </div>
+              )}
 
-      <section className="grid gap-6 2xl:grid-cols-[1.4fr,1fr]">
-        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">技能维度热力追踪</h2>
-              <p className="text-sm text-slate-500">技能通过率 + 趋势，识别重点提升模块，安排针对性训练。</p>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">进步最快的勇士</h3>
+                {improvementLeaders.length ? (
+                  <ul className="mt-3 grid gap-3 md:grid-cols-2">
+                    {improvementLeaders.map((row) => (
+                      <li key={row.studentId} className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs text-emerald-700">
+                        <div className="flex items-center justify-between text-sm font-semibold text-emerald-700">
+                          <span>{row.name}</span>
+                          <span>+{row.delta} 分</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-emerald-500">{row.className ?? '未分班'}</p>
+                        <p className="mt-2 leading-relaxed text-emerald-700/80">最新测评：{formatDateLabel(row.latestDate)}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-3 text-xs text-slate-500">等待第二次测评后即可自动计算进步幅度。</p>
+                )}
+              </div>
             </div>
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-500">近 6 次测评均值</span>
-          </header>
 
-          
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
-            <div className="h-80 rounded-2xl bg-white/60 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={skillBarData} margin={{ top: 10, right: 24, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="技能" stroke="#94a3b8" tickLine={false} />
-                  <YAxis stroke="#94a3b8" tickFormatter={(value) => `${value}%`} tickLine={false} />
-                  <Tooltip content={<SkillTooltip />} />
-                  <Bar dataKey="通过率" fill="#22d3ee" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="space-y-3 text-xs text-slate-600">
-              {skillAssessments.map((skill) => (
-                <li key={skill.skill} className="rounded-2xl bg-slate-50/80 p-4">
-                  <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
-                    <span>{skill.skill}</span>
-                    <span>{skill.passRate}% 通过率</span>
+            <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+              <header className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">体能维度雷达</h2>
+                  <p className="text-sm text-slate-500">展示当前雷达均分，定位优势与短板。</p>
+                </div>
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-500">最新测评</span>
+              </header>
+              {dimensionAverages.length ? (
+                <>
+                  <div className="h-72 rounded-2xl bg-white/60 p-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={dimensionAverages} outerRadius="70%">
+                        <PolarGrid stroke="#e2e8f0" />
+                        <PolarAngleAxis dataKey="label" stroke="#64748b" tick={{ fontSize: 12 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                        <Tooltip content={<DimensionTooltip />} />
+                        <Radar name="体能维度" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.3} />
+                      </RadarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">领先班级 · {skill.bestClass}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{skill.insight}</p>
-                  <p className="mt-2 text-[11px] text-emerald-500">趋势 {skill.trend > 0 ? `+${skill.trend}` : skill.trend}%</p>
-                </li>
-              ))}
-            </ul>
-
-          </div>
-        </div>
-
-        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-          <header className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">个人突破档案</h2>
-              <p className="text-sm text-slate-500">聚焦近 4 周体能提升最快的勇士，及时表彰激励。</p>
+                  <ul className="space-y-2 text-xs text-slate-600">
+                    {dimensionAverages.map((dimension) => (
+                      <li key={dimension.quality} className="flex items-center justify-between rounded-xl bg-indigo-50/50 px-3 py-2">
+                        <span>{dimension.label}</span>
+                        <span className="font-semibold text-indigo-600">{dimension.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-indigo-100 bg-white/70 p-6 text-center text-xs text-indigo-500">
+                  暂无雷达数据，完成测评后自动生成。
+                </div>
+              )}
             </div>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">Top 3</span>
-          </header>
+          </section>
 
-          
-          <div className="grid gap-4">
-            <div className="h-64 rounded-2xl bg-white/60 p-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={progressChartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} />
-                  <YAxis stroke="#94a3b8" tickFormatter={(value) => `${value}%`} tickLine={false} />
-                  <Tooltip content={<ProgressTooltip />} />
-                  <Bar dataKey="提升幅度" fill="#34d399" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="space-y-3">
-              {studentProgress.map((student) => (
-                <li key={student.name} className="rounded-2xl bg-emerald-50/70 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-emerald-700">{student.name}</p>
-                      <p className="text-xs text-emerald-500">成长幅度 +{student.improvement}%</p>
+          <section className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+            <header className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">专项测评指标</h2>
+                <p className="text-sm text-slate-500">基于最新测评结果的专项平均值与进步幅度。</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">含 {skillStats.length} 项</span>
+            </header>
+            {skillStats.length ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead className="bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold">专项指标</th>
+                      <th className="px-4 py-3 text-right font-semibold">平均</th>
+                      <th className="px-4 py-3 text-right font-semibold">平均进步</th>
+                      <th className="px-4 py-3 text-right font-semibold">测评人数</th>
+                      <th className="px-4 py-3 text-left font-semibold">表现最佳班级</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
+                    {skillStats.map((stat) => (
+                      <tr key={stat.itemId}>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-slate-800">{stat.name}</div>
+                          <div className="mt-1 text-[11px] text-slate-400">维度：{stat.quality ?? '未标注'} · 单位：{stat.unit ?? '--'}</div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatNumber(stat.average)}</td>
+                        <td className="px-4 py-3 text-right text-emerald-600">{formatNumber(stat.improvement)}</td>
+                        <td className="px-4 py-3 text-right">{stat.testers}</td>
+                        <td className="px-4 py-3">{stat.bestClass ?? '尚无班级完成'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-center text-xs text-slate-500">
+                当前暂无专项测评数据，请安排测评任务后查看表现。
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+            <header className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">班级体能概览</h2>
+                <p className="text-sm text-slate-500">统计每个班级的测评覆盖率与综合得分。</p>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">{classes.length} 个班级</span>
+            </header>
+            {classAssessments.length ? (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {classAssessments.map((cls) => (
+                  <article key={cls.id} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-slate-800">{cls.name}</h3>
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-xs text-slate-500">{cls.headcount} 人</span>
                     </div>
-                    <button className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow hover:bg-emerald-600">
-                      查看测评
-                    </button>
-                  </div>
-                  <p className="mt-3 text-xs leading-relaxed text-emerald-600">{student.focus}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+                    <div className="grid gap-2 text-xs text-slate-600">
+                      <div className="flex items-center justify-between">
+                        <span>覆盖率</span>
+                        <span className="font-semibold text-emerald-600">{cls.coverage}% ({cls.testedCount}/{cls.headcount})</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>综合体能</span>
+                        <span className="font-semibold text-indigo-600">{formatNumber(cls.averageScore)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>最近测评</span>
+                        <span>{formatDateLabel(cls.lastTestDate)}</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-center text-xs text-slate-500">
+                暂无班级信息，创建班级后即可查看测评概览。
+              </div>
+            )}
+          </section>
 
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
-        <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">测评结论与训练建议</h2>
-            <p className="text-sm text-slate-500">将数据转化为训练与家校联动动作，助力勇士持续进阶。</p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">每周自动生成</span>
-        </header>
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          <SuggestionCard
-            title="班级训练建议"
-            details="雷霆战队加大柔韧模块，Lightning Squad 延长冲刺恢复时长，Energy Sparks 补齐力量循环。"
-          />
-          <SuggestionCard
-            title="个体关怀"
-            details="识别 6 位心率恢复偏慢学员，安排专业物理治疗师介入 + 家庭放松方案。"
-          />
-          <SuggestionCard
-            title="家长沟通重点"
-            details="输出体能进阶报告模板，突出成长曲线、训练打卡与在家延伸练习建议。"
-          />
-        </div>
-      </section>
+          <section className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+            <header className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">学员测评清单</h2>
+                <p className="text-sm text-slate-500">支持折叠的测评名单，便于快速查看待安排学员。</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">共 {rosterRows.length} 位</span>
+            </header>
+            {rosterRows.length ? (
+              <>
+                <ul className="space-y-4">
+                  {visibleRoster.map((row) => (
+                    <li key={row.id} className="rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-600">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-base font-semibold text-slate-900">{row.name}</p>
+                          <p className="text-xs text-slate-400">{row.className}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className={`rounded-full px-3 py-1 font-medium ${
+                            row.status === '已完成'
+                              ? 'bg-emerald-50 text-emerald-600'
+                              : 'bg-amber-50 text-amber-600'
+                          }`}>
+                            {row.status}
+                          </span>
+                          {row.score != null && (
+                            <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-600">综合 {formatNumber(row.score)}</span>
+                          )}
+                          {row.improvement != null && (
+                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-600">提升 {formatNumber(row.improvement)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-2 text-xs text-slate-500 md:grid-cols-3">
+                        <div>最近测评：{formatDateLabel(row.latestDate)}</div>
+                        <div>测评周期：{row.latestQuarter ?? '待安排'}</div>
+                        <div>教练备注：{row.coachComment ?? '暂无'}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {hasMoreRoster ? (
+                  <button
+                    type="button"
+                    onClick={() => setRosterExpanded((prev) => !prev)}
+                    className="w-full rounded-2xl border border-dashed border-slate-300 bg-white/70 py-3 text-sm font-semibold text-slate-600 transition hover:bg-white"
+                  >
+                    {rosterExpanded ? '收起学员清单' : `展开全部 ${rosterRows.length} 位学员`}
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-center text-xs text-slate-500">
+                暂无学员数据，请先在成长营中添加勇士。
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
-  );
-}
-
-
-
-function formatHighlightValue(title: string, value: number) {
-  if (title.includes('技能熟练度')) {
-    return `${value.toFixed(1)} / 5`;
-  }
-  return value.toFixed(0);
-}
-
-function HighlightTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
-  if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload as { step: number; value: number };
-
-  return (
-    <div className="rounded-2xl border border-indigo-200 bg-white/95 p-2 text-xs text-slate-600 shadow">
-      <p className="font-semibold text-slate-700">第 {point.step} 周</p>
-      <p className="mt-1 text-sm font-bold text-indigo-500">{point.value.toFixed(1)}</p>
-    </div>
-  );
-}
-
-function ClassRadarTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs text-slate-600 shadow">
-      <p className="text-sm font-semibold text-slate-800">{label}</p>
-      <ul className="mt-2 space-y-1">
-        {payload.map((entry) => {
-          const classInfo = classFitnessMatrix.find((item) => item.id === entry.name);
-          const score = Number(entry.value ?? 0);
-          return (
-            <li key={entry.name as string} className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                {classInfo?.className ?? entry.name}
-              </span>
-              <span className="font-semibold text-slate-700">{score.toFixed(0)} 分</span>
-            </li>
-          );
-        })}
-      </ul>
-
-    </div>
-  );
-}
-
-
-              
-function SkillTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
-  if (!active || !payload?.length) return null;
-  const dataPoint = payload[0]?.payload as {
-    技能: string;
-    通过率: number;
-    trend: number;
-    bestClass: string;
-    insight: string;
-  };
-
-  return (
-    <div className="rounded-2xl border border-indigo-200 bg-white/95 p-3 text-xs text-slate-600 shadow">
-      <p className="text-sm font-semibold text-slate-800">{dataPoint.技能}</p>
-      <p className="mt-1">通过率 {dataPoint.通过率}%</p>
-      <p className="mt-1 text-emerald-500">趋势 {dataPoint.trend > 0 ? `+${dataPoint.trend}` : dataPoint.trend}%</p>
-      <p className="mt-2 leading-relaxed text-slate-500">领先班级 · {dataPoint.bestClass}</p>
-    </div>
-  );
-}
-
-function ProgressTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
-  if (!active || !payload?.length) return null;
-  const dataPoint = payload[0]?.payload as { name: string; 提升幅度: number; focus: string };
-
-  return (
-    <div className="rounded-2xl border border-emerald-200 bg-white/95 p-3 text-xs text-emerald-700 shadow">
-      <p className="text-sm font-semibold">{dataPoint.name}</p>
-      <p className="mt-1">提升幅度 +{dataPoint.提升幅度}%</p>
-      <p className="mt-2 leading-relaxed text-emerald-600/80">{dataPoint.focus}</p>
-    </div>
-  );
-}
-
-
-function SuggestionCard({ title, details }: { title: string; details: string }) {
-  return (
-    <article className="rounded-2xl bg-slate-50/80 p-4">
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 text-xs leading-relaxed text-slate-500">{details}</p>
-      <button className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-indigo-500">
-        查看动作拆解
-        <span aria-hidden="true">→</span>
-      </button>
-    </article>
   );
 }
