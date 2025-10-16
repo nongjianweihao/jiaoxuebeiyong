@@ -133,6 +133,7 @@ export interface RewardItem {
   stock?: number;
   description: string;
   imageUrl?: string;
+  virtualAssetId?: string;
   visible: boolean;
   levelLimit?: number;
   seasonTag?: string;

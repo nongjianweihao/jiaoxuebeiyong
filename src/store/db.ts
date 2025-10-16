@@ -468,6 +468,88 @@ export class CoachDatabase extends Dexie {
       studentExchanges: 'id, studentId, rewardId, status, redeemedAt',
     });
 
+    this.version(11)
+      .stores({
+        students: 'id, name, currentRank',
+        classes: 'id, name, coachName',
+        templates: 'id, name, period',
+        sessions: 'id, classId, date, closed',
+        fitnessTestItems: 'id, quality',
+        fitnessTests: 'id, studentId, quarter, date',
+        rankExams: 'id, studentId, date',
+        lessonPackages: 'id, studentId, purchasedAt',
+        lessonLedger: 'id, studentId, date',
+        payments: 'id, studentId, paidAt',
+        recommendations: 'id, studentId, createdAt',
+        benchmarks: 'id, quality, ageMin, ageMax',
+        warriorNodes: 'id, rank',
+        rankMoves: 'id, rank',
+        gameDrills: 'id, name',
+        metrics: 'id, studentId, weekOf',
+        speedRankThresholds: 'id, rank, windowSec, mode',
+        pointEvents: 'id, studentId, sessionId, date, type',
+        pointsRules: 'type',
+        missionsProgress: '++id, studentId, classId, missionId, date, stars, energy, status',
+        badges: '++id, studentId, code, earnedAt',
+        seasons: '++id, code',
+        leaderboards: '++id, seasonCode, scope, refId',
+        retrospectives: 'id, classId, date',
+        squads: 'id, classId, seasonCode',
+        squadChallenges: 'id, squadId, status, endDate',
+        squadProgress: '++id, challengeId, squadId, createdAt',
+        kudos: '++id, toStudentId, fromStudentId, classId, seasonCode, createdAt',
+        energyLogs: '++id, studentId, createdAt, source',
+        trainingStages: 'id',
+        trainingPlans: 'id, stageId',
+        trainingUnits: 'id, stageId',
+        trainingQualities: 'id',
+        trainingDrills: 'id',
+        trainingGames: 'id',
+        missionCardsV2: 'id',
+        cycleTemplates: 'id',
+        classCyclePlans: 'id, classId, cycleId',
+        cycleReports: 'id, studentId, cycleId, planId',
+        puzzleTemplates: 'id, name, code, totalCards',
+        puzzleQuests: 'id, classId, sessionId, templateId',
+        puzzleCampaigns: 'id, squadId, templateId',
+        rewardItems: 'id, type, visible, seasonTag',
+        studentExchanges: 'id, studentId, rewardId, status, redeemedAt',
+      })
+      .upgrade(async (transaction) => {
+        const studentsTable = transaction.table('students');
+        const students = await studentsTable.toArray();
+        await Promise.all(
+          students.map(async (studentRecord) => {
+            const current = studentRecord as Student & {
+              virtualInventory?: unknown;
+              equippedVirtualItems?: unknown;
+            };
+            const inventory = Array.isArray(current.virtualInventory)
+              ? Array.from(new Set(current.virtualInventory as string[]))
+              : [];
+            const equipped = Array.isArray(current.equippedVirtualItems)
+              ? Array.from(new Set(current.equippedVirtualItems as string[]))
+              : [...inventory];
+            const currentInventoryLength = Array.isArray(current.virtualInventory)
+              ? (current.virtualInventory as string[]).length
+              : 0;
+            const currentEquippedLength = Array.isArray(current.equippedVirtualItems)
+              ? (current.equippedVirtualItems as string[]).length
+              : 0;
+            const patch: Partial<Student> = {};
+            if (!Array.isArray(current.virtualInventory) || inventory.length !== currentInventoryLength) {
+              patch.virtualInventory = inventory;
+            }
+            if (!Array.isArray(current.equippedVirtualItems) || equipped.length !== currentEquippedLength) {
+              patch.equippedVirtualItems = equipped;
+            }
+            if (Object.keys(patch).length > 0) {
+              await studentsTable.update(current.id, patch);
+            }
+          }),
+        );
+      });
+
   }
 }
 
