@@ -25,11 +25,9 @@ import { retrospectivesRepo } from '../../store/repositories/retrospectivesRepo'
 import { classesRepo } from '../../store/repositories/classesRepo';
 import { squadsRepo } from '../../store/repositories/squadsRepo';
 import { kudosRepo } from '../../store/repositories/kudosRepo';
-import { energyLogsRepo } from '../../store/repositories/energyLogsRepo';
 import { lessonLedgerRepo } from '../../store/repositories/lessonLedgerRepo';
 import {
   evalSpeedRank,
-  buildFreestyleProgress,
   buildSpeedSeries,
   buildSpeedRankTrajectory,
   buildRankTrajectory,
@@ -69,6 +67,8 @@ import type {
   MissionProgress,
   RecommendedMission,
   Squad,
+  EnergyLog,
+  EnergySource,
 } from '../../types.gamify';
 import { calculateWarriorAssessmentReport, type WarriorAssessmentReport } from '../../utils/warriorAssessment';
 import {
@@ -143,11 +143,13 @@ export function StudentDetailPage() {
   const [classes, setClasses] = useState<ClassEntity[]>([]);
   const [studentKudos, setStudentKudos] = useState<Kudos[]>([]);
   const [squadMemberships, setSquadMemberships] = useState<Squad[]>([]);
+  const [energyLogs, setEnergyLogs] = useState<EnergyLog[]>([]);
   const [squadEnergy, setSquadEnergy] = useState<SquadEnergySummary>({ total: 0, weekly: 0 });
   const [assessmentReport, setAssessmentReport] = useState<WarriorAssessmentReport | null>(null);
   const [fitnessTests, setFitnessTests] = useState<FitnessTestResult[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedWindow, setSelectedWindow] = useState<WindowSec>(30);
+  const energy = student?.energy ?? 0;
 
   useEffect(() => {
     async function load() {
@@ -167,7 +169,7 @@ export function StudentDetailPage() {
         retrospectivesList,
         kudosList,
         squadList,
-        squadEnergyLogs,
+        energyLogList,
         studentList,
         classList,
       ] = await Promise.all([
@@ -186,7 +188,7 @@ export function StudentDetailPage() {
         retrospectivesRepo.listForStudent(studentId),
         kudosRepo.listByStudent(studentId),
         squadsRepo.listForStudent(studentId),
-        energyLogsRepo.listBySources(['squad_milestone', 'squad_completion']),
+        db.energyLogs.where('studentId').equals(studentId).toArray(),
         studentsRepo.list(),
         classesRepo.list(),
       ]);
@@ -231,8 +233,16 @@ export function StudentDetailPage() {
       setStudentRetrospectives(retrospectivesList);
       setStudentKudos(kudosList);
       setSquadMemberships(squadList);
+      setEnergyLogs(
+        [...energyLogList].sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        ),
+      );
       setAllStudents(studentList);
       setClasses(classList);
+      const squadEnergyLogs = energyLogList.filter(
+        (log) => log.source === 'squad_milestone' || log.source === 'squad_completion',
+      );
       const energyLogs = squadEnergyLogs.filter((log) => log.studentId === studentId);
       const weeklyCutoff = daysAgoIso(7);
       const totalEnergy = energyLogs.reduce((sum, log) => sum + log.delta, 0);
@@ -461,10 +471,6 @@ export function StudentDetailPage() {
       ),
     [rankMoves],
   );
-  const freestyleSeries = useMemo(
-    () => buildFreestyleProgress(sessions, nodes, studentId, rankMoveLookup),
-    [sessions, nodes, studentId, rankMoveLookup],
-  );
   const freestyleRankSeries = useMemo(
     () => buildRankTrajectory(sessions, studentId, rankMoveLookup),
     [sessions, studentId, rankMoveLookup],
@@ -494,17 +500,58 @@ export function StudentDetailPage() {
     () => pointsSummary.series.map((row) => ({ date: row.date, score: row.total })),
     [pointsSummary.series],
   );
-  const combinedPointSeries = useMemo<ChartSeries[]>(
+  const sortedEnergyLogs = useMemo(
+    () =>
+      [...energyLogs].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      ),
+    [energyLogs],
+  );
+  const energyCurve = useMemo(
+    () => {
+      if (!sortedEnergyLogs.length) return [];
+      const totalDelta = sortedEnergyLogs.reduce((sum, log) => sum + log.delta, 0);
+      let running = energy - totalDelta;
+      return sortedEnergyLogs.map((log) => {
+        running += log.delta;
+        return { date: log.createdAt, score: running };
+      });
+    },
+    [sortedEnergyLogs, energy],
+  );
+  const energyBreakdown = useMemo(
+    () =>
+      sortedEnergyLogs.reduce(
+        (acc, log) => {
+          acc[log.source] = (acc[log.source] ?? 0) + log.delta;
+          return acc;
+        },
+        {} as Partial<Record<EnergySource, number>>,
+      ),
+    [sortedEnergyLogs],
+  );
+  const energyBreakdownEntries = useMemo(
+    () =>
+      (Object.entries(energyBreakdown) as Array<[EnergySource, number]>)
+        .filter(([, value]) => value !== undefined && value !== 0)
+        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])),
+    [energyBreakdown],
+  );
+  const recentEnergyLogs = useMemo(
+    () => [...sortedEnergyLogs].reverse().slice(0, 10),
+    [sortedEnergyLogs],
+  );
+  const growthSeries = useMemo<ChartSeries[]>(
     () =>
       [
         pointsCurve.length
           ? { label: '勇士积分', color: '#6366f1', data: pointsCurve }
           : null,
-        freestyleSeries.length
-          ? { label: '花样进阶积分', color: '#f97316', data: freestyleSeries }
+        energyCurve.length
+          ? { label: '成长能量', color: '#fbbf24', data: energyCurve }
           : null,
       ].filter((line): line is ChartSeries => Boolean(line)),
-    [pointsCurve, freestyleSeries],
+    [pointsCurve, energyCurve],
   );
 
 
@@ -700,7 +747,6 @@ export function StudentDetailPage() {
       .filter((row) => new Date(row.date) >= cutoff)
       .reduce((sum, row) => sum + row.delta, 0);
   }, [pointsSummary.series]);
-  const energy = student?.energy ?? 0;
   const levelInfo = useMemo(() => calculateLevel(energy), [energy]);
   const growthProjection = useMemo(
     () => evaluateGrowthProjection(pointsSummary.total, energy),
@@ -1249,39 +1295,85 @@ export function StudentDetailPage() {
 
 
         
-        <div className="grid gap-6 xl:grid-cols-[1.5fr,1fr]">
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-600">积分成长曲线</h3>
-            <ProgressChart series={combinedPointSeries} />
-
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-              <p className="text-xs text-slate-500">积分明细</p>
-              <ul className="mt-2 space-y-1 text-slate-600">
-                {Object.entries(pointsSummary.breakdown).map(([type, value]) => (
-                  <li key={type} className="flex items-center justify-between text-xs">
-                    <span>{labelForPointType(type as PointEvent['type'])}</span>
-                    <span>{value} 分</span>
-                  </li>
-                ))}
-              </ul>
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-sky-50 p-6 shadow-lg">
+          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-600">积分 &amp; 能量成长曲线</h3>
+                <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400 shadow-sm">
+                  Growth Flow
+                </span>
+              </div>
+              <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-inner backdrop-blur">
+                <ProgressChart series={growthSeries} />
+              </div>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-              <p className="text-xs text-slate-500">积分流水</p>
-              <ul className="mt-2 space-y-1 text-slate-600">
-                {lastEvents.length ? (
-                  lastEvents.map((event) => (
-                    <li key={event.id} className="text-xs">
-                      <span className="text-slate-400">{new Date(event.date).toLocaleDateString()} · </span>
-                      <span>{labelForPointType(event.type)} +{event.points}</span>
-                      {event.reason && <span className="text-slate-500"> · {event.reason}</span>}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+                <p className="text-xs text-slate-500">积分明细</p>
+                <ul className="mt-2 space-y-1 text-slate-600">
+                  {Object.entries(pointsSummary.breakdown).map(([type, value]) => (
+                    <li key={type} className="flex items-center justify-between text-xs">
+                      <span>{labelForPointType(type as PointEvent['type'])}</span>
+                      <span className="font-semibold text-violet-600">{value} 分</span>
                     </li>
-                  ))
-                ) : (
-                  <li className="text-slate-400">暂无积分记录</li>
-                )}
-              </ul>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+                <p className="text-xs text-slate-500">积分流水</p>
+                <ul className="mt-2 space-y-1 text-slate-600">
+                  {lastEvents.length ? (
+                    lastEvents.map((event) => (
+                      <li key={event.id} className="text-xs">
+                        <span className="text-slate-400">{new Date(event.date).toLocaleDateString()} · </span>
+                        <span className="font-semibold text-violet-600">{labelForPointType(event.type)} +{event.points}</span>
+                        {event.reason && <span className="text-slate-500"> · {event.reason}</span>}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-slate-400">暂无积分记录</li>
+                  )}
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+                <p className="text-xs text-slate-500">能量构成</p>
+                <ul className="mt-2 space-y-1 text-slate-600">
+                  {energyBreakdownEntries.length ? (
+                    energyBreakdownEntries.map(([source, value]) => (
+                      <li key={source} className="flex items-center justify-between text-xs">
+                        <span>{labelForEnergySource(source)}</span>
+                        <span className={value >= 0 ? 'font-semibold text-amber-600' : 'font-semibold text-slate-500'}>
+                          {value > 0 ? `+${value}` : value} ⚡
+                        </span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-slate-400">暂无能量构成</li>
+                  )}
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
+                <p className="text-xs text-slate-500">能量流水</p>
+                <ul className="mt-2 space-y-1 text-slate-600">
+                  {recentEnergyLogs.length ? (
+                    recentEnergyLogs.map((log, index) => {
+                      const key = log.id ?? `${log.createdAt}-${log.source}-${index}`;
+                      return (
+                        <li key={key} className="text-xs">
+                          <span className="text-slate-400">{new Date(log.createdAt).toLocaleDateString()} · </span>
+                          <span>{labelForEnergySource(log.source)} </span>
+                          <span className={log.delta >= 0 ? 'font-semibold text-amber-600' : 'font-semibold text-rose-500'}>
+                            {log.delta > 0 ? `+${log.delta}` : log.delta}⚡
+                          </span>
+                        </li>
+                      );
+                    })
+                  ) : (
+                    <li className="text-slate-400">暂无能量记录</li>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -1351,5 +1443,30 @@ function labelForPointType(type: PointEvent['type']): string {
       return '作战点评（优秀）';
     default:
       return type;
+  }
+}
+
+function labelForEnergySource(source: EnergySource): string {
+  switch (source) {
+    case 'attendance':
+      return '出勤连击';
+    case 'mission':
+      return '任务评星';
+    case 'assessment':
+      return '测评晋级';
+    case 'kudos':
+      return '荣耀点赞';
+    case 'squad_milestone':
+      return '战队里程碑';
+    case 'squad_completion':
+      return '战队完赛';
+    case 'puzzle_card':
+      return '解谜挑战';
+    case 'manual':
+      return '特别发放';
+    case 'market_redeem':
+      return '能量兑换';
+    default:
+      return source;
   }
 }

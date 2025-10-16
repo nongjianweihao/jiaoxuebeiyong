@@ -15,6 +15,19 @@ interface RadarChartProps {
   referenceLabel?: string;
 }
 
+const QUALITY_LABELS: Record<string, string> = {
+  speed: '速度',
+  power: '爆发力',
+  endurance: '耐力',
+  coordination: '协调',
+  agility: '灵敏',
+  balance: '平衡',
+  flexibility: '柔韧',
+  core: '核心',
+  accuracy: '精准度',
+  morphology: '体态',
+};
+
 export function RadarChart({
   data,
   reference,
@@ -31,6 +44,7 @@ export function RadarChart({
 
   const entries = Object.entries(data).map(([quality, value]) => ({
     quality,
+    label: QUALITY_LABELS[quality] ?? quality,
     value,
     reference: reference?.[quality] ?? null,
   }));
@@ -40,7 +54,7 @@ export function RadarChart({
       <ResponsiveContainer>
         <RechartsRadar data={entries} outerRadius="70%">
           <PolarGrid />
-          <PolarAngleAxis dataKey="quality" tick={{ fontSize: 12 }} />
+          <PolarAngleAxis dataKey="label" tick={{ fontSize: 12 }} />
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
           <Tooltip />
           {reference && (
