@@ -4,6 +4,7 @@ import { ExportPdfButton } from '../../components/ExportPdfButton';
 import { ProgressChart, type LineSeries } from '../../components/ProgressChart';
 import { RadarChart } from '../../components/RadarChart';
 import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from '../../config/performance';
+import { getFreestyleReward } from '../../config/freestyleRewards';
 import { BadgeWall } from '../../components/BadgeWall';
 import { AssessmentReportPanel } from '../../components/assessment/AssessmentReportPanel';
 import { AssessmentReportModal } from '../../components/assessment/AssessmentReportModal';
@@ -58,6 +59,7 @@ import type {
   PerformanceDimensionId,
   SessionPerformanceEntry,
   WindowSec,
+  RankExamRecord,
   FitnessTestResult,
 } from '../../types';
 
@@ -115,6 +117,20 @@ type ChartSeries = {
   data: Array<{ date: string; score: number }>;
 };
 
+type FreestylePassSource = 'class' | 'assessment';
+
+type FreestylePassCardData = {
+  moveId: string;
+  rank: number;
+  name: string;
+  rewardPoints: number;
+  rewardEnergy: number;
+  cleared: boolean;
+  clearedAt?: string;
+  attempts: number;
+  sources: FreestylePassSource[];
+};
+
 type HeightRecord = {
   date: string;
   height: number;
@@ -147,6 +163,7 @@ export function StudentDetailPage() {
   const [squadEnergy, setSquadEnergy] = useState<SquadEnergySummary>({ total: 0, weekly: 0 });
   const [assessmentReport, setAssessmentReport] = useState<WarriorAssessmentReport | null>(null);
   const [fitnessTests, setFitnessTests] = useState<FitnessTestResult[]>([]);
+  const [rankExams, setRankExams] = useState<RankExamRecord[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedWindow, setSelectedWindow] = useState<WindowSec>(30);
   const energy = student?.energy ?? 0;
@@ -162,6 +179,7 @@ export function StudentDetailPage() {
         moves,
         items,
         tests,
+        examList,
         events,
         missionProgressList,
         badgeList,
@@ -181,6 +199,7 @@ export function StudentDetailPage() {
         db.rankMoves.toArray(),
         db.fitnessTestItems.toArray(),
         testsRepo.listResultsByStudent(studentId),
+        testsRepo.listRankExams(studentId),
         pointEventsRepo.listByStudent(studentId),
         db.missionsProgress.where('studentId').equals(studentId).toArray(),
         db.badges.where('studentId').equals(studentId).toArray(),
@@ -203,6 +222,7 @@ export function StudentDetailPage() {
       );
       setNodes(nodesData);
       setRankMoves(moves);
+      setRankExams(examList);
       setPointEvents(events);
       setPointsSummary(buildPointsSnapshot(events));
       setMissionHistory(
@@ -712,23 +732,133 @@ export function StudentDetailPage() {
   const genderLabel = student?.gender === 'M' ? '男' : student?.gender === 'F' ? '女' : '—';
 
 
-  const passesByRank = useMemo(() => {
-    const map = new Map<number, Set<string>>();
+  const freestylePassGroups = useMemo(() => {
+    if (!rankMoves.length) return [] as Array<{ rank: number; cards: FreestylePassCardData[] }>;
+
+    const moveMap = new Map(rankMoves.map((move) => [move.id, move]));
+    const accumulators = new Map<
+      string,
+      {
+        base: FreestylePassCardData;
+        sourceSet: Set<FreestylePassSource>;
+      }
+    >();
+
+    rankMoves.forEach((move) => {
+      const reward = getFreestyleReward(move.rank);
+      accumulators.set(move.id, {
+        base: {
+          moveId: move.id,
+          rank: move.rank,
+          name: move.name,
+          rewardPoints: reward.points,
+          rewardEnergy: reward.energy,
+          cleared: false,
+          attempts: 0,
+          sources: [],
+        },
+        sourceSet: new Set(),
+      });
+    });
+
     sessions.forEach((session) => {
       session.freestyle
         .filter((record) => record.studentId === studentId && record.passed)
         .forEach((record) => {
-          const meta = rankMoves.find((move) => move.id === record.moveId);
+          const meta = moveMap.get(record.moveId);
           if (!meta) return;
-          const set = map.get(meta.rank) ?? new Set<string>();
-          set.add(meta.name);
-          map.set(meta.rank, set);
+          const bucket = accumulators.get(record.moveId);
+          if (!bucket) return;
+          bucket.base.cleared = true;
+          bucket.base.attempts += 1;
+          bucket.sourceSet.add('class');
+          if (!bucket.base.clearedAt || new Date(session.date).getTime() < new Date(bucket.base.clearedAt).getTime()) {
+            bucket.base.clearedAt = session.date;
+          }
         });
     });
-    return Array.from(map.entries())
+
+    const assessmentUnlocks = new Map<number, string>();
+    rankExams
+      .filter((exam) => exam.passed)
+      .forEach((exam) => {
+        for (let rank = exam.fromRank + 1; rank <= exam.toRank; rank += 1) {
+          const existing = assessmentUnlocks.get(rank);
+          if (!existing || new Date(exam.date).getTime() < new Date(existing).getTime()) {
+            assessmentUnlocks.set(rank, exam.date);
+          }
+        }
+      });
+
+    assessmentUnlocks.forEach((date, rank) => {
+      rankMoves
+        .filter((move) => move.rank === rank)
+        .forEach((move) => {
+          const bucket = accumulators.get(move.id);
+          if (!bucket) return;
+          bucket.base.cleared = true;
+          bucket.base.attempts = Math.max(bucket.base.attempts, 1);
+          if (!bucket.base.clearedAt || new Date(date).getTime() < new Date(bucket.base.clearedAt).getTime()) {
+            bucket.base.clearedAt = date;
+          }
+          bucket.sourceSet.add('assessment');
+        });
+    });
+
+    const grouped = new Map<number, FreestylePassCardData[]>();
+    accumulators.forEach(({ base, sourceSet }) => {
+      const card: FreestylePassCardData = {
+        ...base,
+        sources: Array.from(sourceSet),
+      };
+      const list = grouped.get(card.rank) ?? [];
+      list.push(card);
+      grouped.set(card.rank, list);
+    });
+
+    return Array.from(grouped.entries())
       .sort((a, b) => a[0] - b[0])
-      .map(([rank, set]) => ({ rank, moves: Array.from(set).sort() }));
-  }, [sessions, rankMoves, studentId]);
+      .map(([rank, cards]) => ({
+        rank,
+        cards: cards.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')),
+      }));
+  }, [rankMoves, sessions, studentId, rankExams]);
+
+  const [activeFreestyleRank, setActiveFreestyleRank] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!freestylePassGroups.length) {
+      setActiveFreestyleRank(null);
+      return;
+    }
+    setActiveFreestyleRank((prev) => {
+      if (prev && freestylePassGroups.some((group) => group.rank === prev)) {
+        return prev;
+      }
+      return freestylePassGroups[0].rank;
+    });
+  }, [freestylePassGroups]);
+
+  const activeFreestyleGroup = useMemo(
+    () =>
+      activeFreestyleRank != null
+        ? freestylePassGroups.find((group) => group.rank === activeFreestyleRank) ?? null
+        : null,
+    [activeFreestyleRank, freestylePassGroups],
+  );
+
+  const activeFreestyleSummary = useMemo(() => {
+    if (!activeFreestyleGroup) return null;
+    const totalPoints = activeFreestyleGroup.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+    const totalEnergy = activeFreestyleGroup.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+    const clearedCount = activeFreestyleGroup.cards.filter((card) => card.cleared).length;
+    return {
+      totalPoints,
+      totalEnergy,
+      clearedCount,
+      totalCards: activeFreestyleGroup.cards.length,
+    };
+  }, [activeFreestyleGroup]);
 
   const performanceHistory = useMemo(() => {
     const rows: Array<{ date: string; entry: SessionPerformanceEntry }> = [];
@@ -1454,16 +1584,97 @@ export function StudentDetailPage() {
         </div>
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
-          <div className="grid gap-3">
-            {passesByRank.length ? (
-              passesByRank.map((group) => (
-                <div key={group.rank} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-sm font-semibold text-slate-700">段位 L{group.rank}</p>
-                  <p className="mt-1 text-xs text-slate-500">{group.moves.join(' · ')}</p>
+          <div className="space-y-4">
+            {freestylePassGroups.length ? (
+              <>
+                <div className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white shadow-xl">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.4em] text-white/70">段位巡礼</p>
+                      <h4 className="mt-1 text-lg font-semibold">选择要冲刺的段位，领取荣耀奖励</h4>
+                    </div>
+                    <p className="max-w-xs text-xs leading-relaxed text-white/80">
+                      每个段位都有独特的动作挑战与积分、能量奖励。挑选目标段位，查看待解锁动作卡片，逐个点亮你的晋级路线！
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {freestylePassGroups.map((group) => {
+                      const clearedCount = group.cards.filter((card) => card.cleared).length;
+                      const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+                      const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+                      const totalCards = Math.max(group.cards.length, 1);
+                      const progress = Math.round((clearedCount / totalCards) * 100);
+                      const isActive = activeFreestyleRank === group.rank;
+                      return (
+                        <button
+                          type="button"
+                          key={group.rank}
+                          onClick={() => setActiveFreestyleRank(group.rank)}
+                          className={`group relative overflow-hidden rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-500 ${
+                            isActive
+                              ? 'border-white/80 bg-white/20 shadow-lg'
+                              : 'border-white/20 bg-white/10 hover:bg-white/20'
+                          }`}
+                        >
+                          <div className="absolute -top-8 right-0 h-20 w-20 rounded-full bg-white/20 blur-2xl transition group-hover:bg-white/30" />
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70">
+                                L{group.rank}
+                              </p>
+                              <p className="mt-1 text-sm font-semibold">累计奖励 +{totalPoints} 分</p>
+                              <p className="text-xs text-white/80">能量 +{totalEnergy}⚡</p>
+                            </div>
+                            <div className="text-right text-xs font-semibold text-white/80">
+                              <span>{clearedCount}</span>
+                              <span className="text-white/50">/{group.cards.length}</span>
+                              <p className="mt-1 text-[11px]">完成度 {progress}%</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 h-1.5 w-full rounded-full bg-white/20">
+                            <div
+                              className={`h-full rounded-full ${
+                                isActive ? 'bg-gradient-to-r from-white via-white to-amber-200' : 'bg-white/70'
+                              }`}
+                              style={{ width: `${Math.min(Math.max(progress, 8), 100)}%` }}
+                            />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))
+                {activeFreestyleGroup ? (
+                  <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-inner backdrop-blur">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                          段位 L{activeFreestyleGroup.rank}
+                        </p>
+                        <h4 className="mt-1 text-lg font-semibold text-slate-800">段位任务卡片</h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          完成所有动作即可领取本段位全部积分与能量奖励，让晋级更有仪式感！
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-900/90 px-4 py-3 text-xs text-slate-100 shadow-lg">
+                        <p className="text-[11px] text-slate-300">奖励概览</p>
+                        <p className="mt-1 text-sm font-semibold">积分 +{activeFreestyleSummary?.totalPoints ?? 0}</p>
+                        <p className="text-sm font-semibold">能量 +{activeFreestyleSummary?.totalEnergy ?? 0}⚡</p>
+                        <p className="mt-1 text-[11px] text-slate-300">
+                          已通关 {activeFreestyleSummary?.clearedCount ?? 0}/{activeFreestyleSummary?.totalCards ?? 0}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {activeFreestyleGroup.cards.map((card) => (
+                        <FreestylePassCard key={card.moveId} data={card} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </>
             ) : (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-slate-400">
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
                 暂无通关记录
               </div>
             )}
@@ -1502,6 +1713,93 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
+  const { name, rank, rewardPoints, rewardEnergy, cleared, clearedAt, attempts, sources } = data;
+  const formattedDate = formatIsoDateLabel(clearedAt);
+  const attemptsLabel = !cleared
+    ? '等待首通'
+    : attempts > 1
+      ? `复练 ×${attempts - 1}`
+      : '首通完成';
+  const cardClass = cleared
+    ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80'
+    : 'border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100/60';
+  const accentOrb = cleared
+    ? 'from-emerald-300/40 via-teal-200/20 to-sky-300/30'
+    : 'from-slate-300/40 via-slate-200/20 to-indigo-200/20';
+  const statusCopy = cleared
+    ? '动作已完美通关，继续保持手感冲刺更高段位！'
+    : '首通在即，完成即可领取段位奖励积分与能量。';
+  const statusIcon = cleared ? '✨' : '🎯';
+  const completion = cleared ? 100 : attempts ? Math.min(90, attempts * 35) : 18;
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border px-5 py-5 shadow-lg transition ${cardClass}`}>
+      <div className={`absolute -right-12 -top-14 h-32 w-32 rounded-full bg-gradient-to-br ${accentOrb} blur-3xl`} />
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-500">
+            <span>{statusIcon}</span>
+            <span className="tracking-[0.3em] text-[10px] uppercase text-slate-400">L{rank}</span>
+          </div>
+          <h4 className="mt-2 text-base font-semibold text-slate-900">{name}</h4>
+          <p className="mt-1 text-xs text-slate-500">{statusCopy}</p>
+        </div>
+        <div className="text-right text-xs font-semibold">
+          <div className="inline-flex items-center gap-1 rounded-full bg-purple-100/80 px-2.5 py-1 text-purple-700">
+            +{rewardPoints}
+            <span className="text-[11px] font-medium">分</span>
+          </div>
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100/80 px-2.5 py-1 text-amber-600">
+            +{rewardEnergy}
+            <span className="text-[11px] font-medium">⚡</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center justify-between text-xs">
+        <div className={`flex items-center gap-1 ${cleared ? 'text-emerald-600' : 'text-slate-400'}`}>
+          {cleared ? '✅ 已通关' : '🕹️ 未通关'}
+          {cleared && formattedDate ? <span className="text-slate-400">（{formattedDate}）</span> : null}
+        </div>
+        <span className="text-slate-400">{attemptsLabel}</span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {sources.length ? (
+          sources.map((source) => (
+            <span
+              key={source}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                source === 'class' ? 'bg-sky-100 text-sky-600' : 'bg-rose-100 text-rose-600'
+              }`}
+            >
+              {source === 'class' ? '课堂挑战' : '测评晋级'}
+            </span>
+          ))
+        ) : (
+          <span className="text-[11px] text-slate-400">待记录</span>
+        )}
+      </div>
+      <div className="mt-4 h-2 w-full rounded-full bg-slate-200/80">
+        <div
+          className={`h-full rounded-full transition-all ${
+            cleared
+              ? 'bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400'
+              : 'bg-gradient-to-r from-slate-400 via-indigo-400 to-purple-400'
+          }`}
+          style={{ width: `${Math.min(Math.max(completion, 12), 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function formatIsoDateLabel(iso?: string) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('zh-CN');
+}
+
 function formatWindowLabel(window: WindowSec) {
   return window === 60 ? '1分钟' : `${window}s`;
 }
@@ -1529,6 +1827,8 @@ function labelForEnergySource(source: EnergySource): string {
       return '任务评星';
     case 'assessment':
       return '测评晋级';
+    case 'freestyle_pass':
+      return '花样通关';
     case 'kudos':
       return '荣耀点赞';
     case 'squad_milestone':
