@@ -597,8 +597,10 @@ export const trainingRepo = {
     }
     const base = new Date(startDate);
     const sessions: ClassCycleSessionPlan[] = [];
-    template.weekPlan.forEach((weekPlan) => {
-      weekPlan.missionCards.forEach((missionCardId, index) => {
+    const weekPlans = Array.isArray(template.weekPlan) ? template.weekPlan : [];
+    weekPlans.forEach((weekPlan) => {
+      const missionCards = Array.isArray(weekPlan.missionCards) ? weekPlan.missionCards : [];
+      missionCards.forEach((missionCardId, index) => {
         sessions.push({
           id: generateId(),
           week: weekPlan.week,
@@ -619,8 +621,8 @@ export const trainingRepo = {
       startDate: toIsoString(base),
       currentWeek: 1,
       progress: sessions.length ? 0 : 1,
-      focusAbilities: template.focusAbilities,
-      trackingMetrics: template.trackingMetrics,
+      focusAbilities: Array.isArray(template.focusAbilities) ? template.focusAbilities : [],
+      trackingMetrics: Array.isArray(template.trackingMetrics) ? template.trackingMetrics : [],
       sessions,
     };
     await db.classCyclePlans.put(plan);
