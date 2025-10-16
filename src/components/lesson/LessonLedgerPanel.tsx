@@ -135,6 +135,11 @@ export function LessonLedgerPanel({
   const [formValues, setFormValues] = useState<LessonLedgerFormValues>(() => createDefaultFormValues());
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<LedgerTypeFilter>('all');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
 
   const numberFormatter = useMemo(
