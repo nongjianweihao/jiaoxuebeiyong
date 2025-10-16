@@ -3,7 +3,10 @@ import { Combobox, Dialog, Transition } from '@headlessui/react';
 import classNames from 'classnames';
 import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
+
+
 import { Check, ChevronsUpDown, Edit3, Eye, EyeOff, ImageIcon, Plus, Trash2, X } from 'lucide-react';
+
 import type { RewardItem, RewardItemType, StudentExchange } from '../../types.gamify';
 import type { Student } from '../../types';
 import { rewardItemsRepo } from '../../store/repositories/rewardItemsRepo';
@@ -252,7 +255,10 @@ export function GrowthMarketPage() {
                   autoComplete="off"
                 />
                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70">
+
+                  
                   <ChevronsUpDown className="h-4 w-4" aria-hidden />
+
                 </Combobox.Button>
                 <Transition
                   as={Fragment}
