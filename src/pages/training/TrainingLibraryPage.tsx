@@ -460,11 +460,11 @@ export function TrainingLibraryPage() {
             ) : (
               <div className="space-y-6">
                 {stages.map((stage) => {
-                  const focusAbilities = stage.focusAbilities ?? [];
-                  const coreTasks = stage.coreTasks ?? [];
-                  const keyMilestones = stage.keyMilestones ?? [];
-                  const ageGuidance = stage.ageGuidance ?? [];
-                  const cycleThemes = stage.cycleThemes ?? [];
+                  const focusAbilities = Array.isArray(stage.focusAbilities) ? stage.focusAbilities : [];
+                  const coreTasks = Array.isArray(stage.coreTasks) ? stage.coreTasks : [];
+                  const keyMilestones = Array.isArray(stage.keyMilestones) ? stage.keyMilestones : [];
+                  const ageGuidance = Array.isArray(stage.ageGuidance) ? stage.ageGuidance : [];
+                  const cycleThemes = Array.isArray(stage.cycleThemes) ? stage.cycleThemes : [];
                   const stagePlans = planLookup.get(stage.id) ?? [];
                   const nextStage = stage.recommendedNextStageId
                     ? stageLookup.get(stage.recommendedNextStageId)
@@ -620,8 +620,11 @@ export function TrainingLibraryPage() {
                           <p className="text-xs font-semibold text-slate-500">阶段周期计划</p>
                           <div className="space-y-4">
                             {stagePlans.map((plan) => {
-                              const phaseList = plan.phases ?? [];
-                              const weekList = plan.weeks ?? [];
+                              const phaseList = Array.isArray(plan.phases) ? plan.phases : [];
+                              const weekList = Array.isArray(plan.weeks) ? plan.weeks : [];
+                              const planFocusAbilities = Array.isArray(plan.focusAbilities)
+                                ? plan.focusAbilities
+                                : [];
                               return (
                                 <div
                                   key={plan.id}
@@ -637,9 +640,9 @@ export function TrainingLibraryPage() {
                                         <p className="text-xs text-slate-500">{plan.summary}</p>
                                       )}
                                     </div>
-                                    {plan.focusAbilities.length > 0 && (
+                                    {planFocusAbilities.length > 0 && (
                                       <div className="flex flex-wrap justify-end gap-2 text-[11px]">
-                                        {plan.focusAbilities.map((ability) => {
+                                        {planFocusAbilities.map((ability) => {
                                           const meta = qualityLookup[ability];
                                           return (
                                             <span
@@ -662,11 +665,13 @@ export function TrainingLibraryPage() {
                                     <div className="space-y-2">
                                       <p className="text-xs font-semibold text-slate-500">阶段结构</p>
                                       <div className="grid gap-2 text-xs text-slate-600 md:grid-cols-2 xl:grid-cols-3">
-                                        {phaseList.map((phase) => (
-                                          <div
-                                            key={`${plan.id}-phase-${phase.id}`}
-                                            className="space-y-2 rounded-xl border border-dashed border-slate-200 bg-white/80 p-3"
-                                          >
+                                        {phaseList.map((phase) => {
+                                          const focusPoints = Array.isArray(phase.focusPoints) ? phase.focusPoints : [];
+                                          return (
+                                            <div
+                                              key={`${plan.id}-phase-${phase.id}`}
+                                              className="space-y-2 rounded-xl border border-dashed border-slate-200 bg-white/80 p-3"
+                                            >
                                             <div className="flex items-center justify-between">
                                               <span className="text-sm font-semibold text-slate-800">{phase.name}</span>
                                               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
@@ -676,7 +681,7 @@ export function TrainingLibraryPage() {
                                             <p className="text-[11px] text-slate-500">{phase.goal}</p>
                                             <div className="flex flex-wrap gap-1 text-[11px] text-slate-500">
                                               <span className="rounded bg-slate-100 px-2 py-0.5">负荷：{phase.load}</span>
-                                              {phase.focusPoints.map((point) => (
+                                              {focusPoints.map((point) => (
                                                 <span
                                                   key={`${plan.id}-phase-${phase.id}-${point}`}
                                                   className="rounded bg-emerald-50 px-2 py-0.5 text-emerald-600"
@@ -693,8 +698,9 @@ export function TrainingLibraryPage() {
                                             {phase.notes && (
                                               <p className="text-[11px] text-slate-400">{phase.notes}</p>
                                             )}
-                                          </div>
-                                        ))}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
                                   )}
@@ -770,6 +776,8 @@ export function TrainingLibraryPage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {drills.map((drill) => {
                 const intensity = INTENSITY_META[drill.intensity] ?? INTENSITY_META['🌈'];
+                const primaryAbilities = Array.isArray(drill.primaryAbilities) ? drill.primaryAbilities : [];
+                const secondaryAbilities = Array.isArray(drill.secondaryAbilities) ? drill.secondaryAbilities : [];
                 return (
                   <article key={drill.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between">
@@ -782,7 +790,7 @@ export function TrainingLibraryPage() {
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      {drill.primaryAbilities.map((ability) => {
+                      {primaryAbilities.map((ability) => {
                         const meta = qualityLookup[ability];
                         return (
                           <span
@@ -794,7 +802,7 @@ export function TrainingLibraryPage() {
                           </span>
                         );
                       })}
-                      {drill.secondaryAbilities?.map((ability) => {
+                      {secondaryAbilities.map((ability) => {
                         const meta = qualityLookup[ability];
                         return (
                           <span
@@ -826,6 +834,7 @@ export function TrainingLibraryPage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {games.map((game) => {
                 const intensity = INTENSITY_META[game.intensity] ?? INTENSITY_META['🌈'];
+                const focusAbilities = Array.isArray(game.focusAbilities) ? game.focusAbilities : [];
                 return (
                   <article key={game.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between">
@@ -839,7 +848,7 @@ export function TrainingLibraryPage() {
                     </div>
                     <p className="mt-2 text-xs text-slate-600">目标：{game.goal}</p>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      {game.focusAbilities.map((ability) => {
+                      {focusAbilities.map((ability) => {
                         const meta = qualityLookup[ability];
                         return (
                           <span
@@ -879,8 +888,11 @@ export function TrainingLibraryPage() {
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
-                    {missions.map((mission) => (
-                      <article key={mission.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    {missions.map((mission) => {
+                      const missionFocusAbilities = Array.isArray(mission.focusAbilities) ? mission.focusAbilities : [];
+                      const missionBlocks = Array.isArray(mission.blocks) ? mission.blocks : [];
+                      return (
+                        <article key={mission.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                         <header className="flex items-start justify-between">
                           <div>
                             <p className="text-xs text-slate-400">阶段：{mission.phase}</p>
@@ -888,7 +900,7 @@ export function TrainingLibraryPage() {
                             <p className="text-xs text-slate-500">时长 {mission.durationMin} 分钟</p>
                           </div>
                           <div className="flex flex-wrap justify-end gap-1">
-                            {mission.focusAbilities.map((ability) => {
+                            {missionFocusAbilities.map((ability) => {
                               const meta = qualityLookup[ability];
                               return (
                                 <span
@@ -903,7 +915,7 @@ export function TrainingLibraryPage() {
                           </div>
                         </header>
                         <ol className="mt-4 space-y-3 text-sm">
-                          {mission.blocks.map((block, index) => {
+                          {missionBlocks.map((block, index) => {
                             const intensity = INTENSITY_META[block.intensity] ?? INTENSITY_META['🌈'];
                             return (
                               <li key={`${mission.id}-${block.title}-${index}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
@@ -933,7 +945,8 @@ export function TrainingLibraryPage() {
                           })}
                         </ol>
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -959,6 +972,8 @@ export function TrainingLibraryPage() {
                   <div className="grid gap-5 md:grid-cols-2">
                     {bucket.cycles.map((cycle) => {
                       const meta = cycleMeta[cycle.id as keyof typeof cycleMeta];
+                      const cycleFocusAbilities = Array.isArray(cycle.focusAbilities) ? cycle.focusAbilities : [];
+                      const weekPlan = Array.isArray(cycle.weekPlan) ? cycle.weekPlan : [];
                       const stageInfo = cycle.stageId ? stageLookup.get(cycle.stageId) : undefined;
                       const cycleLabel = stageInfo
                         ? `${stageInfo.icon ?? '🎯'} ${stageInfo.name}`
@@ -985,7 +1000,7 @@ export function TrainingLibraryPage() {
                             <p className="text-xs text-slate-400">周期 {cycle.durationWeeks} 周 · 追踪 {trackingLabel}</p>
                           </div>
                           <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
-                            {cycle.focusAbilities.map((ability) => {
+                            {cycleFocusAbilities.map((ability) => {
                               const metaQuality = qualityLookup[ability];
                               return (
                                 <span
@@ -1002,71 +1017,77 @@ export function TrainingLibraryPage() {
                             })}
                           </div>
                           <div className="space-y-3">
-                            {cycle.weekPlan.map((week) => (
-                              <div
-                                key={`${cycle.id}-week-${week.week}`}
-                                className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                              >
-                                <div className="flex items-start justify-between text-sm">
-                                  <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Week {week.week}</p>
-                                    <p className="font-semibold text-slate-800">{week.focus}</p>
+                            {weekPlan.map((week) => {
+                              const missionCardIds = Array.isArray(week.missionCards) ? week.missionCards : [];
+                              return (
+                                <div
+                                  key={`${cycle.id}-week-${week.week}`}
+                                  className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                                >
+                                  <div className="flex items-start justify-between text-sm">
+                                    <div>
+                                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Week {week.week}</p>
+                                      <p className="font-semibold text-slate-800">{week.focus}</p>
+                                    </div>
+                                    <div className="text-right text-xs text-slate-500">
+                                      {missionCardIds
+                                        .map((missionId) => missionLookup[missionId]?.durationMin ?? 0)
+                                        .reduce((total, value) => total + value, 0) || '--'}
+                                      分钟总量
+                                    </div>
                                   </div>
-                                  <div className="text-right text-xs text-slate-500">
-                                    {week.missionCards.map((missionId) => missionLookup[missionId]?.durationMin ?? 0).reduce(
-                                      (total, value) => total + value,
-                                      0,
-                                    ) || '--'}
-                                    分钟总量
-                                  </div>
-                                </div>
-                                <div className="mt-3 grid gap-2 text-xs md:grid-cols-2">
-                                  {week.missionCards.map((missionId) => {
-                                    const mission = missionLookup[missionId];
-                                    if (!mission) {
+                                  <div className="mt-3 grid gap-2 text-xs md:grid-cols-2">
+                                    {missionCardIds.map((missionId) => {
+                                      const mission = missionLookup[missionId];
+                                      if (!mission) {
+                                        return (
+                                          <div
+                                            key={`${cycle.id}-${week.week}-${missionId}`}
+                                            className="rounded-xl bg-white/70 p-3 text-slate-400"
+                                          >
+                                            任务卡 {missionId}
+                                          </div>
+                                        );
+                                      }
+                                      const focusAbilities = Array.isArray(mission.focusAbilities)
+                                        ? mission.focusAbilities
+                                        : [];
+                                      const blocks = Array.isArray(mission.blocks) ? mission.blocks : [];
                                       return (
                                         <div
                                           key={`${cycle.id}-${week.week}-${missionId}`}
-                                          className="rounded-xl bg-white/70 p-3 text-slate-400"
+                                          className="space-y-2 rounded-xl bg-white/80 p-3 shadow-sm"
                                         >
-                                          任务卡 {missionId}
+                                          <p className="text-sm font-semibold text-slate-800">{mission.name}</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {focusAbilities.map((ability) => {
+                                              const metaQuality = qualityLookup[ability];
+                                              return (
+                                                <span
+                                                  key={`${mission.id}-${ability}`}
+                                                  className="rounded-full border px-2 py-0.5"
+                                                  style={{
+                                                    borderColor: metaQuality?.color ?? '#cbd5f5',
+                                                    color: metaQuality?.color ?? '#475569',
+                                                  }}
+                                                >
+                                                  {metaQuality?.icon ?? '🏋️'} {metaQuality?.name ?? ability}
+                                                </span>
+                                              );
+                                            })}
+                                          </div>
+                                          <p className="text-[11px] text-slate-500">
+                                            {blocks
+                                              .map((block) => `${block.title} · ${STIMULUS_LABEL[block.stimulus]}`)
+                                              .join(' / ')}
+                                          </p>
                                         </div>
                                       );
-                                    }
-                                    return (
-                                      <div
-                                        key={`${cycle.id}-${week.week}-${missionId}`}
-                                        className="space-y-2 rounded-xl bg-white/80 p-3 shadow-sm"
-                                      >
-                                        <p className="text-sm font-semibold text-slate-800">{mission.name}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                          {mission.focusAbilities.map((ability) => {
-                                            const metaQuality = qualityLookup[ability];
-                                            return (
-                                              <span
-                                                key={`${mission.id}-${ability}`}
-                                                className="rounded-full border px-2 py-0.5"
-                                                style={{
-                                                  borderColor: metaQuality?.color ?? '#cbd5f5',
-                                                  color: metaQuality?.color ?? '#475569',
-                                                }}
-                                              >
-                                                {metaQuality?.icon ?? '🏋️'} {metaQuality?.name ?? ability}
-                                              </span>
-                                            );
-                                          })}
-                                        </div>
-                                        <p className="text-[11px] text-slate-500">
-                                          {mission.blocks
-                                            .map((block) => `${block.title} · ${STIMULUS_LABEL[block.stimulus]}`)
-                                            .join(' / ')}
-                                        </p>
-                                      </div>
-                                    );
-                                  })}
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                           <p className="text-xs text-slate-500">{meta?.coachNotes ?? cycle.goal}</p>
                         </article>
@@ -1165,7 +1186,8 @@ export function TrainingLibraryPage() {
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {sortedPuzzles.map((puzzle) => {
                   const meta = PUZZLE_CATEGORY_META[puzzle.category];
-                  const totalEnergy = puzzle.totalEnergy ?? puzzle.cards.reduce((sum, card) => sum + (card.reward?.energy ?? 0), 0);
+                  const cards = Array.isArray(puzzle.cards) ? puzzle.cards : [];
+                  const totalEnergy = puzzle.totalEnergy ?? cards.reduce((sum, card) => sum + (card.reward?.energy ?? 0), 0);
                   const difficultyLevel = (puzzle.difficulty ?? 3) as 1 | 2 | 3 | 4 | 5;
                   return (
                     <article key={puzzle.id} className="flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -1182,7 +1204,7 @@ export function TrainingLibraryPage() {
                         <div className="grid gap-2 text-xs text-slate-600">
                           <div className="flex items-center justify-between">
                             <span>卡牌数量</span>
-                            <span className="font-semibold text-slate-800">{puzzle.totalCards} 张</span>
+                            <span className="font-semibold text-slate-800">{(puzzle.totalCards ?? cards.length) || '--'} 张</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>能量总值</span>
