@@ -35,6 +35,8 @@ interface MonthlyOpsPoint {
   purchased: number;
 }
 
+
+
 interface SegmentRow {
   label: string;
   min: number;
@@ -78,6 +80,7 @@ function round1(value: number) {
   return Number(value.toFixed(1));
 }
 
+
 function formatCurrency(amount: number) {
   return `¥ ${amount.toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
 }
@@ -97,6 +100,9 @@ function MonthlyOpsTooltip({ active, payload, label }: TooltipProps<ValueType, N
       <p>收入：{formatCurrency(data.revenue)}</p>
       <p>课包购买：{formatLessons(data.purchased)}</p>
     </div>
+
+    
+
   );
 }
 
@@ -357,9 +363,12 @@ export function CommandCenterPage() {
         </div>
       </header>
 
+
+      
       {loading ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white/70 p-10 text-center text-sm text-slate-500">
           正在载入运营数据…
+
         </div>
       ) : (
         <>

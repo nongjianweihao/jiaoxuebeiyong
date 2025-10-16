@@ -1,6 +1,11 @@
 
+
+
 import { useEffect, useMemo, useState } from 'react';
+
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -18,6 +23,9 @@ import {
   YAxis,
 } from 'recharts';
 import type { NameType, TooltipProps, ValueType } from 'recharts';
+
+
+
 
 import { db } from '../../store/db';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
@@ -44,6 +52,8 @@ interface MonthlyCoveragePoint {
   testers: number;
   sessions: number;
 }
+
+
 
 interface SkillStat {
   itemId: string;
@@ -92,6 +102,7 @@ function formatDateLabel(iso?: string, withYear = false) {
 function safeAverage(values: number[]) {
   if (!values.length) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+
 }
 
 function compositeScore(result?: FitnessTestResult) {
@@ -101,12 +112,15 @@ function compositeScore(result?: FitnessTestResult) {
   return safeAverage(values);
 }
 
+
+
 function formatNumber(value: number | null, digits = 1) {
   if (value == null || Number.isNaN(value)) return '--';
   return value.toFixed(digits);
 }
 
 function CoverageTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
+
   if (!active || !payload?.length) return null;
   const testers = payload.find((item) => item.dataKey === 'testers');
   const coverage = payload.find((item) => item.dataKey === 'coverageRate');
