@@ -19,12 +19,16 @@ import { setPointRules } from '../utils/points';
 import type {
   Benchmark,
   ClassEntity,
+  FitnessTestItem,
+  FitnessTestResult,
   GameDrill,
+  LessonLedgerEntry,
   LessonPackage,
   MissionCardV2,
   PaymentRecord,
   PointsRule,
   RankMove,
+  SessionRecord,
   SpeedRankThreshold,
   Student,
   TrainingCycleTemplate,
@@ -187,8 +191,12 @@ async function bootstrap() {
     await db.classes.bulkPut(seed.classes as ClassEntity[]);
     if (seed.templates) await db.templates.bulkPut((seed.templates as TrainingTemplate[]).map(t => ({ ...t, period: t.period as any })));
     await ensureChallengeTemplates();
-    if ((seed as any).lessonPackages) await db.lessonPackages.bulkPut((seed as any).lessonPackages as LessonPackage[]);
-    if ((seed as any).paymentRecords) await db.payments.bulkPut((seed as any).paymentRecords as PaymentRecord[]);
+      if ((seed as any).lessonPackages) await db.lessonPackages.bulkPut((seed as any).lessonPackages as LessonPackage[]);
+      if ((seed as any).paymentRecords) await db.payments.bulkPut((seed as any).paymentRecords as PaymentRecord[]);
+      if ((seed as any).sessions) await db.sessions.bulkPut((seed as any).sessions as SessionRecord[]);
+      if ((seed as any).lessonLedger) await db.lessonLedger.bulkPut((seed as any).lessonLedger as LessonLedgerEntry[]);
+      if ((seed as any).fitnessTestItems) await db.fitnessTestItems.bulkPut((seed as any).fitnessTestItems as FitnessTestItem[]);
+      if ((seed as any).fitnessTests) await db.fitnessTests.bulkPut((seed as any).fitnessTests as FitnessTestResult[]);
 
     if (seed.benchmarks) {
       const normalized = (seed.benchmarks as any[]).map((b, idx) => ({
