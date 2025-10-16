@@ -19,12 +19,16 @@ import { setPointRules } from '../utils/points';
 import type {
   Benchmark,
   ClassEntity,
+  FitnessTestItem,
+  FitnessTestResult,
   GameDrill,
+  LessonLedgerEntry,
   LessonPackage,
   MissionCardV2,
   PaymentRecord,
   PointsRule,
   RankMove,
+  SessionRecord,
   SpeedRankThreshold,
   Student,
   TrainingCycleTemplate,
@@ -135,6 +139,50 @@ async function ensureRewardCatalog() {
   await db.rewardItems.bulkPut(merged);
 }
 
+async function ensureOperationalDatasets() {
+  const seedData = seed as any;
+  const [
+    packageCount,
+    paymentCount,
+    sessionCount,
+    ledgerCount,
+    fitnessItemCount,
+    fitnessResultCount,
+  ] = await Promise.all([
+    db.lessonPackages.count(),
+    db.payments.count(),
+    db.sessions.count(),
+    db.lessonLedger.count(),
+    db.fitnessTestItems.count(),
+    db.fitnessTests.count(),
+  ]);
+
+  const tasks: Promise<unknown>[] = [];
+
+  if (!packageCount && seedData.lessonPackages) {
+    tasks.push(db.lessonPackages.bulkPut(seedData.lessonPackages as LessonPackage[]));
+  }
+  if (!paymentCount && seedData.paymentRecords) {
+    tasks.push(db.payments.bulkPut(seedData.paymentRecords as PaymentRecord[]));
+  }
+  if (!sessionCount && seedData.sessions) {
+    tasks.push(db.sessions.bulkPut(seedData.sessions as SessionRecord[]));
+  }
+  if (!ledgerCount && seedData.lessonLedger) {
+    tasks.push(db.lessonLedger.bulkPut(seedData.lessonLedger as LessonLedgerEntry[]));
+  }
+  if (!fitnessItemCount && seedData.fitnessTestItems) {
+    tasks.push(db.fitnessTestItems.bulkPut(seedData.fitnessTestItems as FitnessTestItem[]));
+  }
+  if (!fitnessResultCount && seedData.fitnessTests) {
+    tasks.push(db.fitnessTests.bulkPut(seedData.fitnessTests as FitnessTestResult[]));
+  }
+
+  if (tasks.length) {
+    await Promise.all(tasks);
+  }
+}
+
 async function bootstrap() {
   const count = await db.students.count();
   const hydrateCaches = async () => {
@@ -152,6 +200,7 @@ async function bootstrap() {
     await ensureTrainingAssets();
     await ensureChallengeTemplates();
     await ensureRewardCatalog();
+    await ensureOperationalDatasets();
     await hydrateCaches();
     return;
   }
@@ -187,8 +236,12 @@ async function bootstrap() {
     await db.classes.bulkPut(seed.classes as ClassEntity[]);
     if (seed.templates) await db.templates.bulkPut((seed.templates as TrainingTemplate[]).map(t => ({ ...t, period: t.period as any })));
     await ensureChallengeTemplates();
-    if ((seed as any).lessonPackages) await db.lessonPackages.bulkPut((seed as any).lessonPackages as LessonPackage[]);
-    if ((seed as any).paymentRecords) await db.payments.bulkPut((seed as any).paymentRecords as PaymentRecord[]);
+      if ((seed as any).lessonPackages) await db.lessonPackages.bulkPut((seed as any).lessonPackages as LessonPackage[]);
+      if ((seed as any).paymentRecords) await db.payments.bulkPut((seed as any).paymentRecords as PaymentRecord[]);
+      if ((seed as any).sessions) await db.sessions.bulkPut((seed as any).sessions as SessionRecord[]);
+      if ((seed as any).lessonLedger) await db.lessonLedger.bulkPut((seed as any).lessonLedger as LessonLedgerEntry[]);
+      if ((seed as any).fitnessTestItems) await db.fitnessTestItems.bulkPut((seed as any).fitnessTestItems as FitnessTestItem[]);
+      if ((seed as any).fitnessTests) await db.fitnessTests.bulkPut((seed as any).fitnessTests as FitnessTestResult[]);
 
     if (seed.benchmarks) {
       const normalized = (seed.benchmarks as any[]).map((b, idx) => ({
