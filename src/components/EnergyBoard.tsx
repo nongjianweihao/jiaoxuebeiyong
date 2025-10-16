@@ -11,6 +11,11 @@ import { StudentAvatar } from './StudentAvatar';
 
 interface EnergyBoardProps {
   students: Student[];
+  /**
+   * Maximum number of entries displayed when the leaderboard is collapsed.
+   * Set to a higher value if the layout can accommodate more rows by default.
+   */
+  maxCollapsedEntries?: number;
 }
 
 interface LeaderboardEntry {
@@ -68,9 +73,10 @@ function formatHonorLabel(honor?: string) {
   return honor ? `荣誉「${honor}」` : '荣誉待点亮';
 }
 
-export function EnergyBoard({ students }: EnergyBoardProps) {
+export function EnergyBoard({ students, maxCollapsedEntries = 5 }: EnergyBoardProps) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -145,17 +151,20 @@ export function EnergyBoard({ students }: EnergyBoardProps) {
     };
   }, [students]);
 
-  const leaderboard = useMemo(
+  const sortedEntries = useMemo(
     () =>
-      [...entries]
-        .sort((a, b) => {
-          if (b.energy !== a.energy) return b.energy - a.energy;
-          if (b.points !== a.points) return b.points - a.points;
-          return (b.weeklyEnergy ?? 0) - (a.weeklyEnergy ?? 0);
-        })
-        .slice(0, 5),
+      [...entries].sort((a, b) => {
+        if (b.energy !== a.energy) return b.energy - a.energy;
+        if (b.points !== a.points) return b.points - a.points;
+        return (b.weeklyEnergy ?? 0) - (a.weeklyEnergy ?? 0);
+      }),
     [entries],
   );
+
+  const visibleEntries = useMemo(() => {
+    if (expanded) return sortedEntries;
+    return sortedEntries.slice(0, maxCollapsedEntries);
+  }, [expanded, sortedEntries, maxCollapsedEntries]);
 
   const honorCount = useMemo(() => entries.filter((entry) => Boolean(entry.honorTitle)).length, [entries]);
   const averageEnergy = useMemo(() => {
@@ -168,7 +177,7 @@ export function EnergyBoard({ students }: EnergyBoardProps) {
     const total = entries.reduce((sum, entry) => sum + entry.points, 0);
     return Math.round(total / entries.length);
   }, [entries]);
-  const leadingSynergy = leaderboard[0]?.projection.synergy;
+  const leadingSynergy = sortedEntries[0]?.projection.synergy;
 
   return (
     <div className="rounded-3xl border border-amber-100/80 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-6 shadow-lg backdrop-blur">
@@ -201,19 +210,19 @@ export function EnergyBoard({ students }: EnergyBoardProps) {
       ) : null}
 
       <div className="mt-5 space-y-3">
-        {loading && !leaderboard.length ? (
+        {loading && !sortedEntries.length ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-center text-xs text-slate-400">
             正在同步勇士数据…
           </div>
         ) : null}
 
-        {!loading && !leaderboard.length ? (
+        {!loading && !sortedEntries.length ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-6 text-center text-xs text-slate-400">
             暂无能量记录，派发挑战或签到即可点亮第一位勇士。
           </div>
         ) : null}
 
-        {leaderboard.map((entry, index) => (
+        {visibleEntries.map((entry, index) => (
           <div
             key={entry.id}
             className="relative overflow-hidden rounded-2xl border border-white/60 bg-white/90 px-5 py-4 shadow-sm"
@@ -267,6 +276,15 @@ export function EnergyBoard({ students }: EnergyBoardProps) {
             </div>
           </div>
         ))}
+        {sortedEntries.length > maxCollapsedEntries ? (
+          <button
+            type="button"
+            className="w-full rounded-2xl border border-dashed border-emerald-200 bg-white/80 py-3 text-xs font-semibold text-emerald-600 transition hover:border-emerald-300 hover:text-emerald-700"
+            onClick={() => setExpanded((value) => !value)}
+          >
+            {expanded ? '收起全部勇士' : `展开全部 ${sortedEntries.length} 位勇士`}
+          </button>
+        ) : null}
       </div>
     </div>
   );
