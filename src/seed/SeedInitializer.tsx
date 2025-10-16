@@ -139,6 +139,50 @@ async function ensureRewardCatalog() {
   await db.rewardItems.bulkPut(merged);
 }
 
+async function ensureOperationalDatasets() {
+  const seedData = seed as any;
+  const [
+    packageCount,
+    paymentCount,
+    sessionCount,
+    ledgerCount,
+    fitnessItemCount,
+    fitnessResultCount,
+  ] = await Promise.all([
+    db.lessonPackages.count(),
+    db.payments.count(),
+    db.sessions.count(),
+    db.lessonLedger.count(),
+    db.fitnessTestItems.count(),
+    db.fitnessTests.count(),
+  ]);
+
+  const tasks: Promise<unknown>[] = [];
+
+  if (!packageCount && seedData.lessonPackages) {
+    tasks.push(db.lessonPackages.bulkPut(seedData.lessonPackages as LessonPackage[]));
+  }
+  if (!paymentCount && seedData.paymentRecords) {
+    tasks.push(db.payments.bulkPut(seedData.paymentRecords as PaymentRecord[]));
+  }
+  if (!sessionCount && seedData.sessions) {
+    tasks.push(db.sessions.bulkPut(seedData.sessions as SessionRecord[]));
+  }
+  if (!ledgerCount && seedData.lessonLedger) {
+    tasks.push(db.lessonLedger.bulkPut(seedData.lessonLedger as LessonLedgerEntry[]));
+  }
+  if (!fitnessItemCount && seedData.fitnessTestItems) {
+    tasks.push(db.fitnessTestItems.bulkPut(seedData.fitnessTestItems as FitnessTestItem[]));
+  }
+  if (!fitnessResultCount && seedData.fitnessTests) {
+    tasks.push(db.fitnessTests.bulkPut(seedData.fitnessTests as FitnessTestResult[]));
+  }
+
+  if (tasks.length) {
+    await Promise.all(tasks);
+  }
+}
+
 async function bootstrap() {
   const count = await db.students.count();
   const hydrateCaches = async () => {
@@ -156,6 +200,7 @@ async function bootstrap() {
     await ensureTrainingAssets();
     await ensureChallengeTemplates();
     await ensureRewardCatalog();
+    await ensureOperationalDatasets();
     await hydrateCaches();
     return;
   }

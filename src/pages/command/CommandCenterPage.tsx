@@ -45,7 +45,6 @@ interface SegmentRow {
   count: number;
 }
 
-
 interface ClassStat {
   id: string;
   name: string;
@@ -82,7 +81,6 @@ function round1(value: number) {
 }
 
 
-
 function formatCurrency(amount: number) {
   return `¥ ${amount.toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
 }
@@ -102,6 +100,8 @@ function MonthlyOpsTooltip({ active, payload, label }: TooltipProps<ValueType, N
       <p>收入：{formatCurrency(data.revenue)}</p>
       <p>课包购买：{formatLessons(data.purchased)}</p>
     </div>
+
+    
 
   );
 }

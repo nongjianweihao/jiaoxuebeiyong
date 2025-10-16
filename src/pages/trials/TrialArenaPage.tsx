@@ -26,6 +26,7 @@ import type { NameType, TooltipProps, ValueType } from 'recharts';
 
 
 
+
 import { db } from '../../store/db';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
 import { classesRepo } from '../../store/repositories/classesRepo';
@@ -51,6 +52,8 @@ interface MonthlyCoveragePoint {
   testers: number;
   sessions: number;
 }
+
+
 
 interface SkillStat {
   itemId: string;
@@ -99,25 +102,23 @@ function formatDateLabel(iso?: string, withYear = false) {
 function safeAverage(values: number[]) {
   if (!values.length) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+
 }
 
-
-  
 function compositeScore(result?: FitnessTestResult) {
   if (!result?.radar) return null;
   const values = Object.values(result.radar).filter((value): value is number => typeof value === 'number' && !Number.isNaN(value));
   if (!values.length) return null;
   return safeAverage(values);
-
 }
+
+
 
 function formatNumber(value: number | null, digits = 1) {
   if (value == null || Number.isNaN(value)) return '--';
   return value.toFixed(digits);
 }
 
-
-  
 function CoverageTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
 
   if (!active || !payload?.length) return null;
