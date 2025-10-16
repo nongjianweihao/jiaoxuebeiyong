@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 
@@ -10,6 +10,7 @@ import { RadarChart } from "../../components/RadarChart";
 import { SpeedInput, type SpeedRow } from "../../components/SpeedInput";
 import { EnergyBoard } from "../../components/EnergyBoard";
 import { RewardToast } from "../../components/RewardToast";
+import { ClassSharePanel } from "../../components/classes/ClassSharePanel";
 import { ClassSquadPanel } from "../../components/squads/ClassSquadPanel";
 import { PuzzleGrid } from "../../components/PuzzleGrid";
 import { StudentAvatar } from "../../components/StudentAvatar";
@@ -254,6 +255,7 @@ export function ClassDetailPage() {
     participantIds: string[];
   } | null>(null);
   const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
+  const fallbackSessionDateRef = useRef<string>(new Date().toISOString());
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1491,6 +1493,50 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
+  const shareHighlights = session?.highlights?.length
+    ? session.highlights
+    : deriveHighlights();
+  const focusTags = Array.from(
+    new Set(
+      Object.values(performanceDrafts).flatMap((draft) =>
+        (draft?.presetIds ?? [])
+          .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
+          .filter((preset) => preset?.tone === 'focus')
+          .map((preset) => preset!.label),
+      ),
+    ),
+  ).slice(0, 4);
+  const starSummaries = students.map((student) => {
+    const draft = performanceDrafts[student.id];
+    return {
+      name: student.name,
+      stars: draft?.stars ?? DEFAULT_PERFORMANCE_SCORE,
+    };
+  });
+  const averageStars = starSummaries.length
+    ? starSummaries.reduce((total, item) => total + item.stars, 0) / starSummaries.length
+    : null;
+  const starLeaders = [...starSummaries]
+    .sort((a, b) => {
+      if (b.stars !== a.stars) return b.stars - a.stars;
+      return a.name.localeCompare(b.name, 'zh-CN');
+    })
+    .slice(0, 3);
+  const presentStudentIds = new Set(attendance.filter((item) => item.present).map((item) => item.studentId));
+  const energyLeader = students
+    .filter((student) => presentStudentIds.has(student.id))
+    .reduce<{ name: string; energy: number } | null>((best, student) => {
+      const energy = student.energy ?? 0;
+      if (!best || energy > best.energy) {
+        return { name: student.name, energy };
+      }
+      return best;
+    }, null);
+  const absentNames = attendance
+    .filter((item) => !item.present)
+    .map((item) => students.find((student) => student.id === item.studentId)?.name)
+    .filter((name): name is string => Boolean(name));
+  const sessionDateForShare = session?.date ?? fallbackSessionDateRef.current;
 
   return (
     <div className="space-y-6">
@@ -1586,6 +1632,21 @@ export function ClassDetailPage() {
           </div>
         </div>
       </section>
+
+      <ClassSharePanel
+        className={classEntity.name}
+        coachName={classEntity.coachName}
+        missionName={missionName}
+        sessionDate={sessionDateForShare}
+        presentCount={presentCount}
+        totalCount={studentCount}
+        averageStars={averageStars}
+        energyLeader={energyLeader}
+        highlights={shareHighlights}
+        focusTags={focusTags}
+        starLeaders={starLeaders}
+        absentNames={absentNames}
+      />
 
       <section className="rounded-3xl border border-slate-100/80 bg-white/95 p-6 shadow-lg">
     {cyclePlan ? (

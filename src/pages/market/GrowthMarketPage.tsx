@@ -1285,6 +1285,7 @@ function VirtualAssetPreview({
       </span>
 
     </div>
+
   );
 }
 
