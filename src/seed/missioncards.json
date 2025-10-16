@@ -1,0 +1,152 @@
+[
+  {
+    "id": "mc-speed-ignite",
+    "name": "Speed Ignite 30",
+    "phase": "PREP",
+    "durationMin": 45,
+    "focusAbilities": ["speed", "coordination"],
+    "blocks": [
+      {"title": "神经激活热身", "drillIds": ["drill-speed-mirror", "drill-speed-tempo-wave"], "stimulus": "neural", "intensity": "🌈"},
+      {"title": "极速单摇", "drillIds": ["drill-speed-accel-step", "drill-speed-sprint-burst"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "节奏耐力", "drillIds": ["drill-endurance-tempo-interval"], "stimulus": "metabolic", "intensity": "🌈"},
+      {"title": "游戏挑战", "gameIds": ["game-speed-react-01", "game-speed-target-04"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "放松恢复", "drillIds": ["drill-flex-recovery-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-speed-neural-boost",
+    "name": "Neural Boost 2×30",
+    "phase": "SPEC",
+    "durationMin": 50,
+    "focusAbilities": ["speed", "agility"],
+    "blocks": [
+      {"title": "动态准备", "drillIds": ["drill-agility-quick-feet", "drill-speed-start-gate"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "冲刺速度窗", "drillIds": ["drill-speed-sprint-burst"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "速度接力", "gameIds": ["game-speed-sprint-03"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "节奏稳固", "drillIds": ["drill-speed-tempo-wave"], "stimulus": "technical", "intensity": "🌈"},
+      {"title": "主动恢复", "drillIds": ["drill-flex-dynamic-hips", "drill-flex-shoulder-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-power-du30",
+    "name": "Power Combo DU30",
+    "phase": "SPEC",
+    "durationMin": 55,
+    "focusAbilities": ["power", "coordination"],
+    "blocks": [
+      {"title": "核心激活", "drillIds": ["drill-power-core-drive", "drill-power-ankle-snap"], "stimulus": "strength", "intensity": "🌈"},
+      {"title": "双摇爆发", "drillIds": ["drill-power-deep-squat", "drill-power-drop-jump"], "stimulus": "strength", "intensity": "⚡"},
+      {"title": "DU30测试", "drillIds": ["drill-speed-accel-step"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "爆发游戏", "gameIds": ["game-power-duel-11", "game-power-box-12"], "stimulus": "strength", "intensity": "⚡"},
+      {"title": "缓和与拉伸", "drillIds": ["drill-flex-ankle-mobility", "drill-flex-recovery-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-coord-freestyle",
+    "name": "Freestyle Flow Lab",
+    "phase": "SPEC",
+    "durationMin": 60,
+    "focusAbilities": ["coordination", "flexibility"],
+    "blocks": [
+      {"title": "关节唤醒", "drillIds": ["drill-flex-shoulder-flow", "drill-flex-spine-wave"], "stimulus": "technical", "intensity": "💧"},
+      {"title": "花样技术", "drillIds": ["drill-coord-combo-tree", "drill-coord-cross-step"], "stimulus": "technical", "intensity": "🌈"},
+      {"title": "节奏舞台", "gameIds": ["game-coord-stage-22"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "组合巩固", "gameIds": ["game-coord-puzzle-18"], "stimulus": "technical", "intensity": "🌈"},
+      {"title": "柔韧恢复", "drillIds": ["drill-flex-recovery-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-agility-react",
+    "name": "Agility Neural Circuit",
+    "phase": "PREP",
+    "durationMin": 45,
+    "focusAbilities": ["agility", "speed"],
+    "blocks": [
+      {"title": "神经热身", "drillIds": ["drill-agility-quick-feet", "drill-speed-mirror"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "多向脚步", "drillIds": ["drill-agility-ladder", "drill-agility-hex-hop"], "stimulus": "neural", "intensity": "🌈"},
+      {"title": "敏捷对抗", "gameIds": ["game-agility-tag-26", "game-agility-cross-29"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "节奏稳定", "drillIds": ["drill-speed-tempo-wave"], "stimulus": "technical", "intensity": "🌈"},
+      {"title": "放松脚踝", "drillIds": ["drill-flex-ankle-mobility"], "stimulus": "technical", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-endurance-3min",
+    "name": "Endurance Pace Builder",
+    "phase": "SPEC",
+    "durationMin": 55,
+    "focusAbilities": ["endurance", "speed"],
+    "blocks": [
+      {"title": "节奏热身", "drillIds": ["drill-endurance-lss", "drill-speed-tempo-wave"], "stimulus": "metabolic", "intensity": "🌈"},
+      {"title": "间歇训练", "drillIds": ["drill-endurance-tempo-interval"], "stimulus": "metabolic", "intensity": "⚡"},
+      {"title": "SR60模拟", "drillIds": ["drill-endurance-skill-test"], "stimulus": "technical", "intensity": "⚡"},
+      {"title": "团队耐力", "gameIds": ["game-endurance-rally-37", "game-endurance-interval-34"], "stimulus": "metabolic", "intensity": "🌈"},
+      {"title": "恢复呼吸", "drillIds": ["drill-endurance-breath-sync", "drill-flex-recovery-flow"], "stimulus": "psychological", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-recovery-reset",
+    "name": "Recovery Reset Day",
+    "phase": "PREP",
+    "durationMin": 40,
+    "focusAbilities": ["flexibility", "psychological"],
+    "blocks": [
+      {"title": "呼吸引导", "drillIds": ["drill-endurance-breath-sync"], "stimulus": "psychological", "intensity": "💧"},
+      {"title": "动态柔韧", "drillIds": ["drill-flex-dynamic-hips", "drill-flex-shoulder-flow"], "stimulus": "technical", "intensity": "💧"},
+      {"title": "轻强度游戏", "gameIds": ["game-recovery-balance-43", "game-recovery-flow-39"], "stimulus": "metabolic", "intensity": "💧"},
+      {"title": "能量回顾", "gameIds": ["game-recovery-journal-45"], "stimulus": "psychological", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-competition-sim",
+    "name": "Competition Simulation",
+    "phase": "COMP",
+    "durationMin": 60,
+    "focusAbilities": ["speed", "power", "psychological"],
+    "blocks": [
+      {"title": "赛前激活", "drillIds": ["drill-speed-start-gate", "drill-power-ankle-snap"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "SR30对标", "drillIds": ["drill-speed-accel-step"], "stimulus": "neural", "intensity": "⚡"},
+      {"title": "DU30冲击", "drillIds": ["drill-power-drop-jump"], "stimulus": "strength", "intensity": "⚡"},
+      {"title": "赛场情境", "gameIds": ["game-team-fusion-50", "game-speed-arcade-06"], "stimulus": "psychological", "intensity": "⚡"},
+      {"title": "赛后恢复", "drillIds": ["drill-flex-recovery-flow", "drill-flex-shoulder-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-middle-school-exam",
+    "name": "Exam Prep Standard",
+    "phase": "COMP",
+    "durationMin": 50,
+    "focusAbilities": ["endurance", "power"],
+    "blocks": [
+      {"title": "关节激活", "drillIds": ["drill-flex-dynamic-hips", "drill-flex-ankle-mobility"], "stimulus": "technical", "intensity": "💧"},
+      {"title": "体能支撑", "drillIds": ["drill-power-deep-squat", "drill-endurance-tempo-interval"], "stimulus": "strength", "intensity": "⚡"},
+      {"title": "中考模拟", "gameIds": ["game-endurance-marathon-31", "game-speed-target-04"], "stimulus": "metabolic", "intensity": "🌈"},
+      {"title": "恢复与反馈", "gameIds": ["game-recovery-journal-45", "game-recovery-lab-40"], "stimulus": "psychological", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-coordination-campus",
+    "name": "Campus Freestyle Day",
+    "phase": "PREP",
+    "durationMin": 45,
+    "focusAbilities": ["coordination", "agility"],
+    "blocks": [
+      {"title": "节奏热身", "drillIds": ["drill-coord-rhythm-call", "drill-speed-mirror"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "花样串联", "drillIds": ["drill-coord-combo-tree"], "stimulus": "technical", "intensity": "🌈"},
+      {"title": "游戏互动", "gameIds": ["game-coord-mirror-23", "game-agility-switch-30"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "柔韧收尾", "drillIds": ["drill-flex-recovery-flow"], "stimulus": "metabolic", "intensity": "💧"}
+    ]
+  },
+  {
+    "id": "mc-team-integration",
+    "name": "Team Integration Quest",
+    "phase": "SPEC",
+    "durationMin": 60,
+    "focusAbilities": ["coordination", "psychological", "endurance"],
+    "blocks": [
+      {"title": "团队激活", "gameIds": ["game-team-strategy-46"], "stimulus": "psychological", "intensity": "💧"},
+      {"title": "协同跳绳", "gameIds": ["game-coord-sync-19", "game-team-quest-47"], "stimulus": "psychological", "intensity": "🌈"},
+      {"title": "耐力接力", "gameIds": ["game-endurance-station-32"], "stimulus": "metabolic", "intensity": "🌈"},
+      {"title": "能量恢复", "gameIds": ["game-recovery-flow-39", "game-recovery-story-42"], "stimulus": "psychological", "intensity": "💧"}
+    ]
+  }
+]

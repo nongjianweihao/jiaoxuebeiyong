@@ -1,0 +1,207 @@
+{
+  "templates": [
+    {
+      "id": "tpl-prep-001",
+      "name": "PREP-勇士入营节奏 45min",
+      "period": "PREP",
+      "weeks": 4,
+      "createdAt": "2025-01-01T00:00:00.000Z",
+
+      
+      "stageId": "stage-rookie",
+      "planId": "plan-rookie-8w",
+      "unitIds": [
+        "unit-rookie-activation",
+        "unit-rookie-foundation"
+
+      ]
+    },
+    {
+      "id": "tpl-spec-001",
+      "name": "SPEC-勇士爆发与花样 50min",
+      "period": "SPEC",
+      "weeks": 4,
+      "createdAt": "2025-01-01T00:00:00.000Z",
+
+      
+      "stageId": "stage-warrior",
+      "planId": "plan-warrior-12w",
+      "unitIds": [
+        "unit-warrior-power",
+        "unit-warrior-flow"
+
+      ]
+    },
+    {
+      "id": "tpl-comp-001",
+      "name": "COMP-精英模拟赛 55min",
+      "period": "COMP",
+      "weeks": 4,
+      "createdAt": "2025-01-01T00:00:00.000Z",
+
+      
+    
+      "stageId": "stage-elite",
+      "planId": "plan-elite-10w",
+      "unitIds": [
+        "unit-elite-pace",
+        "unit-elite-strategy"
+
+      ]
+    }
+  ],
+  "students": [
+    {
+      "id": "stu-a",
+      "name": "张三",
+      "gender": "M",
+      "joinDate": "2025-01-15T00:00:00.000Z",
+      "currentRank": 1,
+      "tags": [
+        "基础班"
+      ]
+    },
+    {
+      "id": "stu-b",
+      "name": "李四",
+      "gender": "F",
+      "joinDate": "2025-01-15T00:00:00.000Z",
+      "currentRank": 0,
+      "tags": [
+        "基础班"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "cls-101",
+      "name": "周二基础班",
+      "coachName": "Coach A",
+      "schedule": "周二 18:30",
+      "templateId": "tpl-prep-001",
+      "studentIds": [
+        "stu-a",
+        "stu-b"
+      ]
+    }
+  ],
+  "benchmarks": [
+    {
+      "id": "bm-1",
+      "quality": "speed",
+      "ageMin": 6,
+      "ageMax": 8,
+      "unit": "count",
+      "p25": 60,
+      "p50": 80,
+      "p75": 100
+    },
+    {
+      "id": "bm-2",
+      "quality": "speed",
+      "ageMin": 9,
+      "ageMax": 10,
+      "unit": "count",
+      "p25": 80,
+      "p50": 100,
+      "p75": 120
+    },
+    {
+      "id": "bm-3",
+      "quality": "speed",
+      "ageMin": 11,
+      "ageMax": 12,
+      "unit": "count",
+      "p25": 90,
+      "p50": 110,
+      "p75": 130
+    },
+    {
+      "id": "bm-4",
+      "quality": "flexibility",
+      "ageMin": 6,
+      "ageMax": 12,
+      "unit": "cm",
+      "p25": 8,
+      "p50": 12,
+      "p75": 16
+    }
+  ],
+  "warriorPath": [
+    {
+      "id": "wp-1",
+      "rank": 1,
+      "title": "完成花样一段",
+      "moveIds": [],
+      "points": 10
+    },
+    {
+      "id": "wp-2",
+      "rank": 3,
+      "title": "二/三段巩固",
+      "moveIds": [],
+      "points": 20
+    },
+    {
+      "id": "wp-3",
+      "rank": 7,
+      "title": "四-七段串联",
+      "moveIds": [],
+      "points": 40
+    },
+    {
+      "id": "wp-4",
+      "rank": 9,
+      "title": "八-九段精英",
+      "moveIds": [],
+      "points": 60
+    }
+  ],
+  "gameDrills": [
+    {
+      "id": "g-rlgl",
+      "name": "红灯绿灯",
+      "qualityTags": [
+        "agility",
+        "coordination"
+      ]
+    },
+    {
+      "id": "g-numeric",
+      "name": "数字反应跑",
+      "qualityTags": [
+        "agility",
+        "speed"
+      ]
+    },
+    {
+      "id": "g-relay",
+      "name": "接力挑战",
+      "qualityTags": [
+        "endurance",
+        "coordination"
+      ]
+    }
+  ],
+  "lessonPackages": [
+    {
+      "id": "pkg-001",
+      "studentId": "stu-a",
+      "purchasedLessons": 20,
+      "price": 3600,
+      "unitPrice": 180,
+      "purchasedAt": "2025-02-01T00:00:00.000Z"
+    }
+  ],
+  "paymentRecords": [
+    {
+      "id": "pay-001",
+      "studentId": "stu-a",
+      "packageId": "pkg-001",
+      "amount": 3600,
+      "method": "wechat",
+      "paidAt": "2025-02-01T00:00:00.000Z"
+    }
+  ],
+  "speed_rank_thresholds_ref": "请与 /src/seed/public_library.json 中的 speed_rank_thresholds 保持一致"
+}
