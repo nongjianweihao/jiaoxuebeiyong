@@ -43,4 +43,8 @@ export const rewardItemsRepo = {
   async toggleVisibility(id: string, visible: boolean) {
     await db.rewardItems.update(id, { visible });
   },
+
+  async remove(id: string) {
+    await db.rewardItems.delete(id);
+  },
 };
