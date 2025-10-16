@@ -11,6 +11,7 @@ import stages from './training-stages.json';
 import plans from './training-plans.json';
 import units from './training-units.json';
 import rewardCatalog from './reward-items.json';
+import challengeTemplates from './challenge-templates.json';
 
 
 import { setBenchmarks, setSpeedThresholds } from '../utils/calc';
@@ -106,6 +107,19 @@ async function ensureTrainingAssets() {
 
 }
 
+async function ensureChallengeTemplates() {
+  const existingTemplates = await db.templates.toArray();
+  const existingIds = new Set(existingTemplates.map((template) => template.id));
+
+  const additions = (challengeTemplates as TrainingTemplate[])
+    .map((template) => ({ ...template, period: template.period as TrainingTemplate['period'] }))
+    .filter((template) => !existingIds.has(template.id));
+
+  if (additions.length) {
+    await db.templates.bulkPut(additions);
+  }
+}
+
 async function ensureRewardCatalog() {
   const existing = await db.rewardItems.count();
   if (!existing) {
@@ -136,6 +150,7 @@ async function bootstrap() {
   if (count > 0) {
     await ensureRankMovesFromLibrary();
     await ensureTrainingAssets();
+    await ensureChallengeTemplates();
     await ensureRewardCatalog();
     await hydrateCaches();
     return;
