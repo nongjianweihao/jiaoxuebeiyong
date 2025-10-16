@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { trainingRepo, type TrainingLibrarySnapshot } from '../../store/repositories/trainingRepo';
 import type {
+  MissionBlock,
   MissionCardV2,
   CycleWeekPlan,
   TrainingCycleTemplate,
@@ -62,7 +63,7 @@ const ASSET_LABEL: Record<TrainingAssetType, string> = {
   quality: '能力维度',
   drill: '训练动作',
   game: '训练游戏',
-  mission: '任务卡',
+  mission: '课节模板',
   cycle: '周期模板',
   puzzle: '主线谜题',
 };
@@ -814,12 +815,72 @@ function GameForm({ value, onChange }: GameFormProps) {
 
 interface MissionFormProps {
   value: MissionCardV2;
-  blocksJson: string;
+  blocks: MissionBlock[];
   onChange: (value: MissionCardV2) => void;
-  onBlocksJsonChange: (value: string) => void;
+  onBlocksChange: (value: MissionBlock[]) => void;
+  drills: TrainingDrill[];
+  games: TrainingGame[];
+  puzzles: PuzzleTemplate[];
 }
 
-function MissionForm({ value, blocksJson, onChange, onBlocksJsonChange }: MissionFormProps) {
+function MissionForm({ value, blocks, onChange, onBlocksChange, drills, games, puzzles }: MissionFormProps) {
+  const drillLookup = useMemo(() => new Map(drills.map((item) => [item.id, item])), [drills]);
+  const gameLookup = useMemo(() => new Map(games.map((item) => [item.id, item])), [games]);
+  const puzzleLookup = useMemo(() => new Map(puzzles.map((item) => [item.id, item])), [puzzles]);
+
+  const setBlock = useCallback(
+    (index: number, next: Partial<MissionBlock>) => {
+      onBlocksChange(
+        blocks.map((block, idx) =>
+          idx === index
+            ? {
+                ...block,
+                ...next,
+              }
+            : block,
+        ),
+      );
+    },
+    [blocks, onBlocksChange],
+  );
+
+  const handleAddBlock = useCallback(() => {
+    onBlocksChange([
+      ...blocks,
+      {
+        title: '新环节',
+        stimulus: 'neural',
+        intensity: '🌈',
+        drillIds: [],
+        gameIds: [],
+      },
+    ]);
+  }, [blocks, onBlocksChange]);
+
+  const handleRemoveBlock = useCallback(
+    (index: number) => {
+      onBlocksChange(blocks.filter((_, idx) => idx !== index));
+    },
+    [blocks, onBlocksChange],
+  );
+
+  const handleMoveBlock = useCallback(
+    (index: number, direction: -1 | 1) => {
+      const target = index + direction;
+      if (target < 0 || target >= blocks.length) return;
+      const draft = [...blocks];
+      const temp = draft[index];
+      draft[index] = draft[target];
+      draft[target] = temp;
+      onBlocksChange(draft);
+    },
+    [blocks, onBlocksChange],
+  );
+
+  const extractSelectedValues = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    return Array.from(event.target.selectedOptions).map((option) => option.value);
+  }, []);
+
   return (
     <div className="grid gap-3 text-sm">
       <label className="space-y-1">
@@ -863,17 +924,209 @@ function MissionForm({ value, blocksJson, onChange, onBlocksJsonChange }: Missio
           className="w-full rounded-lg border border-slate-200 px-3 py-2"
         />
       </label>
-      <label className="space-y-1">
-        <span className="text-xs font-semibold text-slate-500">任务结构 (JSON)</span>
-        <textarea
-          value={blocksJson}
-          onChange={(event) => onBlocksJsonChange(event.target.value)}
-          className="h-48 w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-xs"
-        />
-        <p className="text-[11px] text-slate-400">
-          例：[{'{'}"title":"热身","stimulus":"technical","intensity":"🌈","puzzleTemplateId":"quest-poem","puzzleCardIds":["c1","c2"]{'}'}]
-        </p>
-      </label>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500">环节安排</span>
+          <button
+            type="button"
+            onClick={handleAddBlock}
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+          >
+            新增环节
+          </button>
+        </div>
+        {blocks.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
+            暂未添加环节，可从动作库或游戏库中选择内容并配置主线谜题。
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {blocks.map((block, index) => {
+              const drillIds = Array.isArray(block.drillIds) ? block.drillIds : [];
+              const gameIds = Array.isArray(block.gameIds) ? block.gameIds : [];
+              const puzzleTemplateId = block.puzzleTemplateId ?? '';
+              const puzzleCards = Array.isArray(block.puzzleCardIds) ? block.puzzleCardIds : [];
+              const puzzle = puzzleTemplateId ? puzzleLookup.get(puzzleTemplateId) : undefined;
+
+              return (
+                <div key={index} className="rounded-xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">环节 {index + 1}</p>
+                      <p className="text-[11px] text-slate-400">配置课堂流程、关联动作 / 游戏与谜题卡牌。</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveBlock(index, -1)}
+                        className="rounded-full border border-slate-200 px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100"
+                      >
+                        上移
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveBlock(index, 1)}
+                        className="rounded-full border border-slate-200 px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100"
+                      >
+                        下移
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBlock(index)}
+                        className="rounded-full border border-rose-200 px-2 py-1 text-[11px] text-rose-500 hover:bg-rose-50"
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">环节标题</span>
+                      <input
+                        value={block.title}
+                        onChange={(event) => setBlock(index, { title: event.target.value })}
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                        placeholder="例如：热身 / 敏捷闯关"
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">刺激类型</span>
+                      <select
+                        value={block.stimulus}
+                        onChange={(event) => setBlock(index, { stimulus: event.target.value as typeof STIMULUS_OPTIONS[number] })}
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        {STIMULUS_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">强度等级</span>
+                      <select
+                        value={block.intensity}
+                        onChange={(event) => setBlock(index, { intensity: event.target.value as typeof INTENSITY_OPTIONS[number] })}
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        {INTENSITY_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">关联训练动作</span>
+                      <select
+                        multiple
+                        value={drillIds}
+                        onChange={(event) => setBlock(index, { drillIds: extractSelectedValues(event) })}
+                        className="h-28 w-full rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        {drills.map((drill) => (
+                          <option key={drill.id} value={drill.id}>
+                            {drill.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-slate-400">按住 Ctrl / Command 键可多选动作。</p>
+                      <div className="flex flex-wrap gap-1 text-[11px] text-slate-500">
+                        {drillIds.length === 0 ? (
+                          <span className="text-slate-400">尚未选择动作</span>
+                        ) : (
+                          drillIds.map((id) => (
+                            <span key={id} className="rounded-full bg-slate-100 px-2 py-0.5">
+                              {drillLookup.get(id)?.name ?? id}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">关联训练游戏</span>
+                      <select
+                        multiple
+                        value={gameIds}
+                        onChange={(event) => setBlock(index, { gameIds: extractSelectedValues(event) })}
+                        className="h-28 w-full rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        {games.map((game) => (
+                          <option key={game.id} value={game.id}>
+                            {game.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-slate-400">可搭配趣味游戏增强课堂氛围。</p>
+                      <div className="flex flex-wrap gap-1 text-[11px] text-slate-500">
+                        {gameIds.length === 0 ? (
+                          <span className="text-slate-400">尚未选择游戏</span>
+                        ) : (
+                          gameIds.map((id) => (
+                            <span key={id} className="rounded-full bg-slate-100 px-2 py-0.5">
+                              {gameLookup.get(id)?.name ?? id}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-500">主线谜题（可选）</span>
+                      <select
+                        value={puzzleTemplateId}
+                        onChange={(event) => {
+                          const templateId = event.target.value;
+                          if (!templateId) {
+                            setBlock(index, { puzzleTemplateId: undefined, puzzleCardIds: [] });
+                            return;
+                          }
+                          const template = puzzleLookup.get(templateId);
+                          setBlock(index, {
+                            puzzleTemplateId: templateId,
+                            puzzleCardIds: template ? template.cards.map((card) => card.id) : [],
+                          });
+                        }}
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        <option value="">— 不绑定 —</option>
+                        {puzzles.map((puzzle) => (
+                          <option key={puzzle.id} value={puzzle.id}>
+                            {puzzle.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {puzzle && (
+                      <label className="space-y-1">
+                        <span className="text-xs font-semibold text-slate-500">选择谜题卡牌</span>
+                        <select
+                          multiple
+                          value={puzzleCards}
+                          onChange={(event) => setBlock(index, { puzzleCardIds: extractSelectedValues(event) })}
+                          className="h-28 w-full rounded-lg border border-slate-200 px-3 py-2"
+                        >
+                          {puzzle.cards.map((card) => (
+                            <option key={card.id} value={card.id}>
+                              {card.title ?? card.id}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-[11px] text-slate-400">按需选择卡牌，未选择时默认全部。</p>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1165,7 +1418,7 @@ function CycleForm({
         <div className="space-y-3">
           {weekPlanList.length === 0 ? (
             <div className="rounded-md border border-dashed border-slate-300 bg-white px-3 py-6 text-center text-xs text-slate-400">
-              暂无周计划，点击「新增周」开始配置任务卡与主线谜题。
+              暂无周计划，点击「新增周」开始配置课节模板与主线谜题。
             </div>
           ) : (
             weekPlanList.map((week, index) => {
@@ -1201,7 +1454,7 @@ function CycleForm({
                     </button>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500">任务卡安排</p>
+                    <p className="text-xs font-semibold text-slate-500">课节模板安排</p>
                     <div className="flex flex-wrap items-center gap-2">
                       {(week.missionCards ?? []).map((missionId) => {
                         const mission = missionLookup.get(missionId);
@@ -1215,7 +1468,7 @@ function CycleForm({
                               type="button"
                               className="text-slate-400 hover:text-rose-500"
                               onClick={() => handleMissionRemove(index, missionId)}
-                              aria-label="移除任务卡"
+                              aria-label="移除课节模板"
                             >
                               ×
                             </button>
@@ -1230,7 +1483,7 @@ function CycleForm({
                           event.currentTarget.value = '';
                         }}
                       >
-                        <option value="">添加任务卡</option>
+                        <option value="">添加课节模板</option>
                         {missions.map((mission) => (
                           <option
                             key={mission.id}
@@ -1310,7 +1563,7 @@ function CycleForm({
                       </div>
                     ) : (
                       <p className="text-[11px] text-slate-400">
-                        未绑定主线谜题时，将沿用任务卡或课堂默认设置。
+                        未绑定主线谜题时，将沿用课节模板或课堂默认设置。
                       </p>
                     )}
                   </div>
@@ -1526,7 +1779,7 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
   const [importText, setImportText] = useState('');
   const [importReplace, setImportReplace] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [blocksJson, setBlocksJson] = useState('[]');
+  const [missionBlocks, setMissionBlocks] = useState<MissionBlock[]>([]);
   const [weekPlanJson, setWeekPlanJson] = useState('[]');
   const [planWeeksJson, setPlanWeeksJson] = useState('[]');
 
@@ -1555,10 +1808,11 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
       setPuzzleCardsJson('[]');
       setPlanWeeksJson('[]');
 
-      
+
       setPlanPhasesJson('[]');
 
       setUnitBlocksJson('[]');
+      setMissionBlocks([]);
 
       if (type === 'stage') {
         const item = record ? { ...record } : { ...blankStage };
@@ -1583,8 +1837,10 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
         setEditState({ type, record: record ? { ...record } : { ...blankGame } });
       } else if (type === 'mission') {
         const item = record ? { ...record } : { ...blankMission };
+        const blocks = Array.isArray(item.blocks) ? item.blocks.map((block) => ({ ...block })) : [];
+        item.blocks = blocks;
         setEditState({ type, record: item });
-        setBlocksJson(JSON.stringify(item.blocks ?? [], null, 2));
+        setMissionBlocks(blocks);
       } else if (type === 'cycle') {
         const item = record ? { ...record } : { ...blankCycle };
         setEditState({ type, record: item });
@@ -1754,7 +2010,16 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
         await trainingRepo.saveGame(editState.record as TrainingGame);
       } else if (editState.type === 'mission') {
         const mission = editState.record as MissionCardV2;
-        mission.blocks = JSON.parse(blocksJson || '[]');
+        mission.blocks = missionBlocks.map((block) => ({
+          ...block,
+          drillIds: Array.isArray(block.drillIds) ? block.drillIds : [],
+          gameIds: Array.isArray(block.gameIds) ? block.gameIds : [],
+          puzzleTemplateId:
+            typeof block.puzzleTemplateId === 'string' && block.puzzleTemplateId.trim().length > 0
+              ? block.puzzleTemplateId
+              : undefined,
+          puzzleCardIds: Array.isArray(block.puzzleCardIds) ? block.puzzleCardIds : [],
+        }));
         await trainingRepo.saveMissionCard(mission);
       } else if (editState.type === 'cycle') {
         const cycle = editState.record as TrainingCycleTemplate;
@@ -1973,7 +2238,7 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
                   value="mission"
                   className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-600 data-[state=active]:bg-slate-900 data-[state=active]:text-white"
                 >
-                  任务卡
+                  课节模板
                 </Tabs.Trigger>
                 <Tabs.Trigger
                   value="cycle"
@@ -2130,9 +2395,12 @@ export function TrainingLibraryManager({ open, onClose, initialTab = 'drill', in
                 {activeTab === 'mission' && (
                   <MissionForm
                     value={editState.record as MissionCardV2}
-                    blocksJson={blocksJson}
                     onChange={(value) => setEditState({ ...editState, record: value })}
-                    onBlocksJsonChange={setBlocksJson}
+                    blocks={missionBlocks}
+                    onBlocksChange={setMissionBlocks}
+                    drills={snapshot?.drills ?? []}
+                    games={snapshot?.games ?? []}
+                    puzzles={puzzles}
                   />
                 )}
                 {activeTab === 'cycle' && (
