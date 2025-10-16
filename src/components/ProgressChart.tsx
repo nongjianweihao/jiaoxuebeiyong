@@ -1,8 +1,8 @@
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-type SeriesPoint = { date: string; score: number };
+export type SeriesPoint = { date: string; score: number };
 
-type LineSeries = {
+export type LineSeries = {
   label: string;
   color?: string;
   data: SeriesPoint[];

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ExportPdfButton } from '../../components/ExportPdfButton';
-import { ProgressChart } from '../../components/ProgressChart';
+import { ProgressChart, type LineSeries } from '../../components/ProgressChart';
 import { RadarChart } from '../../components/RadarChart';
 import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from '../../config/performance';
 import { BadgeWall } from '../../components/BadgeWall';
@@ -60,6 +60,7 @@ import type {
   PerformanceDimensionId,
   SessionPerformanceEntry,
   WindowSec,
+  FitnessTestResult,
 } from '../../types';
 
 import type {
@@ -70,6 +71,12 @@ import type {
   Squad,
 } from '../../types.gamify';
 import { calculateWarriorAssessmentReport, type WarriorAssessmentReport } from '../../utils/warriorAssessment';
+import {
+  buildHeightPercentileCurve,
+  calculateAgeInYears,
+  estimateHeightPercentile,
+  getHeightPercentilesForAge,
+} from '../../utils/height';
 
 
 interface RadarView {
@@ -108,6 +115,12 @@ type ChartSeries = {
   data: Array<{ date: string; score: number }>;
 };
 
+type HeightRecord = {
+  date: string;
+  height: number;
+  ageYears: number | null;
+};
+
 export function StudentDetailPage() {
   const params = useParams<{ id: string }>();
   const studentId = params.id!;
@@ -132,6 +145,7 @@ export function StudentDetailPage() {
   const [squadMemberships, setSquadMemberships] = useState<Squad[]>([]);
   const [squadEnergy, setSquadEnergy] = useState<SquadEnergySummary>({ total: 0, weekly: 0 });
   const [assessmentReport, setAssessmentReport] = useState<WarriorAssessmentReport | null>(null);
+  const [fitnessTests, setFitnessTests] = useState<FitnessTestResult[]>([]);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedWindow, setSelectedWindow] = useState<WindowSec>(30);
 
@@ -231,6 +245,7 @@ export function StudentDetailPage() {
       const sortedResults = [...tests].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
+      setFitnessTests(sortedResults);
       const latest = sortedResults[0];
       if (stu && latest) {
         setAssessmentReport(
@@ -491,6 +506,108 @@ export function StudentDetailPage() {
       ].filter((line): line is ChartSeries => Boolean(line)),
     [pointsCurve, freestyleSeries],
   );
+
+
+  const birthIso = student?.birth ?? null;
+  const gender = student?.gender ?? null;
+  const heightRecords = useMemo<HeightRecord[]>(() => {
+    return fitnessTests
+      .map((result) => {
+        const heightItem = result.items.find((item) => item.itemId === 'height');
+        if (!heightItem) return null;
+        const measurement = new Date(result.date);
+        if (Number.isNaN(measurement.getTime())) return null;
+        const isoDate = measurement.toISOString();
+        const ageYears = birthIso ? calculateAgeInYears(birthIso, isoDate) : null;
+        return {
+          date: isoDate,
+          height: Number(heightItem.value),
+          ageYears,
+        } satisfies HeightRecord;
+      })
+      .filter((item): item is HeightRecord => Boolean(item))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [fitnessTests, birthIso]);
+
+  const heightPercentileCurves = useMemo(() => {
+    if (!birthIso || !gender) return null;
+    const ages = heightRecords
+      .map((record) => record.ageYears)
+      .filter((age): age is number => age !== null);
+    if (!ages.length) return null;
+    const minAge = Math.max(Math.min(...ages) - 0.5, 0);
+    const maxAge = Math.max(...ages) + 0.5;
+    return buildHeightPercentileCurve(gender, birthIso, minAge, maxAge);
+  }, [birthIso, gender, heightRecords]);
+
+  const heightChartSeries = useMemo<LineSeries[]>(() => {
+    if (!heightRecords.length) return [];
+    const lines: LineSeries[] = [
+      {
+        label: '学员身高',
+        color: '#2563eb',
+        data: heightRecords.map((record) => ({
+          date: record.date,
+          score: Math.round(record.height * 10) / 10,
+        })),
+      },
+    ];
+    if (heightPercentileCurves?.length) {
+      const colorMap = { p3: '#f59e0b', p50: '#10b981', p97: '#ec4899' } as const;
+      (['p3', 'p50', 'p97'] as const).forEach((key) => {
+        lines.push({
+          label: `${key.toUpperCase()} 百分位`,
+          color: colorMap[key],
+          data: heightPercentileCurves.map((row) => ({
+            date: row.date,
+            score: Math.round(row[key] * 10) / 10,
+          })),
+        });
+      });
+    }
+    return lines;
+  }, [heightRecords, heightPercentileCurves]);
+
+  const heightRange = useMemo(() => {
+    if (!heightRecords.length && !heightPercentileCurves?.length) return null;
+    const values = [
+      ...heightRecords.map((record) => record.height),
+      ...(heightPercentileCurves?.flatMap((row) => [row.p3, row.p50, row.p97]) ?? []),
+    ];
+    if (!values.length) return null;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return {
+      min: Math.floor(min - 2),
+      max: Math.ceil(max + 2),
+    };
+  }, [heightRecords, heightPercentileCurves]);
+
+  const heightInsight = useMemo(() => {
+    if (!birthIso || !gender || !heightRecords.length) return null;
+    const latest = heightRecords[heightRecords.length - 1];
+    if (latest.ageYears === null) return null;
+    const percentiles = getHeightPercentilesForAge(gender, latest.ageYears);
+    if (!percentiles) return null;
+    const percentileRank = estimateHeightPercentile(gender, latest.ageYears, latest.height);
+    if (percentileRank === null) return null;
+    let years = Math.max(0, Math.floor(latest.ageYears));
+    let months = Math.max(0, Math.round((latest.ageYears - years) * 12));
+    if (months === 12) {
+      years += 1;
+      months = 0;
+    }
+    const ageLabel = months ? `${years} 岁 ${months} 个月` : `${years} 岁`;
+    const classification = percentileRank < 10 ? '偏矮' : percentileRank > 90 ? '偏高' : '标准范围';
+    return {
+      latest,
+      percentileRank,
+      deltaFromMedian: latest.height - percentiles.p50,
+      percentiles,
+      ageLabel,
+      classification,
+    };
+  }, [birthIso, gender, heightRecords]);
   const ageLabel = useMemo(() => {
     if (!student?.birth) return '—';
     const birth = new Date(student.birth);
@@ -709,8 +826,72 @@ export function StudentDetailPage() {
           </div>
           </div>
 
-          
-          
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">身高成长曲线</h2>
+                <p className="text-xs text-slate-500">参照国家学生体质健康标准百分位</p>
+              </div>
+              {heightInsight ? (
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    heightInsight.classification === '偏矮'
+                      ? 'bg-rose-50 text-rose-600'
+                      : heightInsight.classification === '偏高'
+                        ? 'bg-sky-50 text-sky-600'
+                        : 'bg-emerald-50 text-emerald-600'
+                  }`}
+                >
+                  P{heightInsight.percentileRank} · {heightInsight.classification}
+                </span>
+              ) : heightRecords.length ? (
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                  待完善资料
+                </span>
+              ) : null}
+            </div>
+            <ProgressChart
+              series={heightChartSeries.length ? heightChartSeries : []}
+              yDomain={heightRange ? [heightRange.min, heightRange.max] : undefined}
+              allowDecimals
+              lineType="monotone"
+            />
+            {heightInsight ? (
+              <div className="grid gap-3 text-xs text-slate-500 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-400">最近测评</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    {new Date(heightInsight.latest.date).toLocaleDateString('zh-CN')}
+                  </div>
+                  <div>{heightInsight.ageLabel}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-400">身高</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    {heightInsight.latest.height.toFixed(1)} cm
+                  </div>
+                  <div>
+                    比同龄平均 {heightInsight.deltaFromMedian >= 0 ? '+' : ''}
+                    {Math.abs(heightInsight.deltaFromMedian).toFixed(1)} cm
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-400">参考区间</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    P3 {heightInsight.percentiles.p3.toFixed(1)} · P50 {heightInsight.percentiles.p50.toFixed(1)} · P97{' '}
+                    {heightInsight.percentiles.p97.toFixed(1)}
+                  </div>
+                  <div>身高位于 P{heightInsight.percentileRank}</div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">
+                {heightRecords.length
+                  ? '已记录身高，请完善出生日期与性别以生成国家标准曲线。'
+                  : '尚未录入身高测评，完成测评后可生成成长曲线。'}
+              </p>
+            )}
+          </div>
 
         </div>
         <div className="space-y-4">
