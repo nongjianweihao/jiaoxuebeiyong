@@ -1,4 +1,27 @@
-import { useEffect, useState } from 'react';
+
+
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import type { TooltipProps, ValueType, NameType } from 'recharts';
+
 import { EnergyBoard } from '../../components/EnergyBoard';
 import type { Student } from '../../types';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
@@ -36,84 +59,110 @@ const kpiCards = [
 
 const monthlyCourseRhythm = [
   {
-    month: '2024年3月',
-    lessons: 1288,
-    change: '+16%',
-    attendance: '90% 到课率',
-    highlight: '开学季返课高峰，家庭陪练打卡提升 12%。',
+
+    
+    month: '2024年1月',
+    lessons: 1186,
+    attendanceRate: 87,
+    change: 4,
+    highlight: '寒假战队营带动，周末场次满班率 96%。',
+
   },
   {
     month: '2024年2月',
     lessons: 1104,
-    change: '-6%',
-    attendance: '82% 到课率',
+
+    
+    attendanceRate: 82,
+    change: -6,
     highlight: '春节假期影响，营地课程贡献 320 课时。',
   },
   {
-    month: '2024年1月',
-    lessons: 1186,
-    change: '+4%',
-    attendance: '87% 到课率',
-    highlight: '寒假战队营带动，周末场次满班率 96%。',
+    month: '2024年3月',
+    lessons: 1288,
+    attendanceRate: 90,
+    change: 16,
+    highlight: '开学季返课高峰，家庭陪练打卡提升 12%。',
+
   },
 ];
 
 const revenueTimeline = [
   {
-    month: '2024年3月',
-    total: '¥ 48,600',
-    structure: '课程 58% · 营地 27% · 私教 15%',
-    arpu: 'ARPU ¥ 3,120',
-    cashflow: '+¥ 9,300 现金流入',
+
+    
+    month: '2024年1月',
+    total: 40400,
+    course: 65,
+    camp: 19,
+    private: 16,
+    cashflow: 5900,
   },
   {
     month: '2024年2月',
-    total: '¥ 43,200',
-    structure: '课程 62% · 营地 21% · 私教 17%',
-    arpu: 'ARPU ¥ 2,980',
-    cashflow: '+¥ 6,800 现金流入',
+    total: 43200,
+    course: 62,
+    camp: 21,
+    private: 17,
+    cashflow: 6800,
   },
   {
-    month: '2024年1月',
-    total: '¥ 40,400',
-    structure: '课程 65% · 营地 19% · 私教 16%',
-    arpu: 'ARPU ¥ 2,860',
-    cashflow: '+¥ 5,900 现金流入',
+    month: '2024年3月',
+    total: 48600,
+    course: 58,
+    camp: 27,
+    private: 15,
+    cashflow: 9300,
+
   },
 ];
 
 const lessonStructure = [
-  { label: '体能基础课', hours: 420, share: '32%', detail: '低龄勇士班，高频课消支撑稳定现金流。' },
-  { label: '进阶战术课', hours: 318, share: '24%', detail: '力量 + 速度双模组，报名转介绍提升 14%。' },
-  { label: '营地集训', hours: 276, share: '21%', detail: '营地打包附带装备组合，ARPU 较常规课高 42%。' },
-  { label: '私教/专项', hours: 192, share: '15%', detail: '私教续费率 88%，建议保持排班弹性。' },
-  { label: '家庭陪练', hours: 82, share: '8%', detail: '线上打卡任务带动能量值增长与裂变。' },
+
+  
+  { label: '体能基础课', hours: 420, share: 32, detail: '低龄勇士班，高频课消支撑稳定现金流。' },
+  { label: '进阶战术课', hours: 318, share: 24, detail: '力量 + 速度双模组，报名转介绍提升 14%。' },
+  { label: '营地集训', hours: 276, share: 21, detail: '营地打包附带装备组合，ARPU 较常规课高 42%。' },
+  { label: '私教/专项', hours: 192, share: 15, detail: '私教续费率 88%，建议保持排班弹性。' },
+  { label: '家庭陪练', hours: 82, share: 8, detail: '线上打卡任务带动能量值增长与裂变。' },
+
 ];
 
 const studentHourDistribution = [
   {
     segment: '≥ 16 课时 / 月',
-    ratio: '28%',
-    delta: '+6 pts',
+
+    
+    ratio: 28,
+    delta: 6,
     insight: '高粘进阶班，输出冠军故事做口碑裂变。',
+    color: '#10b981',
+    fill: '#10b981',
   },
   {
     segment: '12-15 课时 / 月',
-    ratio: '34%',
-    delta: '+3 pts',
+    ratio: 34,
+    delta: 3,
     insight: '常规班稳定区间，叠加家庭陪练作业巩固效果。',
+    color: '#22d3ee',
+    fill: '#22d3ee',
   },
   {
     segment: '8-11 课时 / 月',
-    ratio: '22%',
-    delta: '-5 pts',
+    ratio: 22,
+    delta: -5,
     insight: '存在松动迹象，需社群触达 + 教练点名激励。',
+    color: '#f97316',
+    fill: '#f97316',
   },
   {
     segment: '≤ 7 课时 / 月',
-    ratio: '16%',
-    delta: '-4 pts',
+    ratio: 16,
+    delta: -4,
     insight: '集中在新生体验阶段，安排班主任 48 小时回访。',
+    color: '#ef4444',
+    fill: '#ef4444',
+
   },
 ];
 
@@ -203,6 +252,40 @@ export function CommandCenterPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
+
+  
+  const revenueChartData = useMemo(
+    () =>
+      revenueTimeline.map((item) => ({
+        month: item.month,
+        total: item.total,
+        课程包: Math.round((item.course / 100) * item.total),
+        训练营: Math.round((item.camp / 100) * item.total),
+        私教专项: Math.round((item.private / 100) * item.total),
+      })),
+    [],
+  );
+
+  const lessonStructureChartData = useMemo(
+    () =>
+      lessonStructure.map((item) => ({
+        name: item.label,
+        hours: item.hours,
+        share: item.share,
+      })),
+    [],
+  );
+
+  const growthRadarData = useMemo(
+    () =>
+      growthDimensions.map((dim) => ({
+        dimension: dim.label,
+        得分: dim.score,
+      })),
+    [],
+  );
+
+
   useEffect(() => {
     let active = true;
 
@@ -287,22 +370,67 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">自动拉取近 90 天</span>
           </header>
-          <div className="space-y-4">
-            {monthlyCourseRhythm.map((item) => (
-              <article key={item.month} className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-amber-600">{item.month}</p>
-                    <p className="text-xs text-amber-500/80">{item.attendance}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-slate-900">{item.lessons.toLocaleString()} 课时</p>
-                    <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-emerald-600 shadow">{item.change}</span>
-                  </div>
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-600">{item.highlight}</p>
-              </article>
-            ))}
+
+          
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
+            <div className="h-72 rounded-2xl bg-white/60 p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyCourseRhythm} margin={{ top: 10, right: 24, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="lessonsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#fb923c" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
+                  <YAxis
+                    yAxisId="left"
+                    stroke="#94a3b8"
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}`}
+                  />
+                  <YAxis yAxisId="right" orientation="right" hide domain={[70, 100]} />
+                  <Tooltip content={<CourseRhythmTooltip />} />
+                  <Area
+                    type="monotone"
+                    yAxisId="left"
+                    dataKey="lessons"
+                    stroke="#f97316"
+                    fill="url(#lessonsGradient)"
+                    strokeWidth={3}
+                    name="课时"
+                  />
+                  <Line
+                    type="monotone"
+                    yAxisId="right"
+                    dataKey="attendanceRate"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: '#6366f1' }}
+                    name="到课率"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <ul className="space-y-3 text-xs text-slate-600">
+              {monthlyCourseRhythm
+                .slice()
+                .reverse()
+                .map((item) => (
+                  <li key={item.month} className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-amber-600">
+                      <span>{item.month}</span>
+                      <span>
+                        {item.lessons.toLocaleString()} 课时 · 到课率 {item.attendanceRate}% · MoM {item.change > 0 ? `+${item.change}` : item.change}%
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-amber-600/80">{item.highlight}</p>
+                  </li>
+                ))}
+            </ul>
+
           </div>
         </div>
 
@@ -314,23 +442,32 @@ export function CommandCenterPage() {
             </div>
             <span className="text-xs text-slate-400">单位：人民币</span>
           </header>
-          <div className="space-y-4">
-            {revenueTimeline.map((item) => (
-              <article key={item.month} className="rounded-2xl bg-slate-50/70 p-4 shadow-inner">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{item.month}</p>
-                    <p className="text-xs text-slate-500">{item.structure}</p>
-                  </div>
-                  <div className="text-right text-sm font-semibold text-indigo-500">{item.total}</div>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-500">{item.arpu}</span>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-500">{item.cashflow}</span>
-                </div>
-              </article>
-            ))}
+
+          
+          <div className="h-72 rounded-2xl bg-white/60 p-3">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={revenueChartData} margin={{ top: 10, right: 24, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
+                <YAxis stroke="#94a3b8" tickLine={false} tickFormatter={(value) => `¥${(value / 1000).toFixed(0)}k`} />
+                <Tooltip content={<RevenueTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="课程包" stackId="revenue" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="训练营" stackId="revenue" fill="#38bdf8" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="私教专项" stackId="revenue" fill="#f97316" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+          <ul className="space-y-2 text-xs text-slate-500">
+            {revenueTimeline.map((item) => (
+              <li key={item.month} className="flex items-center justify-between rounded-xl bg-slate-50/80 px-3 py-2">
+                <span className="font-semibold text-slate-700">{item.month}</span>
+                <span className="text-indigo-500 font-semibold">¥ {item.total.toLocaleString()}</span>
+                <span className="rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-600">现金流入 ¥ {item.cashflow.toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+
         </div>
       </section>
 
@@ -343,21 +480,42 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">更新于本周例会</span>
           </header>
-          <div className="space-y-4">
-            {lessonStructure.map((item) => (
-              <article key={item.label} className="rounded-2xl bg-slate-50/80 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                    <p className="text-xs text-slate-500">{item.detail}</p>
+
+          
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
+            <div className="h-72 rounded-2xl bg-white/60 p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={lessonStructureChartData}
+                  layout="vertical"
+                  margin={{ top: 10, right: 24, left: 30, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="#64748b"
+                    tickLine={false}
+                    width={100}
+                  />
+                  <Tooltip content={<LessonTooltip />} />
+                  <Bar dataKey="hours" fill="#22d3ee" radius={[0, 12, 12, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <ul className="space-y-3 text-xs text-slate-600">
+              {lessonStructure.map((item) => (
+                <li key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
+                    <span>{item.label}</span>
+                    <span>{item.share}% 占比</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-slate-900">{item.hours} 课时</p>
-                    <span className="text-xs font-semibold text-indigo-500">{item.share}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
+                  <p className="mt-2 text-xs leading-relaxed">{item.detail}</p>
+                </li>
+              ))}
+            </ul>
+
           </div>
         </div>
 
@@ -369,21 +527,44 @@ export function CommandCenterPage() {
             </div>
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">162 位勇士</span>
           </header>
-          <div className="space-y-3">
-            {studentHourDistribution.map((item) => (
-              <article key={item.segment} className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-emerald-700">{item.segment}</p>
-                    <p className="text-xs text-emerald-600/70">{item.insight}</p>
+
+          
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)]">
+            <div className="h-72 rounded-2xl bg-white/60 p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart
+                  innerRadius="25%"
+                  outerRadius="100%"
+                  data={studentHourDistribution}
+                  startAngle={180}
+                  endAngle={-180}
+                >
+                  <PolarAngleAxis dataKey="segment" type="category" tick={false} />
+                  <RadialBar
+                    minAngle={12}
+                    clockWise
+                    dataKey="ratio"
+                    background
+                    cornerRadius={18}
+                    label={{ position: 'insideStart', fill: '#fff', formatter: (value: number) => `${value}%` }}
+                  />
+                  <Tooltip content={<HourTooltip />} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            </div>
+            <ul className="space-y-3 text-xs text-slate-600">
+              {studentHourDistribution.map((item) => (
+                <li key={item.segment} className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold" style={{ color: item.color }}>
+                    <span>{item.segment}</span>
+                    <span>{item.ratio}%</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-slate-900">{item.ratio}</p>
-                    <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-emerald-500 shadow">{item.delta}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
+                  <p className="mt-2 leading-relaxed text-emerald-700/80">{item.insight}</p>
+                  <p className="mt-2 text-[11px] text-emerald-500/80">环比 {item.delta > 0 ? `+${item.delta}` : item.delta} pts</p>
+                </li>
+              ))}
+            </ul>
+
           </div>
         </div>
       </section>
@@ -508,22 +689,36 @@ export function CommandCenterPage() {
             </div>
             <span className="text-xs text-slate-400">自动更新</span>
           </header>
-          <div className="space-y-4">
-            {growthDimensions.map((dim) => (
-              <div key={dim.label} className="rounded-2xl bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-slate-900">{dim.label}</p>
-                  <span className="text-sm font-bold text-slate-900">{dim.score.toFixed(1)}</span>
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-emerald-500">
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-500">趋势 {dim.trend}</span>
-                  <span className="text-slate-400">目标 ≥ 4.0</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div className={`h-full ${dim.color}`} style={{ width: `${(dim.score / 5) * 100}%` }} />
-                </div>
-              </div>
-            ))}
+          <div className="grid gap-4">
+            <div className="h-72 rounded-2xl bg-white/60 p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={growthRadarData} outerRadius="70%">
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="dimension" stroke="#64748b" tick={{ fontSize: 12 }} />
+                  <Radar
+                    name="得分"
+                    dataKey="得分"
+                    stroke="#6366f1"
+                    fill="#6366f1"
+                    fillOpacity={0.35}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2 text-xs text-slate-600">
+              {growthDimensions.map((dim) => (
+                <li key={dim.label} className="rounded-2xl bg-slate-50/80 p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
+                    <span>{dim.label}</span>
+                    <span>{dim.score.toFixed(1)}</span>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed">近 4 周趋势 {dim.trend}</p>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                    <div className={`h-full ${dim.color}`} style={{ width: `${(dim.score / 5) * 100}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
         <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
@@ -609,6 +804,75 @@ export function CommandCenterPage() {
           </ul>
         </div>
       </section>
+    </div>
+  );
+}
+
+function CourseRhythmTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const dataPoint = payload[0]?.payload as (typeof monthlyCourseRhythm)[number];
+
+  return (
+    <div className="rounded-2xl border border-amber-200 bg-white/90 p-3 text-xs text-slate-600 shadow-lg">
+      <p className="text-sm font-semibold text-amber-600">{dataPoint.month}</p>
+      <p className="mt-1">课时 {dataPoint.lessons.toLocaleString()} · 到课率 {dataPoint.attendanceRate}%</p>
+      <p className="mt-1">环比 {dataPoint.change > 0 ? `+${dataPoint.change}` : dataPoint.change}%</p>
+      <p className="mt-2 leading-relaxed text-amber-500/80">{dataPoint.highlight}</p>
+    </div>
+  );
+}
+
+function RevenueTooltip({ active, payload, label }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const total = (payload[0]?.payload as { total: number }).total;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs text-slate-600 shadow-lg">
+      <p className="text-sm font-semibold text-slate-800">{label}</p>
+      <ul className="mt-2 space-y-1">
+        {payload.map((entry) => {
+          const value = Number(entry.value ?? 0);
+          const share = total ? Math.round((value / total) * 100) : 0;
+          return (
+            <li key={entry.name as string} className="flex items-center justify-between gap-6">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                {entry.name}
+              </span>
+              <span className="font-semibold text-slate-700">¥ {value.toLocaleString()} · {share}%</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-2 text-[11px] text-slate-400">总收入 ¥ {total.toLocaleString()}</p>
+    </div>
+  );
+}
+
+function LessonTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const dataPoint = payload[0]?.payload as { name: string; hours: number; share: number };
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs text-slate-600 shadow">
+      <p className="text-sm font-semibold text-slate-800">{dataPoint.name}</p>
+      <p className="mt-1">课时 {dataPoint.hours.toLocaleString()} · 占比 {dataPoint.share}%</p>
+    </div>
+  );
+}
+
+function HourTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const dataPoint = payload[0]?.payload as (typeof studentHourDistribution)[number];
+
+  return (
+    <div className="rounded-2xl border border-emerald-200 bg-white/95 p-3 text-xs text-emerald-700 shadow">
+      <p className="text-sm font-semibold" style={{ color: dataPoint.color }}>
+        {dataPoint.segment}
+      </p>
+      <p className="mt-1">占比 {dataPoint.ratio}%</p>
+      <p className="mt-1">环比 {dataPoint.delta > 0 ? `+${dataPoint.delta}` : dataPoint.delta} pts</p>
+      <p className="mt-2 leading-relaxed text-emerald-600/80">{dataPoint.insight}</p>
     </div>
   );
 }
