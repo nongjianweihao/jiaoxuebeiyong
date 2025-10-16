@@ -1283,7 +1283,9 @@ function VirtualAssetPreview({
       >
         虚拟形象
       </span>
+
     </div>
 
   );
 }
+

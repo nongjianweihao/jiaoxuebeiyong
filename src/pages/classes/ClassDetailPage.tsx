@@ -712,6 +712,9 @@ export function ClassDetailPage() {
   }, [activeBlockKey, currentSessionPlan]);
   const activeIntensityMeta = activeBlock?.intensity ? INTENSITY_META[activeBlock.intensity] : undefined;
   const activeStimulusLabel = activeBlock?.stimulus ? STIMULUS_LABEL[activeBlock.stimulus] : undefined;
+  const hasActiveDrills = !!(activeBlock && activeBlock.drills && activeBlock.drills.length);
+  const hasActiveGames = !!(activeBlock && activeBlock.games && activeBlock.games.length);
+  const activeBlockColumnsClass = hasActiveDrills && hasActiveGames ? 'lg:grid-cols-2' : 'lg:grid-cols-1';
 
   const puzzleCards = useMemo(() => {
     if (!puzzleTemplate || !puzzleQuest) return [];
@@ -1550,15 +1553,15 @@ export function ClassDetailPage() {
                 </span>
               ) : null}
             </div>
-            <h1 className="text-3xl font-black drop-shadow-sm">
+            <h1 className="text-2xl font-black drop-shadow-sm md:text-3xl">
               {classEntity?.name ?? '训练营作战台'}
             </h1>
-            <p className="max-w-xl text-sm text-white/80">
+            <p className="max-w-xl text-xs text-white/80 md:text-sm">
               主教练：{classEntity?.coachName ?? '未设置'} · 训练时间：
               {classEntity?.schedule ?? '未设置'}
             </p>
             {cyclePlan?.goal ? (
-              <p className="max-w-xl text-sm text-white/80">
+              <p className="max-w-xl text-xs text-white/80 md:text-sm">
                 🌟 {cyclePlan.goal}
               </p>
             ) : null}
@@ -1574,7 +1577,7 @@ export function ClassDetailPage() {
                   <span>今日勇士</span>
                   <span className="text-lg">🧑‍🚀</span>
                 </div>
-                <p className="mt-2 text-2xl font-black">
+                <p className="mt-2 text-xl font-black md:text-2xl">
                   {presentCount}
                   <span className="ml-1 text-base font-semibold text-white/70">/{studentCount}</span>
                 </p>
@@ -1585,7 +1588,7 @@ export function ClassDetailPage() {
                   <span>今日任务</span>
                   <span className="text-lg">🪐</span>
                 </div>
-                <p className="mt-2 text-lg font-semibold leading-snug">{missionName}</p>
+                <p className="mt-2 text-base font-semibold leading-snug md:text-lg">{missionName}</p>
                 <p className="mt-1 text-xs text-white/70">
                   {cyclePlan ? `第${cyclePlan.currentWeek}周目标` : '等待选择任务'}
                 </p>
@@ -1595,7 +1598,7 @@ export function ClassDetailPage() {
                   <span>能量池</span>
                   <span className="text-lg">⚡</span>
                 </div>
-                <p className="mt-2 text-2xl font-black">{totalEnergy}</p>
+                <p className="mt-2 text-xl font-black md:text-2xl">{totalEnergy}</p>
                 <p className="mt-1 text-xs text-white/70">勇士已累计的能量值</p>
               </div>
             </div>
@@ -1658,8 +1661,8 @@ export function ClassDetailPage() {
                 {cyclePlan.durationWeeks} 周
               </span>
             </div>
-            <h2 className="text-2xl font-black text-slate-900">{cyclePlan.cycleName}</h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-slate-500">{cyclePlan.goal}</p>
+            <h2 className="text-xl font-black text-slate-900 md:text-2xl">{cyclePlan.cycleName}</h2>
+            <p className="max-w-2xl text-xs leading-relaxed text-slate-500 md:text-sm">{cyclePlan.goal}</p>
 
 
             <div className="flex flex-wrap gap-2">
@@ -1678,22 +1681,22 @@ export function ClassDetailPage() {
               })}
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[280px]">
-            <div className="rounded-2xl bg-sky-50 p-4 text-sky-700 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[240px]">
+            <div className="rounded-2xl bg-sky-50 p-3 text-sky-700 shadow-sm md:p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">计划周数</p>
-              <p className="mt-2 text-2xl font-black">{cyclePlan.durationWeeks}</p>
+              <p className="mt-2 text-xl font-black md:text-2xl">{cyclePlan.durationWeeks}</p>
               <p className="mt-1 text-xs text-sky-500">{cyclePlan.cycleName}</p>
             </div>
-            <div className="rounded-2xl bg-amber-50 p-4 text-amber-700 shadow-sm">
+            <div className="rounded-2xl bg-amber-50 p-3 text-amber-700 shadow-sm md:p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">当前进度</p>
-              <p className="mt-2 text-2xl font-black">
+              <p className="mt-2 text-xl font-black md:text-2xl">
                 {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
               </p>
               <p className="mt-1 text-xs text-amber-500">{nextSessionLabel}</p>
             </div>
-            <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-700 shadow-sm">
+            <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700 shadow-sm md:p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">任务卡</p>
-              <p className="mt-2 text-2xl font-black">{missionChoices.length}</p>
+              <p className="mt-2 text-xl font-black md:text-2xl">{missionChoices.length}</p>
               <p className="mt-1 text-xs text-emerald-500">活跃环节 {missionBlockCount} 个</p>
             </div>
           </div>
@@ -1702,16 +1705,16 @@ export function ClassDetailPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">当前周次</p>
-              <p className="text-lg font-bold text-indigo-700">
+              <p className="text-base font-bold text-indigo-700 md:text-lg">
                 {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
               </p>
-              <p className="text-xs text-indigo-400">计划日期：{selectedSession ? formatDate(selectedSession.plannedDate) : '未排期'}</p>
+              <p className="text-xs text-indigo-400 md:text-sm">计划日期：{selectedSession ? formatDate(selectedSession.plannedDate) : '未排期'}</p>
             </div>
             <div className="space-y-2 text-left sm:text-right">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-500">今日任务卡</p>
-              <p className="text-lg font-bold text-pink-600">{selectedMission?.name ?? '请选择任务卡'}</p>
+              <p className="text-base font-bold text-pink-600 md:text-lg">{selectedMission?.name ?? '请选择任务卡'}</p>
               {selectedMission?.durationMin ? (
-                <p className="text-xs text-pink-400">建议时长 {selectedMission.durationMin} 分钟</p>
+                <p className="text-xs text-pink-400 md:text-sm">建议时长 {selectedMission.durationMin} 分钟</p>
               ) : null}
             </div>
           </div>
@@ -1733,12 +1736,12 @@ export function ClassDetailPage() {
               <span className="text-xs text-indigo-400">选择任务卡后可查看主攻素质</span>
             )}
           </div>
-          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500">
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500 md:text-sm">
             <span>切换本节任务</span>
             <select
               value={selectedSessionId ?? ''}
               onChange={(event) => setSelectedSessionId(event.target.value || null)}
-              className="mt-2 w-full rounded-2xl border-none bg-white/90 px-4 py-2 text-sm font-semibold text-indigo-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="mt-2 w-full rounded-2xl border-none bg-white/90 px-4 py-2 text-base font-semibold text-indigo-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-300"
             >
               <option value="">请选择任务卡</option>
               {missionChoices.map((choice, index) => (
@@ -1775,7 +1778,7 @@ export function ClassDetailPage() {
               <p className="mt-1 text-sm text-slate-500">聚焦当前课节的热身、速度、爆发力与游戏内容，滑动切换不同环节。</p>
             </div>
             {selectedSession ? (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-base">
                 <button
                   type="button"
                   onClick={() => previousSession && setSelectedSessionId(previousSession.id)}
@@ -1911,7 +1914,7 @@ export function ClassDetailPage() {
                     })}
                   </div>
                 ) : null}
-              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 sm:text-base">
+              <div className="flex flex-wrap items-center gap-3 text-base text-slate-600 sm:text-lg">
                 <span className="rounded-full bg-slate-100 px-4 py-1.5 font-semibold text-slate-700">
                   第{currentSessionPlan.week}周
                 </span>
@@ -1935,8 +1938,8 @@ export function ClassDetailPage() {
               </div>
               <div>
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-slate-500">训练环节</h4>
-                  <span className="text-xs text-slate-400">向左 / 向右滑动切换</span>
+                  <h4 className="text-base font-semibold text-slate-500 md:text-lg">训练环节</h4>
+                  <span className="text-xs text-slate-400 md:text-sm">向左 / 向右滑动切换</span>
                 </div>
                 <div className="mt-3 overflow-x-auto pb-2">
                   <div className="flex gap-3 pb-1">
@@ -1949,27 +1952,27 @@ export function ClassDetailPage() {
                           key={block.key}
                           type="button"
                           onClick={() => setActiveBlockKey(block.key)}
-                          className={`min-w-[220px] rounded-2xl border px-4 py-3 text-left transition ${
+                          className={`min-w-[260px] rounded-2xl border px-5 py-4 text-left transition ${
                             isActive
                               ? 'border-purple-400 bg-purple-50 text-purple-700 shadow-md'
                               : 'border-slate-200 bg-white text-slate-600 hover:border-purple-200 hover:text-purple-600'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-lg font-bold shadow-sm">
+                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl font-extrabold shadow-sm">
                               {String(index + 1).padStart(2, '0')}
                             </span>
                             <div className="space-y-1">
-                              <p className="text-lg font-semibold">{block.title}</p>
-                              <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <p className="text-xl font-semibold">{block.title}</p>
+                              <div className="flex flex-wrap items-center gap-2 text-sm">
                                 {block.duration ? <span>时长 {block.duration} 分钟</span> : null}
                                 {stimulusLabel ? (
-                                  <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-semibold">
+                                  <span className="rounded-full bg-white/70 px-2 py-0.5 text-sm font-semibold">
                                     {stimulusLabel} 刺激
                                   </span>
                                 ) : null}
                                 {intensityMeta ? (
-                                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${intensityMeta.bg}`}>
+                                  <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${intensityMeta.bg}`}>
                                     {block.intensity} {intensityMeta.label}
                                   </span>
                                 ) : null}
@@ -1986,41 +1989,41 @@ export function ClassDetailPage() {
                 <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-white via-white to-purple-50 p-6 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-purple-500">{currentSessionPlan.missionName}</p>
-                      <h4 className="mt-1 text-2xl font-bold text-slate-900">{activeBlock.title}</h4>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                      <p className="text-base font-semibold text-purple-500 md:text-lg">{currentSessionPlan.missionName}</p>
+                      <h4 className="mt-1 text-3xl font-bold text-slate-900">{activeBlock.title}</h4>
+                      <div className="mt-3 flex flex-wrap items-center gap-3 text-base text-slate-600">
                         {activeBlock.duration ? <span>建议 {activeBlock.duration} 分钟</span> : null}
                         {activeStimulusLabel ? (
-                          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                          <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-600">
                             {activeStimulusLabel} 刺激
                           </span>
                         ) : null}
                         {activeIntensityMeta ? (
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${activeIntensityMeta.bg}`}>
+                          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${activeIntensityMeta.bg}`}>
                             {activeBlock.intensity} {activeIntensityMeta.label}
                           </span>
                         ) : null}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                  <div className={`mt-6 grid grid-cols-1 gap-6 ${activeBlockColumnsClass}`}>
                     {activeBlock.drills.length ? (
                       <div className="space-y-3">
-                        <p className="text-base font-semibold text-slate-700">训练动作</p>
-                        <ul className="space-y-4 text-slate-700">
+                        <p className="text-xl font-semibold text-slate-700">训练动作</p>
+                        <ul className="space-y-4 text-lg text-slate-700">
                           {activeBlock.drills.map((drill) => (
                             <li key={drill.id} className="rounded-2xl bg-white/80 p-4 shadow-sm">
-                              <p className="text-lg font-bold text-slate-900">
+                              <p className="text-2xl font-bold text-slate-900">
                                 {drill.name}
-                                <span className="ml-2 text-sm font-medium text-slate-500">
+                                <span className="ml-3 text-base font-medium text-slate-500">
                                   {drill.durationMin} 分钟 · {INTENSITY_META[drill.intensity]?.label}
                                 </span>
                               </p>
                               {drill.coachTips ? (
-                                <p className="mt-2 text-sm text-purple-600">教练提示：{drill.coachTips}</p>
+                                <p className="mt-3 text-base text-purple-600">教练提示：{drill.coachTips}</p>
                               ) : null}
                               {drill.equipment?.length ? (
-                                <p className="mt-2 text-sm text-slate-500">器材：{drill.equipment.join('、')}</p>
+                                <p className="mt-3 text-base text-slate-500">器材：{drill.equipment.join('、')}</p>
                               ) : null}
                             </li>
                           ))}
@@ -2029,24 +2032,24 @@ export function ClassDetailPage() {
                     ) : null}
                     {activeBlock.games.length ? (
                       <div className="space-y-3">
-                        <p className="text-base font-semibold text-slate-700">游戏 / 对抗</p>
-                        <ul className="space-y-4 text-slate-700">
+                        <p className="text-xl font-semibold text-slate-700">游戏 / 对抗</p>
+                        <ul className="space-y-4 text-lg text-slate-700">
                           {activeBlock.games.map((game) => (
                             <li key={game.id} className="rounded-2xl bg-white/80 p-4 shadow-sm">
-                              <p className="text-lg font-bold text-slate-900">
+                              <p className="text-2xl font-bold text-slate-900">
                                 {game.name}
-                                <span className="ml-2 text-sm font-medium text-slate-500">
+                                <span className="ml-3 text-base font-medium text-slate-500">
                                   {game.durationMin} 分钟 · {game.groupSize}
                                 </span>
                               </p>
                               {game.goal ? (
-                                <p className="mt-2 text-sm text-slate-600">目标：{game.goal}</p>
+                                <p className="mt-3 text-base text-slate-600">目标：{game.goal}</p>
                               ) : null}
                               {game.rules ? (
-                                <p className="mt-2 text-sm text-slate-600">玩法：{game.rules}</p>
+                                <p className="mt-3 text-base text-slate-600">玩法：{game.rules}</p>
                               ) : null}
                               {game.coachTips ? (
-                                <p className="mt-2 text-sm text-purple-600">教练提示：{game.coachTips}</p>
+                                <p className="mt-3 text-base text-purple-600">教练提示：{game.coachTips}</p>
                               ) : null}
                             </li>
                           ))}
@@ -2055,13 +2058,13 @@ export function ClassDetailPage() {
                     ) : null}
                   </div>
                   {!activeBlock.drills.length && !activeBlock.games.length ? (
-                    <div className="mt-4 rounded-2xl border border-dashed border-purple-200 bg-white/80 p-6 text-center text-sm text-slate-500">
+                    <div className="mt-4 rounded-2xl border border-dashed border-purple-200 bg-white/80 p-6 text-center text-base text-slate-500">
                       当前环节尚未配置训练内容。
                     </div>
                   ) : null}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-base text-slate-500">
                   请选择上方环节查看详细训练内容。
                 </div>
               )}
