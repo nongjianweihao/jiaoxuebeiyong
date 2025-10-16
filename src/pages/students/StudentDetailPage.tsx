@@ -824,6 +824,45 @@ export function StudentDetailPage() {
       }));
   }, [rankMoves, sessions, studentId, rankExams]);
 
+  
+
+  const [activeFreestyleRank, setActiveFreestyleRank] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!freestylePassGroups.length) {
+      setActiveFreestyleRank(null);
+      return;
+    }
+    setActiveFreestyleRank((prev) => {
+      if (prev && freestylePassGroups.some((group) => group.rank === prev)) {
+        return prev;
+      }
+      return freestylePassGroups[0].rank;
+    });
+  }, [freestylePassGroups]);
+
+  const activeFreestyleGroup = useMemo(
+    () =>
+      activeFreestyleRank != null
+        ? freestylePassGroups.find((group) => group.rank === activeFreestyleRank) ?? null
+        : null,
+    [activeFreestyleRank, freestylePassGroups],
+  );
+
+  const activeFreestyleSummary = useMemo(() => {
+    if (!activeFreestyleGroup) return null;
+    const totalPoints = activeFreestyleGroup.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+    const totalEnergy = activeFreestyleGroup.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+    const clearedCount = activeFreestyleGroup.cards.filter((card) => card.cleared).length;
+    return {
+      totalPoints,
+      totalEnergy,
+      clearedCount,
+      totalCards: activeFreestyleGroup.cards.length,
+    };
+  }, [activeFreestyleGroup]);
+
+
   const performanceHistory = useMemo(() => {
     const rows: Array<{ date: string; entry: SessionPerformanceEntry }> = [];
     sessions.forEach((session) => {
@@ -1550,36 +1589,99 @@ export function StudentDetailPage() {
           <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
           <div className="space-y-4">
             {freestylePassGroups.length ? (
-              freestylePassGroups.map((group) => {
-                const clearedCount = group.cards.filter((card) => card.cleared).length;
-                const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
-                const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
-                return (
-                  <div
-                    key={group.rank}
-                    className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-inner backdrop-blur"
-                  >
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+
+              
+              <>
+                <div className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white shadow-xl">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.4em] text-white/70">段位巡礼</p>
+                      <h4 className="mt-1 text-lg font-semibold">选择要冲刺的段位，领取荣耀奖励</h4>
+                    </div>
+                    <p className="max-w-xs text-xs leading-relaxed text-white/80">
+                      每个段位都有独特的动作挑战与积分、能量奖励。挑选目标段位，查看待解锁动作卡片，逐个点亮你的晋级路线！
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {freestylePassGroups.map((group) => {
+                      const clearedCount = group.cards.filter((card) => card.cleared).length;
+                      const totalPoints = group.cards.reduce((sum, card) => sum + card.rewardPoints, 0);
+                      const totalEnergy = group.cards.reduce((sum, card) => sum + card.rewardEnergy, 0);
+                      const totalCards = Math.max(group.cards.length, 1);
+                      const progress = Math.round((clearedCount / totalCards) * 100);
+                      const isActive = activeFreestyleRank === group.rank;
+                      return (
+                        <button
+                          type="button"
+                          key={group.rank}
+                          onClick={() => setActiveFreestyleRank(group.rank)}
+                          className={`group relative overflow-hidden rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-500 ${
+                            isActive
+                              ? 'border-white/80 bg-white/20 shadow-lg'
+                              : 'border-white/20 bg-white/10 hover:bg-white/20'
+                          }`}
+                        >
+                          <div className="absolute -top-8 right-0 h-20 w-20 rounded-full bg-white/20 blur-2xl transition group-hover:bg-white/30" />
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70">
+                                L{group.rank}
+                              </p>
+                              <p className="mt-1 text-sm font-semibold">累计奖励 +{totalPoints} 分</p>
+                              <p className="text-xs text-white/80">能量 +{totalEnergy}⚡</p>
+                            </div>
+                            <div className="text-right text-xs font-semibold text-white/80">
+                              <span>{clearedCount}</span>
+                              <span className="text-white/50">/{group.cards.length}</span>
+                              <p className="mt-1 text-[11px]">完成度 {progress}%</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 h-1.5 w-full rounded-full bg-white/20">
+                            <div
+                              className={`h-full rounded-full ${
+                                isActive ? 'bg-gradient-to-r from-white via-white to-amber-200' : 'bg-white/70'
+                              }`}
+                              style={{ width: `${Math.min(Math.max(progress, 8), 100)}%` }}
+                            />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {activeFreestyleGroup ? (
+                  <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-inner backdrop-blur">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                          段位 L{group.rank}
+                          段位 L{activeFreestyleGroup.rank}
                         </p>
-                        <p className="text-sm text-slate-500">
-                          可领取奖励 +{totalPoints} 分 · +{totalEnergy} ⚡
+                        <h4 className="mt-1 text-lg font-semibold text-slate-800">段位任务卡片</h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          完成所有动作即可领取本段位全部积分与能量奖励，让晋级更有仪式感！
                         </p>
                       </div>
-                      <div className="text-xs font-medium text-slate-500">
-                        已通关 {clearedCount}/{group.cards.length}
+                      <div className="rounded-2xl bg-slate-900/90 px-4 py-3 text-xs text-slate-100 shadow-lg">
+                        <p className="text-[11px] text-slate-300">奖励概览</p>
+                        <p className="mt-1 text-sm font-semibold">积分 +{activeFreestyleSummary?.totalPoints ?? 0}</p>
+                        <p className="text-sm font-semibold">能量 +{activeFreestyleSummary?.totalEnergy ?? 0}⚡</p>
+                        <p className="mt-1 text-[11px] text-slate-300">
+                          已通关 {activeFreestyleSummary?.clearedCount ?? 0}/{activeFreestyleSummary?.totalCards ?? 0}
+                        </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {group.cards.map((card) => (
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {activeFreestyleGroup.cards.map((card) => (
+
                         <FreestylePassCard key={card.moveId} data={card} />
                       ))}
                     </div>
                   </div>
-                );
-              })
+
+                  
+                ) : null}
+              </>
+
             ) : (
               <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
                 暂无通关记录
@@ -1630,27 +1732,46 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
       : '首通完成';
   const cardClass = cleared
     ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80'
-    : 'border-slate-200 bg-white/70';
+
+  
+    : 'border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100/60';
+  const accentOrb = cleared
+    ? 'from-emerald-300/40 via-teal-200/20 to-sky-300/30'
+    : 'from-slate-300/40 via-slate-200/20 to-indigo-200/20';
+  const statusCopy = cleared
+    ? '动作已完美通关，继续保持手感冲刺更高段位！'
+    : '首通在即，完成即可领取段位奖励积分与能量。';
+  const statusIcon = cleared ? '✨' : '🎯';
+  const completion = cleared ? 100 : attempts ? Math.min(90, attempts * 35) : 18;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border px-4 py-4 shadow-sm transition ${cardClass}`}>
+    <div className={`relative overflow-hidden rounded-2xl border px-5 py-5 shadow-lg transition ${cardClass}`}>
+      <div className={`absolute -right-12 -top-14 h-32 w-32 rounded-full bg-gradient-to-br ${accentOrb} blur-3xl`} />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">L{rank}</p>
-          <h4 className="mt-1 text-base font-semibold text-slate-800">{name}</h4>
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-500">
+            <span>{statusIcon}</span>
+            <span className="tracking-[0.3em] text-[10px] uppercase text-slate-400">L{rank}</span>
+          </div>
+          <h4 className="mt-2 text-base font-semibold text-slate-900">{name}</h4>
+          <p className="mt-1 text-xs text-slate-500">{statusCopy}</p>
         </div>
         <div className="text-right text-xs font-semibold">
-          <div className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-1 text-purple-600">
+          <div className="inline-flex items-center gap-1 rounded-full bg-purple-100/80 px-2.5 py-1 text-purple-700">
             +{rewardPoints}
             <span className="text-[11px] font-medium">分</span>
           </div>
-          <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-amber-500">
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100/80 px-2.5 py-1 text-amber-600">
+
             +{rewardEnergy}
             <span className="text-[11px] font-medium">⚡</span>
           </div>
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between text-xs">
+
+      
+      <div className="mt-4 flex items-center justify-between text-xs">
+
         <div className={`flex items-center gap-1 ${cleared ? 'text-emerald-600' : 'text-slate-400'}`}>
           {cleared ? '✅ 已通关' : '🕹️ 未通关'}
           {cleared && formattedDate ? <span className="text-slate-400">（{formattedDate}）</span> : null}
@@ -1673,13 +1794,17 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
           <span className="text-[11px] text-slate-400">待记录</span>
         )}
       </div>
-      <div className="mt-4 h-1.5 w-full rounded-full bg-slate-200/70">
+
+      
+      <div className="mt-4 h-2 w-full rounded-full bg-slate-200/80">
         <div
           className={`h-full rounded-full transition-all ${
             cleared
-              ? 'w-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400'
-              : 'w-[24%] bg-slate-300'
+              ? 'bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400'
+              : 'bg-gradient-to-r from-slate-400 via-indigo-400 to-purple-400'
           }`}
+          style={{ width: `${Math.min(Math.max(completion, 12), 100)}%` }}
+
         />
       </div>
     </div>
