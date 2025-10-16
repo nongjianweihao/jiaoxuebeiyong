@@ -1283,55 +1283,6 @@ function VirtualAssetPreview({
       >
         虚拟形象
       </span>
-
-    </div>
-  );
-}
-
-function VirtualAssetPreview({
-  asset,
-  className,
-  variant = 'card',
-}: {
-  asset: VirtualAsset;
-  className?: string;
-  variant?: RewardArtworkVariant;
-}) {
-  const paddingMap: Record<RewardArtworkVariant, string> = {
-    card: 'p-5',
-    form: 'p-3',
-    table: 'p-2',
-  };
-  const sizeMap: Record<RewardArtworkVariant, 'lg' | 'md' | 'sm'> = {
-    card: 'lg',
-    form: 'md',
-    table: 'sm',
-  };
-  const labelClassMap: Record<RewardArtworkVariant, string> = {
-    card: 'bottom-3 left-3 text-[10px]',
-    form: 'bottom-2 left-2 text-[10px]',
-    table: 'bottom-1 left-1 text-[9px]',
-  };
-
-  return (
-    <div
-      className={classNames(
-        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner',
-        paddingMap[variant],
-        className,
-      )}
-    >
-      <div className={classNames('absolute inset-0 opacity-80', `bg-gradient-to-br ${asset.previewGradient}`)} aria-hidden />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),rgba(255,255,255,0))]" aria-hidden />
-      <StudentAvatar name={`虚拟配件-${asset.name}`} size={sizeMap[variant]} avatarPresetId={undefined} equippedVirtualItems={[asset.id]} />
-      <span
-        className={classNames(
-          'absolute rounded-full bg-white/85 px-2 py-0.5 font-medium text-slate-500 shadow-sm backdrop-blur',
-          labelClassMap[variant],
-        )}
-      >
-        虚拟形象
-      </span>
     </div>
 
   );
