@@ -824,6 +824,8 @@ export function StudentDetailPage() {
       }));
   }, [rankMoves, sessions, studentId, rankExams]);
 
+  
+
   const [activeFreestyleRank, setActiveFreestyleRank] = useState<number | null>(null);
 
   useEffect(() => {
@@ -859,6 +861,7 @@ export function StudentDetailPage() {
       totalCards: activeFreestyleGroup.cards.length,
     };
   }, [activeFreestyleGroup]);
+
 
   const performanceHistory = useMemo(() => {
     const rows: Array<{ date: string; entry: SessionPerformanceEntry }> = [];
@@ -1586,6 +1589,8 @@ export function StudentDetailPage() {
           <h3 className="text-sm font-semibold text-slate-600">花样通关清单</h3>
           <div className="space-y-4">
             {freestylePassGroups.length ? (
+
+              
               <>
                 <div className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white shadow-xl">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -1667,12 +1672,16 @@ export function StudentDetailPage() {
                     </div>
                     <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                       {activeFreestyleGroup.cards.map((card) => (
+
                         <FreestylePassCard key={card.moveId} data={card} />
                       ))}
                     </div>
                   </div>
+
+                  
                 ) : null}
               </>
+
             ) : (
               <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 p-6 text-center text-slate-400">
                 暂无通关记录
@@ -1723,6 +1732,8 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
       : '首通完成';
   const cardClass = cleared
     ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80'
+
+  
     : 'border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100/60';
   const accentOrb = cleared
     ? 'from-emerald-300/40 via-teal-200/20 to-sky-300/30'
@@ -1751,12 +1762,16 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
             <span className="text-[11px] font-medium">分</span>
           </div>
           <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100/80 px-2.5 py-1 text-amber-600">
+
             +{rewardEnergy}
             <span className="text-[11px] font-medium">⚡</span>
           </div>
         </div>
       </div>
+
+      
       <div className="mt-4 flex items-center justify-between text-xs">
+
         <div className={`flex items-center gap-1 ${cleared ? 'text-emerald-600' : 'text-slate-400'}`}>
           {cleared ? '✅ 已通关' : '🕹️ 未通关'}
           {cleared && formattedDate ? <span className="text-slate-400">（{formattedDate}）</span> : null}
@@ -1779,6 +1794,8 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
           <span className="text-[11px] text-slate-400">待记录</span>
         )}
       </div>
+
+      
       <div className="mt-4 h-2 w-full rounded-full bg-slate-200/80">
         <div
           className={`h-full rounded-full transition-all ${
@@ -1787,6 +1804,7 @@ function FreestylePassCard({ data }: { data: FreestylePassCardData }) {
               : 'bg-gradient-to-r from-slate-400 via-indigo-400 to-purple-400'
           }`}
           style={{ width: `${Math.min(Math.max(completion, 12), 100)}%` }}
+
         />
       </div>
     </div>
