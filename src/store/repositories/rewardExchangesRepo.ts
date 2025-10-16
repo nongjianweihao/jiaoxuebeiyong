@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { energyLogsRepo } from './energyLogsRepo';
 import type { StudentExchange, RewardExchangeStatus, RewardItem } from '../../types.gamify';
-import type { PointEvent } from '../../types';
+import type { PointEvent, Student } from '../../types';
 import { buildPointsSnapshot } from '../../utils/points';
 
 export interface StudentRewardBalance {
@@ -139,9 +139,11 @@ export const rewardExchangesRepo = {
           }
 
           let nextEnergy = latestBalance.energyBalance;
+          const studentPatch: Partial<Student> = {};
+
           if (latestReward.costEnergy) {
             nextEnergy = latestBalance.energyBalance - latestReward.costEnergy;
-            await db.students.update(studentId, { energy: nextEnergy });
+            studentPatch.energy = nextEnergy;
             await energyLogsRepo.record({
               studentId,
               source: 'market_redeem',
@@ -150,6 +152,19 @@ export const rewardExchangesRepo = {
               createdAt: new Date(now).toISOString(),
               metadata: { rewardName: latestReward.name },
             });
+          }
+
+          if (latestReward.virtualAssetId) {
+            const inventory = new Set(latestStudent?.virtualInventory ?? []);
+            const equipped = new Set(latestStudent?.equippedVirtualItems ?? []);
+            inventory.add(latestReward.virtualAssetId);
+            equipped.add(latestReward.virtualAssetId);
+            studentPatch.virtualInventory = Array.from(inventory);
+            studentPatch.equippedVirtualItems = Array.from(equipped);
+          }
+
+          if (Object.keys(studentPatch).length > 0) {
+            await db.students.update(studentId, studentPatch);
           }
 
           const balanceAfter = calculateBalance(events, [...exchanges, exchange], nextEnergy);
