@@ -8,6 +8,7 @@ export const dexieSchema = {
   cycleReports: '&id, studentId, cycleId, planId',
   rewardItems: '&id, type, visible, seasonTag',
   studentExchanges: '&id, studentId, rewardId, status, redeemedAt',
+  lessonLedger: '&id, studentId, date',
 };
 
 export const prismaSchema = `
