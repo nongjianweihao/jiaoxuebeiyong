@@ -1,7 +1,9 @@
 
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -19,6 +21,144 @@ import {
   YAxis,
 } from 'recharts';
 import type { NameType, TooltipProps, ValueType } from 'recharts';
+
+const assessmentOverviewCards = [
+  {
+    title: '体能测评完成率',
+    value: '78%',
+    delta: '+6 pts',
+    description: '近 4 周滚动完成度持续提升，剩余 36 位勇士待测评。',
+  },
+  {
+    title: '技能专项通过率',
+    value: '84%',
+    delta: '+9 pts',
+    description: '敏捷步伐与核心稳定专项提分明显，班均通过 4.2 项。',
+  },
+  {
+    title: '风险预警个体',
+    value: '5 位',
+    delta: '-2 位',
+    description: '疲劳指数 > 80 的学员全部进入恢复观察通道。',
+  },
+];
+
+const assessmentSchedule = [
+  {
+    slot: '周三 16:00',
+    target: '雷霆战队 · 14 人',
+    focus: '50m 冲刺 + 核心稳定',
+    owner: '李晨教练',
+    status: '待测评',
+  },
+  {
+    slot: '周五 18:30',
+    target: 'Lightning Squad · 12 人',
+    focus: '折返跑 + 敏捷梯',
+    owner: 'Jessica 教练',
+    status: '场地确认',
+  },
+  {
+    slot: '周六 09:00',
+    target: 'Energy Sparks · 10 人',
+    focus: '耐力折返 + 俯卧撑',
+    owner: '王瑞教练',
+    status: '测评中',
+  },
+];
+
+const assessmentCoverageTrend = [
+  { week: '第 1 周', coverage: 68, completed: 42, pending: 18 },
+  { week: '第 2 周', coverage: 71, completed: 58, pending: 16 },
+  { week: '第 3 周', coverage: 75, completed: 79, pending: 14 },
+  { week: '第 4 周', coverage: 78, completed: 96, pending: 11 },
+];
+
+const classAssessmentStats = [
+  {
+    id: 'thunder',
+    className: '雷霆战队',
+    coverage: 92,
+    power: 88,
+    agility: 90,
+    skillFocus: '力量模块表现突出，需加固柔韧测试频率。',
+  },
+  {
+    id: 'lightning',
+    className: 'Lightning Squad',
+    coverage: 86,
+    power: 82,
+    agility: 88,
+    skillFocus: '敏捷表现领先，冲刺恢复节奏待优化。',
+  },
+  {
+    id: 'sparks',
+    className: 'Energy Sparks',
+    coverage: 81,
+    power: 80,
+    agility: 91,
+    skillFocus: '灵敏协调强，力量专项测评需补做 2 人。',
+  },
+];
+
+const assessmentRoster = [
+  {
+    name: '王小远',
+    className: '雷霆战队',
+    status: '已完成',
+    lastAssessment: '2 天前 · 冲刺 7.4s',
+    focus: '维持高步频，强化核心稳定练习。',
+  },
+  {
+    name: '李可心',
+    className: 'Energy Sparks',
+    status: '预约中',
+    lastAssessment: '待安排 · 核心专项',
+    focus: '保持家庭陪练打卡，安排周五测评。',
+  },
+  {
+    name: '陈嘉泽',
+    className: 'Lightning Squad',
+    status: '已完成',
+    lastAssessment: '1 天前 · 折返跑 33s',
+    focus: '重点巩固呼吸节奏与爆发起跑。',
+  },
+  {
+    name: '郭婧怡',
+    className: '雷霆战队',
+    status: '恢复中',
+    lastAssessment: '4 天前 · 心率波动',
+    focus: '进行低强度恢复，周末复测柔韧度。',
+  },
+  {
+    name: '赵宇凡',
+    className: 'Energy Sparks',
+    status: '已完成',
+    lastAssessment: '3 天前 · 敏捷梯 28 次',
+    focus: '保持灵敏练习，补做力量专项。',
+  },
+  {
+    name: '林星禾',
+    className: 'Lightning Squad',
+    status: '预约中',
+    lastAssessment: '待安排 · 耐力专项',
+    focus: '提前发放测评动作卡片，提醒家长配合。',
+  },
+  {
+    name: '周子言',
+    className: 'Energy Sparks',
+    status: '恢复中',
+    lastAssessment: '6 天前 · 疲劳指数 82',
+    focus: '暂停高强度训练，安排理疗师跟进。',
+  },
+  {
+    name: '高悦然',
+    className: '雷霆战队',
+    status: '已完成',
+    lastAssessment: '当日 · 俯卧撑 32 次',
+    focus: '保持力量曲线，关注肩部柔韧。',
+  },
+];
 
 const fitnessHighlights = [
   {
@@ -148,6 +288,40 @@ const fitnessDimensions = [
 ] as const;
 
 export function TrialArenaPage() {
+  const [rosterExpanded, setRosterExpanded] = useState(false);
+  const rosterDisplayLimit = 5;
+  const coverageChartData = useMemo(() => assessmentCoverageTrend, []);
+  const coverageSummary = useMemo(
+    () => assessmentCoverageTrend[assessmentCoverageTrend.length - 1] ?? { week: '', coverage: 0, completed: 0, pending: 0 },
+    [],
+  );
+  const coverageLift = coverageSummary.coverage - (assessmentCoverageTrend[0]?.coverage ?? 0);
+  const classAssessmentMap = useMemo(() => {
+    const map = new Map<string, (typeof classAssessmentStats)[number]>();
+    classAssessmentStats.forEach((item) => {
+      map.set(item.id, item);
+    });
+    return map;
+  }, []);
+  const rosterStats = useMemo(() => {
+    return assessmentRoster.reduce(
+      (acc, item) => {
+        if (item.status === '已完成') acc.completed += 1;
+        if (item.status === '预约中') acc.scheduled += 1;
+        if (item.status === '恢复中') acc.recovery += 1;
+        return acc;
+      },
+      { completed: 0, scheduled: 0, recovery: 0 },
+    );
+  }, []);
+  const hasMoreRoster = assessmentRoster.length > rosterDisplayLimit;
+  const visibleRoster = useMemo(
+    () =>
+      rosterExpanded
+        ? assessmentRoster
+        : assessmentRoster.slice(0, rosterDisplayLimit),
+    [rosterExpanded],
+  );
   const classRadarData = useMemo(() => {
     return fitnessDimensions.map((dimension) => {
       const row: Record<string, string | number> = { dimension: dimension.label };
@@ -188,21 +362,169 @@ export function TrialArenaPage() {
             <p className="uppercase tracking-[0.4em] text-slate-400">Warrior Performance Lab</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">勇士试炼场 · 体能测评塔</h1>
             <p className="mt-2 text-sm text-slate-500">
-              聚焦学员体能、技能、耐力与爆发力的综合测评，输出班级对比、技能热力、个体突破与风险预警。
+              聚焦学员体能、技能、耐力与爆发力的综合测评，提供班级完成度、专项通过率与个人风险的实时诊断入口。
             </p>
           </div>
           <div className="flex flex-col gap-3 text-xs text-slate-500">
-            <span className="self-start rounded-full bg-indigo-50 px-4 py-2 text-indigo-500">周期：最近 4 周测评</span>
-            <button className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:scale-105">
-              导出体能战报
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-indigo-50 px-4 py-2 text-indigo-500">周期：最近 4 周测评</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] text-slate-500">覆盖 3 个班级 · 160 位勇士</span>
+            </div>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <button className="rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 px-5 py-2 font-semibold text-white shadow-md transition hover:scale-105">
+                发起体能测评
+              </button>
+              <button className="rounded-xl border border-dashed border-indigo-200 px-5 py-2 text-indigo-500 transition hover:border-indigo-300">
+                下载测评模板
+              </button>
+              <button className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2 font-semibold text-white shadow-md transition hover:scale-105">
+                导出体能战报
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      <section className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">体能测评全景</h2>
+              <p className="text-sm text-slate-500">覆盖率、技能通过与风险预警，指导测评优先级与训练动作。</p>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">最新数据 · 自动同步</span>
+          </header>
+          <div className="grid gap-4 md:grid-cols-3">
+            {assessmentOverviewCards.map((card) => (
+              <article key={card.title} className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-4">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-semibold tracking-[0.3em] uppercase text-slate-400">{card.title}</span>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-500">{card.delta}</span>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{card.value}</p>
+                <p className="text-xs leading-relaxed text-slate-500">{card.description}</p>
+              </article>
+            ))}
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)]">
+            <div className="h-64 rounded-2xl bg-white/60 p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={coverageChartData} margin={{ top: 10, right: 24, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="coverageGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="week" stroke="#94a3b8" tickLine={false} />
+                  <YAxis yAxisId="left" stroke="#94a3b8" tickLine={false} tickFormatter={(value) => `${value}%`} />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#94a3b8"
+                    tickLine={false}
+                    tickFormatter={(value) => `${value}人`}
+                  />
+                  <Tooltip content={<CoverageTooltip />} />
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="coverage"
+                    stroke="#0ea5e9"
+                    fill="url(#coverageGradient)"
+                    strokeWidth={3}
+                    name="覆盖率"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="completed"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: '#6366f1' }}
+                    name="已测人数"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+              <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sky-600">
+                累计覆盖 {coverageSummary.coverage}%
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-indigo-600">
+                已完成 {coverageSummary.completed} 人
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-amber-600">
+                待测 {coverageSummary.pending} 人
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-emerald-600">
+                较首周 {coverageLift >= 0 ? `+${coverageLift}` : coverageLift} pts
+              </span>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">本周测评排期</h3>
+            <ul className="mt-3 space-y-3 text-xs text-slate-600">
+              {assessmentSchedule.map((item) => (
+                <li key={item.slot} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-slate-700">
+                    <span>{item.slot}</span>
+                    <span className="text-indigo-500">{item.target}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-500">
+                      {item.focus}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
+                      负责人 · {item.owner}
+                    </span>
+                    <StatusBadge status={item.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
-        
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">测评学员清单</h2>
+              <p className="text-sm text-slate-500">折叠查看测评进度，优先跟进预约与恢复中的学员。</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
+              已测 {rosterStats.completed} · 预约 {rosterStats.scheduled} · 恢复 {rosterStats.recovery}
+            </span>
+          </header>
+          <div className="space-y-3 text-xs text-slate-600">
+            {visibleRoster.map((student) => (
+              <article key={student.name} className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{student.name}</p>
+                    <p className="text-xs text-slate-500">{student.className}</p>
+                  </div>
+                  <StatusBadge status={student.status} />
+                </div>
+                <p className="mt-2 text-xs text-slate-500">{student.lastAssessment}</p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-600">{student.focus}</p>
+              </article>
+            ))}
+          </div>
+          {hasMoreRoster ? (
+            <button
+              type="button"
+              className="w-full rounded-2xl border border-dashed border-indigo-200 bg-white/80 py-2.5 text-xs font-semibold text-indigo-500 transition hover:border-indigo-300 hover:text-indigo-600"
+              onClick={() => setRosterExpanded((value) => !value)}
+            >
+              {rosterExpanded ? '收起学员清单' : `展开全部 ${assessmentRoster.length} 位学员`}
+            </button>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
         {fitnessHighlights.map((item) => {
           const sparklineData = item.trend.map((value, index) => ({ step: index + 1, value }));
           const changeLabel = item.change >= 0 ? `+${item.change}` : item.change.toString();
@@ -267,18 +589,30 @@ export function TrialArenaPage() {
               </ResponsiveContainer>
             </div>
             <ul className="space-y-3 text-xs text-slate-600">
-              {classFitnessMatrix.map((row) => (
-                <li key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                  <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
-                    <span className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
-                      {row.className}
-                    </span>
-                    <span>综合均分 {Math.round((row.speed + row.strength + row.endurance + row.agility) / 4)}</span>
-                  </div>
-                  <p className="mt-2 leading-relaxed">{row.highlight}</p>
-                </li>
-              ))}
+              {classFitnessMatrix.map((row) => {
+                const assessmentInfo = classAssessmentMap.get(row.id);
+                return (
+                  <li key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                    <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
+                      <span className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
+                        {row.className}
+                      </span>
+                      <span>综合均分 {Math.round((row.speed + row.strength + row.endurance + row.agility) / 4)}</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-500">
+                        覆盖 {assessmentInfo?.coverage ?? '-'}%
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-500">
+                        力量 {assessmentInfo?.power ?? '-'} · 灵敏 {assessmentInfo?.agility ?? '-'}
+                      </span>
+                    </div>
+                    <p className="mt-2 leading-relaxed">{row.highlight}</p>
+                    <p className="mt-2 text-[11px] text-slate-500">专项洞察：{assessmentInfo?.skillFocus ?? '待同步测评记录'}</p>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
@@ -414,12 +748,52 @@ export function TrialArenaPage() {
 }
 
 
+function StatusBadge({ status }: { status: string }) {
+  const { className, label } = getStatusStyle(status);
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${className}`}>
+      {label}
+    </span>
+  );
+}
+
+function getStatusStyle(status: string) {
+  switch (status) {
+    case '已完成':
+      return { className: 'bg-emerald-50 text-emerald-600', label: '已完成' };
+    case '预约中':
+      return { className: 'bg-indigo-50 text-indigo-500', label: '预约中' };
+    case '恢复中':
+      return { className: 'bg-amber-50 text-amber-600', label: '恢复中' };
+    case '待测评':
+      return { className: 'bg-slate-100 text-slate-600', label: '待测评' };
+    case '场地确认':
+      return { className: 'bg-sky-50 text-sky-600', label: '场地确认' };
+    case '测评中':
+      return { className: 'bg-rose-50 text-rose-500', label: '测评中' };
+    default:
+      return { className: 'bg-slate-100 text-slate-600', label: status };
+  }
+}
 
 function formatHighlightValue(title: string, value: number) {
   if (title.includes('技能熟练度')) {
     return `${value.toFixed(1)} / 5`;
   }
   return value.toFixed(0);
+}
+
+function CoverageTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0]?.payload as { week: string; coverage: number; completed: number; pending: number };
+
+  return (
+    <div className="rounded-2xl border border-sky-200 bg-white/95 p-3 text-xs text-slate-600 shadow">
+      <p className="text-sm font-semibold text-slate-800">{point.week}</p>
+      <p className="mt-1 text-indigo-500">覆盖率 {point.coverage}%</p>
+      <p className="mt-1">已测 {point.completed} 人 · 待测 {point.pending} 人</p>
+    </div>
+  );
 }
 
 function HighlightTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {

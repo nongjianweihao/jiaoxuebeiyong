@@ -90,7 +90,7 @@ const monthlyCourseRhythm = [
 const revenueTimeline = [
   {
 
-    
+
     month: '2024年1月',
     total: 40400,
     course: 65,
@@ -114,6 +114,39 @@ const revenueTimeline = [
     private: 15,
     cashflow: 9300,
 
+  },
+];
+
+const operationsPivot = [
+  {
+    month: '2024年1月',
+    courseHours: 1186,
+    revenue: 40400,
+    newStudents: 36,
+    retention: 89,
+    avgHours: 11.4,
+    arpu: 2120,
+    comment: '寒假营地高转化，二次课包签约 18 单。',
+  },
+  {
+    month: '2024年2月',
+    courseHours: 1104,
+    revenue: 43200,
+    newStudents: 28,
+    retention: 86,
+    avgHours: 10.7,
+    arpu: 2240,
+    comment: '春节淡季守住续费率，体验课复购 42%。',
+  },
+  {
+    month: '2024年3月',
+    courseHours: 1288,
+    revenue: 48600,
+    newStudents: 42,
+    retention: 91,
+    avgHours: 12.9,
+    arpu: 2380,
+    comment: '开学返课高峰，打包营地叠加提升 ARPU。',
   },
 ];
 
@@ -266,6 +299,34 @@ export function CommandCenterPage() {
     [],
   );
 
+  const operationsPivotSummary = useMemo(() => {
+    if (!operationsPivot.length) {
+      return { avgCourseHours: 0, avgRevenue: 0, avgNewStudents: 0, avgHoursPerStudent: '0.0', avgRetention: 0, avgArpu: 0 };
+    }
+    const months = operationsPivot.length;
+    const totals = operationsPivot.reduce(
+      (acc, row) => {
+        acc.courseHours += row.courseHours;
+        acc.revenue += row.revenue;
+        acc.newStudents += row.newStudents;
+        acc.avgHours += row.avgHours;
+        acc.retention += row.retention;
+        acc.arpu += row.arpu;
+        return acc;
+      },
+      { courseHours: 0, revenue: 0, newStudents: 0, avgHours: 0, retention: 0, arpu: 0 },
+    );
+
+    return {
+      avgCourseHours: Math.round(totals.courseHours / months),
+      avgRevenue: Math.round(totals.revenue / months),
+      avgNewStudents: Math.round(totals.newStudents / months),
+      avgHoursPerStudent: (totals.avgHours / months).toFixed(1),
+      avgRetention: Math.round(totals.retention / months),
+      avgArpu: Math.round(totals.arpu / months),
+    };
+  }, []);
+
   const lessonStructureChartData = useMemo(
     () =>
       lessonStructure.map((item) => ({
@@ -359,6 +420,72 @@ export function CommandCenterPage() {
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+        <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">运营多维统计表</h2>
+            <p className="text-sm text-slate-500">课程课消、营收、续费与人次一屏对齐，辅助复盘与资源分配。</p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">月度滚动 · 可导出</span>
+        </header>
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">月份</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">课消</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">营收</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">新增学员</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">续费率</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">人均课时</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">ARPU</th>
+                <th className="whitespace-nowrap px-4 py-3 text-left font-semibold">重点备注</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-slate-600">
+              {operationsPivot.map((row) => (
+                <tr key={row.month} className="hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-800">{row.month}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.courseHours.toLocaleString()} 课时</td>
+                  <td className="whitespace-nowrap px-4 py-3">¥ {row.revenue.toLocaleString()}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.newStudents} 人</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.retention}%</td>
+                  <td className="whitespace-nowrap px-4 py-3">{row.avgHours.toFixed(1)}</td>
+                  <td className="whitespace-nowrap px-4 py-3">¥ {row.arpu.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-left text-[13px] text-slate-500">{row.comment}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-indigo-50/60 text-indigo-600">
+                <td className="px-4 py-3 font-semibold">月均表现</td>
+                <td className="px-4 py-3">≈ {operationsPivotSummary.avgCourseHours.toLocaleString()} 课时</td>
+                <td className="px-4 py-3">¥ {operationsPivotSummary.avgRevenue.toLocaleString()}</td>
+                <td className="px-4 py-3">{operationsPivotSummary.avgNewStudents} 人</td>
+                <td className="px-4 py-3">{operationsPivotSummary.avgRetention}%</td>
+                <td className="px-4 py-3">{operationsPivotSummary.avgHoursPerStudent}</td>
+                <td className="px-4 py-3">¥ {operationsPivotSummary.avgArpu.toLocaleString()}</td>
+                <td className="px-4 py-3 text-[13px]">同比稳步提升，建议继续放大高粘班级。</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-slate-500">
+          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-indigo-500">
+            人均课时 {operationsPivotSummary.avgHoursPerStudent}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-emerald-600">
+            月均营收 ¥ {operationsPivotSummary.avgRevenue.toLocaleString()}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-amber-600">
+            续费率 {operationsPivotSummary.avgRetention}%
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
+            新增学员 {operationsPivotSummary.avgNewStudents} 人 / 月
+          </span>
+        </div>
       </section>
 
       <section className="grid gap-6 2xl:grid-cols-[1.6fr,1fr]">
