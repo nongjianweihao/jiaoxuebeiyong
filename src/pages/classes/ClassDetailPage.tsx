@@ -14,6 +14,7 @@ import { ClassSquadPanel } from "../../components/squads/ClassSquadPanel";
 import { PuzzleGrid } from "../../components/PuzzleGrid";
 import { StudentAvatar } from "../../components/StudentAvatar";
 import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from "../../config/performance";
+import { getFreestyleReward } from "../../config/freestyleRewards";
 import { classesRepo } from "../../store/repositories/classesRepo";
 import { sessionsRepo } from "../../store/repositories/sessionsRepo";
 import { studentsRepo } from "../../store/repositories/studentsRepo";
@@ -1271,13 +1272,39 @@ export function ClassDetailPage() {
       }),
     );
 
+    const sessionDate = new Date(record.date);
+    const freestyleEnergyAwards: Array<Promise<void>> = [];
+
     record.freestyle
       .filter((item) => item.passed)
       .forEach((item) => {
         const meta = rankMoveLookup[item.moveId];
+        const reward = getFreestyleReward(meta?.rank ?? 1);
         const reason = meta ? `通过花样 ${meta.name}` : '通过花样挑战';
-        pushEvent(item.studentId, 'freestyle_pass', getPointValue('freestyle_pass'), reason);
+        pushEvent(item.studentId, 'freestyle_pass', reward.points, reason);
+
+        if (meta && reward.energy > 0) {
+          freestyleEnergyAwards.push(
+            AwardEngine.grantEnergy(
+              item.studentId,
+              reward.energy,
+              'freestyle_pass',
+              `freestyle:${record.id}:${item.moveId}`,
+              {
+                moveId: item.moveId,
+                moveName: meta.name,
+                rank: meta.rank,
+                classId: record.classId,
+              },
+              sessionDate,
+            ),
+          );
+        }
       });
+
+    if (freestyleEnergyAwards.length) {
+      await Promise.all(freestyleEnergyAwards);
+    }
 
     record.performance?.forEach((entry) => {
       const highlightReasons = entry.presetIds

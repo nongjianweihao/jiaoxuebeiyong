@@ -10,6 +10,7 @@ import type {
   JumpMode,
   SpeedRankThreshold,
 } from '../types';
+import { getFreestyleReward } from '../config/freestyleRewards';
 
 // —— Benchmarks in-memory cache —— //
 let _benchmarksCache: Benchmark[] = [];
@@ -91,9 +92,11 @@ export function buildSpeedRankTrajectory(
 // —— Freestyle pass points (simplified) —— //
 export function freestylePassPoints(moveName: string, rank: number): number {
   if (!moveName) return 0;
-  const base = 1;
-  const bonus = Math.max(0, rank - 1) * 0.5; // scalable reward
-  return base + bonus;
+  return getFreestyleReward(rank).points;
+}
+
+export function freestylePassEnergy(rank: number): number {
+  return getFreestyleReward(rank).energy;
 }
 
 // —— Normalize by benchmark to 0..100 around percentiles —— //
