@@ -499,6 +499,25 @@ export interface StudentProfileSnapshot {
   pointsBreakdown?: Record<PointEventType, number>;
 }
 
+export type LessonLedgerEntryType =
+  | 'consume'
+  | 'makeup'
+  | 'gift'
+  | 'transfer'
+  | 'adjust'
+  | 'other';
+
+export interface LessonLedgerEntry {
+  id: ID;
+  studentId: ID;
+  type: LessonLedgerEntryType;
+  lessons: number;
+  date: ISODate;
+  summary?: string;
+  createdAt: ISODate;
+  updatedAt?: ISODate;
+}
+
 export interface LessonPackage {
   id: ID;
   studentId: ID;
@@ -514,6 +533,7 @@ export interface LessonWallet {
   totalPurchased: number;
   totalConsumed: number;
   remaining: number;
+  manualAdjustments?: number;
 }
 
 export interface PaymentRecord {

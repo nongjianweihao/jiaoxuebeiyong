@@ -7,6 +7,7 @@ import type {
   FitnessTestItem,
   FitnessTestResult,
   GameDrill,
+  LessonLedgerEntry,
   LessonPackage,
   MetricsSnapshot,
   MissionCardV2,
@@ -56,6 +57,7 @@ export class CoachDatabase extends Dexie {
   fitnessTests!: EntityTable<FitnessTestResult, 'id'>;
   rankExams!: EntityTable<RankExamRecord, 'id'>;
   lessonPackages!: EntityTable<LessonPackage, 'id'>;
+  lessonLedger!: EntityTable<LessonLedgerEntry, 'id'>;
   payments!: EntityTable<PaymentRecord, 'id'>;
   recommendations!: EntityTable<Recommendation, 'id'>;
   benchmarks!: EntityTable<Benchmark, 'id'>;
@@ -418,6 +420,53 @@ export class CoachDatabase extends Dexie {
           }),
         );
       });
+
+    this.version(10).stores({
+      students: 'id, name, currentRank',
+      classes: 'id, name, coachName',
+      templates: 'id, name, period',
+      sessions: 'id, classId, date, closed',
+      fitnessTestItems: 'id, quality',
+      fitnessTests: 'id, studentId, quarter, date',
+      rankExams: 'id, studentId, date',
+      lessonPackages: 'id, studentId, purchasedAt',
+      lessonLedger: 'id, studentId, date',
+      payments: 'id, studentId, paidAt',
+      recommendations: 'id, studentId, createdAt',
+      benchmarks: 'id, quality, ageMin, ageMax',
+      warriorNodes: 'id, rank',
+      rankMoves: 'id, rank',
+      gameDrills: 'id, name',
+      metrics: 'id, studentId, weekOf',
+      speedRankThresholds: 'id, rank, windowSec, mode',
+      pointEvents: 'id, studentId, sessionId, date, type',
+      pointsRules: 'type',
+      missionsProgress: '++id, studentId, classId, missionId, date, stars, energy, status',
+      badges: '++id, studentId, code, earnedAt',
+      seasons: '++id, code',
+      leaderboards: '++id, seasonCode, scope, refId',
+      retrospectives: 'id, classId, date',
+      squads: 'id, classId, seasonCode',
+      squadChallenges: 'id, squadId, status, endDate',
+      squadProgress: '++id, challengeId, squadId, createdAt',
+      kudos: '++id, toStudentId, fromStudentId, classId, seasonCode, createdAt',
+      energyLogs: '++id, studentId, createdAt, source',
+      trainingStages: 'id',
+      trainingPlans: 'id, stageId',
+      trainingUnits: 'id, stageId',
+      trainingQualities: 'id',
+      trainingDrills: 'id',
+      trainingGames: 'id',
+      missionCardsV2: 'id',
+      cycleTemplates: 'id',
+      classCyclePlans: 'id, classId, cycleId',
+      cycleReports: 'id, studentId, cycleId, planId',
+      puzzleTemplates: 'id, name, code, totalCards',
+      puzzleQuests: 'id, classId, sessionId, templateId',
+      puzzleCampaigns: 'id, squadId, templateId',
+      rewardItems: 'id, type, visible, seasonTag',
+      studentExchanges: 'id, studentId, rewardId, status, redeemedAt',
+    });
 
   }
 }

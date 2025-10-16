@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ExportPdfButton } from '../../components/ExportPdfButton';
 import { ProgressChart } from '../../components/ProgressChart';
@@ -8,6 +8,7 @@ import { DataTable } from '../../components/DataTable';
 import { BadgeWall } from '../../components/BadgeWall';
 import { AssessmentReportPanel } from '../../components/assessment/AssessmentReportPanel';
 import { AssessmentReportModal } from '../../components/assessment/AssessmentReportModal';
+import { LessonLedgerPanel, type LessonLedgerFormValues } from '../../components/lesson/LessonLedgerPanel';
 import { sessionsRepo } from '../../store/repositories/sessionsRepo';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
 import { testsRepo } from '../../store/repositories/testsRepo';
@@ -19,6 +20,7 @@ import { classesRepo } from '../../store/repositories/classesRepo';
 import { squadsRepo } from '../../store/repositories/squadsRepo';
 import { kudosRepo } from '../../store/repositories/kudosRepo';
 import { energyLogsRepo } from '../../store/repositories/energyLogsRepo';
+import { lessonLedgerRepo } from '../../store/repositories/lessonLedgerRepo';
 import {
   evalSpeedRank,
   buildFreestyleProgress,
@@ -36,10 +38,12 @@ import { evaluateGrowthProjection } from '../../utils/growthProjection';
 
 
 import { StudentAvatar } from '../../components/StudentAvatar';
+import { generateId } from '../../store/repositories/utils';
 
 import type {
   FitnessQuality,
   LessonWallet,
+  LessonLedgerEntry,
   PointEvent,
   SessionRecord,
   Student,
@@ -104,6 +108,7 @@ export function StudentDetailPage() {
   const [student, setStudent] = useState<Student | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [wallet, setWallet] = useState<LessonWallet | null>(null);
+  const [lessonLedger, setLessonLedger] = useState<LessonLedgerEntry[]>([]);
   const [nodes, setNodes] = useState<WarriorPathNode[]>([]);
   const [rankMoves, setRankMoves] = useState<RankMove[]>([]);
   const [radarView, setRadarView] = useState<RadarView | null>(null);
@@ -129,6 +134,7 @@ export function StudentDetailPage() {
         stu,
         sessionList,
         walletInfo,
+        ledgerList,
         nodesData,
         moves,
         items,
@@ -147,6 +153,7 @@ export function StudentDetailPage() {
         studentsRepo.get(studentId),
         sessionsRepo.listByStudent(studentId),
         billingRepo.calcWallet(studentId),
+        lessonLedgerRepo.listByStudent(studentId),
         db.warriorNodes.toArray(),
         db.rankMoves.toArray(),
         db.fitnessTestItems.toArray(),
@@ -166,6 +173,11 @@ export function StudentDetailPage() {
       setStudent(stu ?? null);
       setSessions(sessionList);
       setWallet(walletInfo);
+      setLessonLedger(
+        [...ledgerList].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        ),
+      );
       setNodes(nodesData);
       setRankMoves(moves);
       setPointEvents(events);
@@ -249,6 +261,66 @@ export function StudentDetailPage() {
     }
     void load();
   }, [studentId]);
+
+  const refreshLedgerAndWallet = useCallback(async () => {
+    const [ledgerList, walletInfo] = await Promise.all([
+      lessonLedgerRepo.listByStudent(studentId),
+      billingRepo.calcWallet(studentId),
+    ]);
+    setLessonLedger(
+      [...ledgerList].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    );
+    setWallet(walletInfo);
+  }, [studentId]);
+
+  const handleCreateLedger = useCallback(
+    async (values: LessonLedgerFormValues) => {
+      const now = new Date().toISOString();
+      const lessonDelta = Number(values.lessons);
+      const record: LessonLedgerEntry = {
+        id: generateId(),
+        studentId,
+        date: values.date || new Date().toISOString().slice(0, 10),
+        type: values.type,
+        lessons: Number.isNaN(lessonDelta) ? 0 : lessonDelta,
+        summary: values.summary?.trim() ? values.summary.trim() : undefined,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await lessonLedgerRepo.upsert(record);
+      await refreshLedgerAndWallet();
+    },
+    [studentId, refreshLedgerAndWallet],
+  );
+
+  const handleUpdateLedger = useCallback(
+    async (id: string, values: LessonLedgerFormValues) => {
+      const existing = lessonLedger.find((entry) => entry.id === id);
+      const now = new Date().toISOString();
+      const lessonDelta = Number(values.lessons);
+      const record: LessonLedgerEntry = {
+        id,
+        studentId,
+        date: values.date || new Date().toISOString().slice(0, 10),
+        type: values.type,
+        lessons: Number.isNaN(lessonDelta) ? 0 : lessonDelta,
+        summary: values.summary?.trim() ? values.summary.trim() : undefined,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      };
+      await lessonLedgerRepo.upsert(record);
+      await refreshLedgerAndWallet();
+    },
+    [lessonLedger, studentId, refreshLedgerAndWallet],
+  );
+
+  const handleDeleteLedger = useCallback(
+    async (id: string) => {
+      await lessonLedgerRepo.remove(id);
+      await refreshLedgerAndWallet();
+    },
+    [refreshLedgerAndWallet],
+  );
 
   const classLookup = useMemo(
     () => Object.fromEntries(classes.map((item) => [item.id, item.name])),
@@ -503,7 +575,8 @@ export function StudentDetailPage() {
       <GrowthProjectionPanel projection={growthProjection} />
 
       <section className="grid gap-4 xl:grid-cols-[2.3fr,1.7fr]">
-        <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-4">
+          <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800">基础档案</h2>
@@ -542,6 +615,13 @@ export function StudentDetailPage() {
             <InfoItem label="联系方式" value={guardianPhone} />
             <InfoItem label="课时余额" value={`${wallet?.remaining ?? 0} 课时`} />
           </div>
+          </div>
+          <LessonLedgerPanel
+            entries={lessonLedger}
+            onCreate={handleCreateLedger}
+            onUpdate={handleUpdateLedger}
+            onDelete={handleDeleteLedger}
+          />
         </div>
         <div className="space-y-4">
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
