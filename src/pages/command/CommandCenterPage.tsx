@@ -1,31 +1,119 @@
+import { useEffect, useState } from 'react';
+import { EnergyBoard } from '../../components/EnergyBoard';
+import type { Student } from '../../types';
+import { studentsRepo } from '../../store/repositories/studentsRepo';
+
 const kpiCards = [
   {
-    label: '本月营收总额',
-    value: '¥ 46,000',
-    delta: '+18% MoM',
-    sub: '含课程、营地、周边',
+    label: '本月课消',
+    value: '1,288 课时',
+    delta: '+16% MoM',
+    sub: '含常规班 / 进阶营地',
     accent: 'from-amber-400/80 via-orange-500/70 to-rose-500/70',
   },
   {
-    label: '续费率',
-    value: '72%',
-    delta: '+6 pts',
-    sub: '近30天到期续费',
+    label: '经营收入',
+    value: '¥ 48,600',
+    delta: '+12% MoM',
+    sub: '课程 + 训练营 + 周边',
     accent: 'from-emerald-400/80 via-emerald-500/70 to-teal-500/70',
   },
   {
-    label: '人均客单价',
-    value: '¥ 3,200',
-    delta: '+12% MoM',
-    sub: '含训练包与衍生品',
+    label: '活跃学员',
+    value: '162 人',
+    delta: '+9 人',
+    sub: '≥8 课时 / 月',
     accent: 'from-blue-400/80 via-indigo-500/70 to-purple-500/70',
   },
   {
-    label: '毛利率',
-    value: '33%',
-    delta: '+3 pts',
-    sub: '扣除场地/教练成本',
+    label: '现金回款率',
+    value: '91%',
+    delta: '+5 pts',
+    sub: '含分期回款核销',
     accent: 'from-pink-400/80 via-fuchsia-500/70 to-purple-500/70',
+  },
+];
+
+const monthlyCourseRhythm = [
+  {
+    month: '2024年3月',
+    lessons: 1288,
+    change: '+16%',
+    attendance: '90% 到课率',
+    highlight: '开学季返课高峰，家庭陪练打卡提升 12%。',
+  },
+  {
+    month: '2024年2月',
+    lessons: 1104,
+    change: '-6%',
+    attendance: '82% 到课率',
+    highlight: '春节假期影响，营地课程贡献 320 课时。',
+  },
+  {
+    month: '2024年1月',
+    lessons: 1186,
+    change: '+4%',
+    attendance: '87% 到课率',
+    highlight: '寒假战队营带动，周末场次满班率 96%。',
+  },
+];
+
+const revenueTimeline = [
+  {
+    month: '2024年3月',
+    total: '¥ 48,600',
+    structure: '课程 58% · 营地 27% · 私教 15%',
+    arpu: 'ARPU ¥ 3,120',
+    cashflow: '+¥ 9,300 现金流入',
+  },
+  {
+    month: '2024年2月',
+    total: '¥ 43,200',
+    structure: '课程 62% · 营地 21% · 私教 17%',
+    arpu: 'ARPU ¥ 2,980',
+    cashflow: '+¥ 6,800 现金流入',
+  },
+  {
+    month: '2024年1月',
+    total: '¥ 40,400',
+    structure: '课程 65% · 营地 19% · 私教 16%',
+    arpu: 'ARPU ¥ 2,860',
+    cashflow: '+¥ 5,900 现金流入',
+  },
+];
+
+const lessonStructure = [
+  { label: '体能基础课', hours: 420, share: '32%', detail: '低龄勇士班，高频课消支撑稳定现金流。' },
+  { label: '进阶战术课', hours: 318, share: '24%', detail: '力量 + 速度双模组，报名转介绍提升 14%。' },
+  { label: '营地集训', hours: 276, share: '21%', detail: '营地打包附带装备组合，ARPU 较常规课高 42%。' },
+  { label: '私教/专项', hours: 192, share: '15%', detail: '私教续费率 88%，建议保持排班弹性。' },
+  { label: '家庭陪练', hours: 82, share: '8%', detail: '线上打卡任务带动能量值增长与裂变。' },
+];
+
+const studentHourDistribution = [
+  {
+    segment: '≥ 16 课时 / 月',
+    ratio: '28%',
+    delta: '+6 pts',
+    insight: '高粘进阶班，输出冠军故事做口碑裂变。',
+  },
+  {
+    segment: '12-15 课时 / 月',
+    ratio: '34%',
+    delta: '+3 pts',
+    insight: '常规班稳定区间，叠加家庭陪练作业巩固效果。',
+  },
+  {
+    segment: '8-11 课时 / 月',
+    ratio: '22%',
+    delta: '-5 pts',
+    insight: '存在松动迹象，需社群触达 + 教练点名激励。',
+  },
+  {
+    segment: '≤ 7 课时 / 月',
+    ratio: '16%',
+    delta: '-4 pts',
+    insight: '集中在新生体验阶段，安排班主任 48 小时回访。',
   },
 ];
 
@@ -38,28 +126,28 @@ const funnelStages = [
 
 const revenueMix = [
   { label: '课程包', value: 52, highlight: 'bg-amber-400' },
-  { label: '训练营', value: 28, highlight: 'bg-sky-400' },
-  { label: '装备周边', value: 12, highlight: 'bg-emerald-400' },
-  { label: '私教/专项', value: 8, highlight: 'bg-violet-400' },
+  { label: '训练营', value: 27, highlight: 'bg-sky-400' },
+  { label: '私教/专项', value: 15, highlight: 'bg-violet-400' },
+  { label: '装备周边', value: 6, highlight: 'bg-emerald-400' },
 ];
 
 const executionStats = [
   {
     title: '课程执行率',
-    value: '92%',
-    detail: '缺课主要集中在周三 17:00 班级，建议加推提醒',
+    value: '94%',
+    detail: '周三 17:00 班级缺课率回落至 6%，推送提醒效果显著。',
     accent: 'bg-emerald-100 text-emerald-600',
   },
   {
     title: '教练利用率',
-    value: '84%',
-    detail: '李教练饱和度 110%，需调度周末下午班次',
+    value: '86%',
+    detail: '李教练饱和度 108%，需调度周末下午班次。',
     accent: 'bg-blue-100 text-blue-600',
   },
   {
     title: '场地利用率',
-    value: '68%',
-    detail: '周二/周四 20:00 时段空置，可策划成人体验营',
+    value: '71%',
+    detail: '周二/周四 20:00 时段空置，策划成人体验营。',
     accent: 'bg-amber-100 text-amber-600',
   },
 ];
@@ -112,10 +200,42 @@ const actionItems = [
 ];
 
 export function CommandCenterPage() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadStudents() {
+      try {
+        setLoadingStudents(true);
+        const list = await studentsRepo.list();
+        if (active) {
+          setStudents(list);
+        }
+      } catch (error) {
+        console.error('加载学员列表失败', error);
+      } finally {
+        if (active) {
+          setLoadingStudents(false);
+        }
+      }
+    }
+
+    void loadStudents();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-8">
       <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 p-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.25),transparent_60%)]" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.25),transparent_60%)]"
+          aria-hidden="true"
+        />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.5em] text-slate-300/80">Growth Command Tower</p>
@@ -156,6 +276,159 @@ export function CommandCenterPage() {
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="grid gap-6 2xl:grid-cols-[1.6fr,1fr]">
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">多月课消节奏</h2>
+              <p className="text-sm text-slate-500">滚动观测课时消耗、到课率与增长亮点，预警淡旺季节奏。</p>
+            </div>
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">自动拉取近 90 天</span>
+          </header>
+          <div className="space-y-4">
+            {monthlyCourseRhythm.map((item) => (
+              <article key={item.month} className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-600">{item.month}</p>
+                    <p className="text-xs text-amber-500/80">{item.attendance}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-slate-900">{item.lessons.toLocaleString()} 课时</p>
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-emerald-600 shadow">{item.change}</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-600">{item.highlight}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">收入走势追踪</h2>
+              <p className="text-sm text-slate-500">同步分品类贡献与 ARPU 表现，便于即时调价与打包策略。</p>
+            </div>
+            <span className="text-xs text-slate-400">单位：人民币</span>
+          </header>
+          <div className="space-y-4">
+            {revenueTimeline.map((item) => (
+              <article key={item.month} className="rounded-2xl bg-slate-50/70 p-4 shadow-inner">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{item.month}</p>
+                    <p className="text-xs text-slate-500">{item.structure}</p>
+                  </div>
+                  <div className="text-right text-sm font-semibold text-indigo-500">{item.total}</div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-500">{item.arpu}</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-500">{item.cashflow}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 2xl:grid-cols-[1.6fr,1fr]">
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">课时结构与人群洞察</h2>
+              <p className="text-sm text-slate-500">锁定不同课程形态的课时占比，辅助排班与产品组合。</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">更新于本周例会</span>
+          </header>
+          <div className="space-y-4">
+            {lessonStructure.map((item) => (
+              <article key={item.label} className="rounded-2xl bg-slate-50/80 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                    <p className="text-xs text-slate-500">{item.detail}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-slate-900">{item.hours} 课时</p>
+                    <span className="text-xs font-semibold text-indigo-500">{item.share}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">学员课时分布</h2>
+              <p className="text-sm text-slate-500">识别高粘人群与预警梯队，指导班主任行动。</p>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-500">162 位勇士</span>
+          </header>
+          <div className="space-y-3">
+            {studentHourDistribution.map((item) => (
+              <article key={item.segment} className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-700">{item.segment}</p>
+                    <p className="text-xs text-emerald-600/70">{item.insight}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-slate-900">{item.ratio}</p>
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-emerald-500 shadow">{item.delta}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 2xl:grid-cols-[1.4fr,1fr]">
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">班级能量荣誉榜</h2>
+              <p className="text-sm text-slate-500">集中展示能量、积分、荣誉点亮状态，支持一键展开全量勇士。</p>
+            </div>
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-500">自动同步游戏化系统</span>
+          </header>
+          {loadingStudents ? (
+            <div className="rounded-3xl border border-dashed border-amber-200 bg-white/60 p-6 text-center text-xs text-amber-500">
+              正在汇总班级勇士数据…
+            </div>
+          ) : (
+            <EnergyBoard students={students} maxCollapsedEntries={6} />
+          )}
+        </div>
+
+        <div className="space-y-5 rounded-3xl bg-white/85 p-6 shadow-lg backdrop-blur">
+          <header className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">续费与待转指标</h2>
+              <p className="text-sm text-slate-500">锁定到期窗口与潜在转介绍，搭配能量榜快速行动。</p>
+            </div>
+            <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-500">重点关注</span>
+          </header>
+          <ul className="space-y-4 text-xs text-slate-600">
+            <li className="rounded-2xl bg-rose-50/70 p-4 text-rose-600">
+              <p className="font-semibold">10 日内到期 · 12 位</p>
+              <p className="mt-1 leading-relaxed">同步班主任 + 运营顾问，输出成长战报 + 升级方案。</p>
+            </li>
+            <li className="rounded-2xl bg-indigo-50/70 p-4 text-indigo-600">
+              <p className="font-semibold">待激活推荐 · 8 个家庭</p>
+              <p className="mt-1 leading-relaxed">能量榜前 10 勇士加推「冠军同行」礼包，引导转介绍。</p>
+            </li>
+            <li className="rounded-2xl bg-emerald-50/70 p-4 text-emerald-600">
+              <p className="font-semibold">体验课回访 · 5 组</p>
+              <p className="mt-1 leading-relaxed">结合课时分布低段人群，安排 48 小时内二次触达。</p>
+            </li>
+          </ul>
+        </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[2fr,1.2fr]">
