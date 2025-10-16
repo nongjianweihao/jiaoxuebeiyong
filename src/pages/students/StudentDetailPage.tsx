@@ -4,11 +4,17 @@ import { ExportPdfButton } from '../../components/ExportPdfButton';
 import { ProgressChart } from '../../components/ProgressChart';
 import { RadarChart } from '../../components/RadarChart';
 import { PERFORMANCE_DIMENSIONS, PERFORMANCE_PRESET_LOOKUP } from '../../config/performance';
-import { DataTable } from '../../components/DataTable';
 import { BadgeWall } from '../../components/BadgeWall';
 import { AssessmentReportPanel } from '../../components/assessment/AssessmentReportPanel';
 import { AssessmentReportModal } from '../../components/assessment/AssessmentReportModal';
-import { LessonLedgerPanel, type LessonLedgerFormValues } from '../../components/lesson/LessonLedgerPanel';
+
+
+import {
+  LessonLedgerPanel,
+  type LessonLedgerFormValues,
+  type LessonSessionRecord,
+} from '../../components/lesson/LessonLedgerPanel';
+
 import { sessionsRepo } from '../../store/repositories/sessionsRepo';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
 import { testsRepo } from '../../store/repositories/testsRepo';
@@ -118,6 +124,7 @@ export function StudentDetailPage() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedMission[]>([]);
   const [missionCatalog, setMissionCatalog] = useState<Record<string, { name: string; type: string }>>({});
+  const [templateLookup, setTemplateLookup] = useState<Record<string, string>>({});
   const [studentRetrospectives, setStudentRetrospectives] = useState<SessionReview[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<ClassEntity[]>([]);
@@ -206,6 +213,7 @@ export function StudentDetailPage() {
           ]),
         ),
       );
+      setTemplateLookup(Object.fromEntries(templateList.map((template) => [template.id, template.name])));
       setStudentRetrospectives(retrospectivesList);
       setStudentKudos(kudosList);
       setSquadMemberships(squadList);
@@ -273,45 +281,61 @@ export function StudentDetailPage() {
     setWallet(walletInfo);
   }, [studentId]);
 
+
+  
+  const normalizeLedgerForm = useCallback((values: LessonLedgerFormValues) => {
+    const parsed = Number(values.lessons);
+    return {
+      date: values.date || new Date().toISOString().slice(0, 10),
+      type: values.type,
+      lessons: Number.isNaN(parsed) ? 0 : Number(parsed.toFixed(2)),
+      summary: values.summary?.trim() ? values.summary.trim() : undefined,
+    };
+  }, []);
+
   const handleCreateLedger = useCallback(
     async (values: LessonLedgerFormValues) => {
+      const normalized = normalizeLedgerForm(values);
       const now = new Date().toISOString();
-      const lessonDelta = Number(values.lessons);
       const record: LessonLedgerEntry = {
         id: generateId(),
         studentId,
-        date: values.date || new Date().toISOString().slice(0, 10),
-        type: values.type,
-        lessons: Number.isNaN(lessonDelta) ? 0 : lessonDelta,
-        summary: values.summary?.trim() ? values.summary.trim() : undefined,
+        ...normalized,
+
         createdAt: now,
         updatedAt: now,
       };
       await lessonLedgerRepo.upsert(record);
       await refreshLedgerAndWallet();
     },
-    [studentId, refreshLedgerAndWallet],
+
+    
+    [normalizeLedgerForm, studentId, refreshLedgerAndWallet],
+
   );
 
   const handleUpdateLedger = useCallback(
     async (id: string, values: LessonLedgerFormValues) => {
+
+      
+      const normalized = normalizeLedgerForm(values);
       const existing = lessonLedger.find((entry) => entry.id === id);
       const now = new Date().toISOString();
-      const lessonDelta = Number(values.lessons);
       const record: LessonLedgerEntry = {
         id,
         studentId,
-        date: values.date || new Date().toISOString().slice(0, 10),
-        type: values.type,
-        lessons: Number.isNaN(lessonDelta) ? 0 : lessonDelta,
-        summary: values.summary?.trim() ? values.summary.trim() : undefined,
+        ...normalized,
+
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };
       await lessonLedgerRepo.upsert(record);
       await refreshLedgerAndWallet();
     },
-    [lessonLedger, studentId, refreshLedgerAndWallet],
+
+    
+    [lessonLedger, normalizeLedgerForm, studentId, refreshLedgerAndWallet],
+
   );
 
   const handleDeleteLedger = useCallback(
@@ -322,6 +346,29 @@ export function StudentDetailPage() {
     [refreshLedgerAndWallet],
   );
 
+
+  
+  const handleImportLedger = useCallback(
+    async (rows: LessonLedgerFormValues[]) => {
+      const base = Date.now();
+      const records: LessonLedgerEntry[] = rows.map((row, index) => {
+        const normalized = normalizeLedgerForm(row);
+        const timestamp = new Date(base + index).toISOString();
+        return {
+          id: generateId(),
+          studentId,
+          ...normalized,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      });
+      await Promise.all(records.map((record) => lessonLedgerRepo.upsert(record)));
+      await refreshLedgerAndWallet();
+    },
+    [normalizeLedgerForm, studentId, refreshLedgerAndWallet],
+  );
+
+
   const classLookup = useMemo(
     () => Object.fromEntries(classes.map((item) => [item.id, item.name])),
     [classes],
@@ -331,6 +378,51 @@ export function StudentDetailPage() {
     () => Object.fromEntries(allStudents.map((item) => [item.id, item.name])),
     [allStudents],
   );
+
+  const lessonSessionRows = useMemo<LessonSessionRecord[]>(() => {
+    return sessions
+      .map((session) => {
+        const attendance = session.attendance.find((item) => item.studentId === studentId);
+        const override = session.consumeOverrides?.find((item) => item.studentId === studentId);
+        const present = attendance?.present ?? false;
+        const baseConsume = session.lessonConsume ?? 1;
+        const consumeAmount = override?.consume ?? (present ? baseConsume : 0);
+        if (!session.closed || !consumeAmount) {
+          return null;
+        }
+        const className = classLookup[session.classId] ?? '课堂挑战';
+        const templateName = session.templateId ? templateLookup[session.templateId] : undefined;
+        const summaryParts = [className];
+        if (templateName) {
+          summaryParts.push(`任务卡：${templateName}`);
+        }
+        const speedRecord = [...session.speed]
+          .filter((record) => record.studentId === studentId)
+          .sort((a, b) => b.reps - a.reps)[0];
+        const speedHighlight = speedRecord
+          ? `${speedRecord.window}s ${speedRecord.mode === 'single' ? '单摇' : '双摇'} ${speedRecord.reps}`
+          : undefined;
+        const coachNote = session.notes.find((note) => note.studentId === studentId)?.comments?.trim();
+        const detailParts: string[] = [];
+        if (speedHighlight) {
+          detailParts.push(`速度亮点 ${speedHighlight}`);
+        }
+        if (coachNote) {
+          detailParts.push(`教练鼓励：${coachNote}`);
+        }
+        return {
+          id: `session-${session.id}`,
+          date: session.date.slice(0, 10),
+          lessons: -Math.abs(Number(consumeAmount.toFixed(2))),
+          summary: summaryParts.join(' · ') || className,
+          detail: detailParts.join('；'),
+          sourceLabel: '课堂挑战',
+          createdAt: session.date,
+        } satisfies LessonSessionRecord;
+      })
+      .filter((item): item is LessonSessionRecord => Boolean(item))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [sessions, studentId, classLookup, templateLookup]);
 
   const speedSeriesByWindow = useMemo<Record<WindowSec, SpeedSeriesBundle>>(
     () => {
@@ -616,12 +708,10 @@ export function StudentDetailPage() {
             <InfoItem label="课时余额" value={`${wallet?.remaining ?? 0} 课时`} />
           </div>
           </div>
-          <LessonLedgerPanel
-            entries={lessonLedger}
-            onCreate={handleCreateLedger}
-            onUpdate={handleUpdateLedger}
-            onDelete={handleDeleteLedger}
-          />
+
+          
+          
+
         </div>
         <div className="space-y-4">
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -1032,40 +1122,14 @@ export function StudentDetailPage() {
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-600">最近挑战记录</h3>
-          <DataTable
-            data={sessions.slice(-10).reverse()}
-            columns={[
-              {
-                key: 'date',
-                header: '日期',
-                cell: (item) => new Date(item.date).toLocaleDateString(),
-              },
-              {
-                key: 'attendance',
-                header: '出勤',
-                cell: (item) => (item.attendance.find((a) => a.studentId === studentId)?.present ? '完成' : '缺席'),
-              },
-              {
-                key: 'speed',
-                header: '速度亮点',
-                cell: (item) => {
-                  const record = item.speed
-                    .filter((row) => row.studentId === studentId)
-                    .sort((a, b) => b.reps - a.reps)[0];
-                  return record ? `${record.window}s ${record.mode === 'single' ? '单摇' : '双摇'} ${record.reps}` : '—';
-                },
-              },
-              {
-                key: 'notes',
-                header: '教练鼓励',
-                cell: (item) => item.notes.find((note) => note.studentId === studentId)?.comments ?? '—',
-              },
-            ]}
-            emptyMessage="暂无最近挑战"
-          />
-        </section>
+        <LessonLedgerPanel
+          entries={lessonLedger}
+          sessions={lessonSessionRows}
+          onCreate={handleCreateLedger}
+          onUpdate={handleUpdateLedger}
+          onDelete={handleDeleteLedger}
+          onImport={handleImportLedger}
+        />
 
       </section>
     </div>
