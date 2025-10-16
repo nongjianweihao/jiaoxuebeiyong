@@ -501,24 +501,48 @@ export function StudentDetailPage() {
     [pointsSummary.series],
   );
   const sortedEnergyLogs = useMemo(
+
+    
     () =>
       [...energyLogs].sort(
         (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       ),
     [energyLogs],
   );
-  const energyCurve = useMemo(
-    () => {
-      if (!sortedEnergyLogs.length) return [];
-      const totalDelta = sortedEnergyLogs.reduce((sum, log) => sum + log.delta, 0);
-      let running = energy - totalDelta;
-      return sortedEnergyLogs.map((log) => {
-        running += log.delta;
-        return { date: log.createdAt, score: running };
-      });
-    },
-    [sortedEnergyLogs, energy],
-  );
+  const { energyCurve, initialEnergyBalance } = useMemo(() => {
+    if (!sortedEnergyLogs.length) {
+      return {
+        energyCurve: energy
+          ? [{ date: new Date().toISOString(), score: Math.max(0, energy) }]
+          : [],
+        initialEnergyBalance: Math.max(0, energy),
+      };
+    }
+
+    const reversed: Array<{ date: string; score: number }> = [];
+    let balance = Math.max(0, energy);
+    for (let i = sortedEnergyLogs.length - 1; i >= 0; i -= 1) {
+      const log = sortedEnergyLogs[i];
+      reversed.push({ date: log.createdAt, score: balance });
+      const previous = balance - log.delta;
+      balance = previous < 0 ? 0 : previous;
+    }
+
+    const firstLog = sortedEnergyLogs[0];
+    const firstDate = new Date(firstLog.createdAt);
+    const baselinePoint = {
+      date: new Date(firstDate.getTime() - 1000).toISOString(),
+      score: Math.max(0, balance),
+    };
+
+    const energyCurve = [...reversed, baselinePoint].reverse();
+
+    return {
+      energyCurve,
+      initialEnergyBalance: Math.max(0, balance),
+    };
+  }, [sortedEnergyLogs, energy]);
+
   const energyBreakdown = useMemo(
     () =>
       sortedEnergyLogs.reduce(
@@ -530,28 +554,40 @@ export function StudentDetailPage() {
       ),
     [sortedEnergyLogs],
   );
-  const energyBreakdownEntries = useMemo(
-    () =>
-      (Object.entries(energyBreakdown) as Array<[EnergySource, number]>)
-        .filter(([, value]) => value !== undefined && value !== 0)
-        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])),
-    [energyBreakdown],
-  );
+  const energyBreakdownEntries = useMemo(() => {
+    const entries = (Object.entries(energyBreakdown) as Array<[EnergySource, number]>)
+      .filter(([, value]) => value !== undefined && value !== 0)
+      .map(([source, value]) => ({
+        key: source,
+        label: labelForEnergySource(source),
+        value,
+      }))
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+
+    if (initialEnergyBalance > 0) {
+      entries.unshift({ key: 'initial', label: '历史留存', value: initialEnergyBalance });
+    }
+
+    return entries;
+  }, [energyBreakdown, initialEnergyBalance]);
   const recentEnergyLogs = useMemo(
     () => [...sortedEnergyLogs].reverse().slice(0, 10),
     [sortedEnergyLogs],
   );
-  const growthSeries = useMemo<ChartSeries[]>(
+  const pointsSeries = useMemo<ChartSeries[]>(
     () =>
-      [
-        pointsCurve.length
-          ? { label: '勇士积分', color: '#6366f1', data: pointsCurve }
-          : null,
-        energyCurve.length
-          ? { label: '成长能量', color: '#fbbf24', data: energyCurve }
-          : null,
-      ].filter((line): line is ChartSeries => Boolean(line)),
-    [pointsCurve, energyCurve],
+      pointsCurve.length
+        ? [{ label: '勇士积分', color: '#6366f1', data: pointsCurve }]
+        : [],
+    [pointsCurve],
+  );
+  const energySeries = useMemo<ChartSeries[]>(
+    () =>
+      energyCurve.length
+        ? [{ label: '成长能量', color: '#fbbf24', data: energyCurve }]
+        : [],
+    [energyCurve],
+
   );
 
 
@@ -1295,22 +1331,27 @@ export function StudentDetailPage() {
 
 
         
-        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-sky-50 p-6 shadow-lg">
-          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-600">积分 &amp; 能量成长曲线</h3>
-                <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400 shadow-sm">
-                  Growth Flow
-                </span>
+
+        
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50 to-slate-100 p-6 shadow-lg">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700">勇士积分成长轨迹</h3>
+                <p className="text-xs text-slate-500">课堂行为奖励、挑战积分等构成勇士荣耀值</p>
               </div>
-              <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-inner backdrop-blur">
-                <ProgressChart series={growthSeries} />
+              <div className="rounded-2xl bg-white/70 px-4 py-2 text-right shadow-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-violet-400">Points</p>
+                <p className="text-xl font-bold text-violet-600">{pointsSummary.total}</p>
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 rounded-2xl border border-white/60 bg-white/80 p-4 shadow-inner backdrop-blur">
+              <ProgressChart series={pointsSeries} />
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
-                <p className="text-xs text-slate-500">积分明细</p>
+                <p className="text-xs text-slate-500">积分构成</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {Object.entries(pointsSummary.breakdown).map(([type, value]) => (
                     <li key={type} className="flex items-center justify-between text-xs">
@@ -1321,13 +1362,20 @@ export function StudentDetailPage() {
                 </ul>
               </div>
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
-                <p className="text-xs text-slate-500">积分流水</p>
+
+                
+                <p className="text-xs text-slate-500">近期积分事件</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {lastEvents.length ? (
                     lastEvents.map((event) => (
                       <li key={event.id} className="text-xs">
                         <span className="text-slate-400">{new Date(event.date).toLocaleDateString()} · </span>
-                        <span className="font-semibold text-violet-600">{labelForPointType(event.type)} +{event.points}</span>
+
+                        
+                        <span className="font-semibold text-violet-600">{labelForPointType(event.type)}</span>
+                        <span className="text-violet-500"> +{event.points}</span>
+
                         {event.reason && <span className="text-slate-500"> · {event.reason}</span>}
                       </li>
                     ))
@@ -1336,15 +1384,38 @@ export function StudentDetailPage() {
                   )}
                 </ul>
               </div>
+
+              
+            </div>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-amber-50 to-rose-50 p-6 shadow-lg">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700">成长能量曲线</h3>
+                <p className="text-xs text-slate-500">记录出勤连击、任务评星、战队激励等成长值沉淀</p>
+              </div>
+              <div className="rounded-2xl bg-white/70 px-4 py-2 text-right shadow-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-400">Energy</p>
+                <p className="text-xl font-bold text-amber-500">{energy}</p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-2xl border border-white/60 bg-white/80 p-4 shadow-inner backdrop-blur">
+              <ProgressChart series={energySeries} />
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
                 <p className="text-xs text-slate-500">能量构成</p>
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {energyBreakdownEntries.length ? (
-                    energyBreakdownEntries.map(([source, value]) => (
-                      <li key={source} className="flex items-center justify-between text-xs">
-                        <span>{labelForEnergySource(source)}</span>
-                        <span className={value >= 0 ? 'font-semibold text-amber-600' : 'font-semibold text-slate-500'}>
-                          {value > 0 ? `+${value}` : value} ⚡
+
+                    
+                    energyBreakdownEntries.map((entry) => (
+                      <li key={entry.key} className="flex items-center justify-between text-xs">
+                        <span>{entry.label}</span>
+                        <span className={entry.value >= 0 ? 'font-semibold text-amber-600' : 'font-semibold text-rose-500'}>
+                          {entry.value > 0 ? `+${entry.value}` : entry.value}⚡
+
                         </span>
                       </li>
                     ))
@@ -1354,7 +1425,11 @@ export function StudentDetailPage() {
                 </ul>
               </div>
               <div className="rounded-2xl border border-white/60 bg-white/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
-                <p className="text-xs text-slate-500">能量流水</p>
+
+                
+                
+                <p className="text-xs text-slate-500">近期能量流水</p>
+
                 <ul className="mt-2 space-y-1 text-slate-600">
                   {recentEnergyLogs.length ? (
                     recentEnergyLogs.map((log, index) => {
