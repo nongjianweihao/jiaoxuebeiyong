@@ -23,21 +23,26 @@ export const billingRepo = {
     return collection.toArray();
   },
   async calcWallet(studentId: string): Promise<LessonWallet> {
-    const packages = await billingRepo.listPackagesByStudent(studentId);
-    const sessions = await db.sessions.filter((session) => session.closed).toArray();
-    return calculateWallet(studentId, packages, sessions);
+    const [packages, sessions, ledgerEntries] = await Promise.all([
+      billingRepo.listPackagesByStudent(studentId),
+      db.sessions.filter((session) => session.closed).toArray(),
+      db.lessonLedger.where({ studentId }).toArray(),
+    ]);
+    return calculateWallet(studentId, packages, sessions, ledgerEntries);
   },
   async calcAllWallets(): Promise<LessonWallet[]> {
-    const [students, sessions, packages] = await Promise.all([
+    const [students, sessions, packages, ledgerEntries] = await Promise.all([
       db.students.toArray(),
       db.sessions.filter((session) => session.closed).toArray(),
       db.lessonPackages.toArray(),
+      db.lessonLedger.toArray(),
     ]);
     return students.map((student) =>
       calculateWallet(
         student.id,
         packages.filter((pkg) => pkg.studentId === student.id),
         sessions,
+        ledgerEntries.filter((entry) => entry.studentId === student.id),
       ),
     );
   },

@@ -22,8 +22,11 @@ export const studentsRepo = {
     return db.payments.where({ studentId }).sortBy('paidAt');
   },
   async wallet(studentId: string): Promise<LessonWallet> {
-    const packages = await studentsRepo.listPackages(studentId);
-    const sessions = await db.sessions.filter((session) => session.closed).toArray();
-    return calculateWallet(studentId, packages, sessions);
+    const [packages, sessions, ledgerEntries] = await Promise.all([
+      studentsRepo.listPackages(studentId),
+      db.sessions.filter((session) => session.closed).toArray(),
+      db.lessonLedger.where({ studentId }).toArray(),
+    ]);
+    return calculateWallet(studentId, packages, sessions, ledgerEntries);
   },
 };
