@@ -373,7 +373,7 @@ export function TrainingLibraryPage() {
     <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-slate-900">勇士训练资产库</h1>
-        <p className="text-sm text-slate-500">六大素质 × 动作 × 游戏 × 挑战卡 × 周期模板，构建完整的 Speed Rope Performance System。</p>
+        <p className="text-sm text-slate-500">六大素质 × 动作 × 游戏 × 课节模板 × 周期模板，构建完整的 Speed Rope Performance System。</p>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button
             type="button"
@@ -437,7 +437,7 @@ export function TrainingLibraryPage() {
             游戏库
           </Tabs.Trigger>
           <Tabs.Trigger value="missions" className="rounded-xl px-4 py-2 text-sm font-semibold data-[state=active]:bg-brand-500 data-[state=active]:text-white">
-            挑战任务卡
+            课节模板
           </Tabs.Trigger>
           <Tabs.Trigger value="cycles" className="rounded-xl px-4 py-2 text-sm font-semibold data-[state=active]:bg-brand-500 data-[state=active]:text-white">
             周期模板
@@ -879,12 +879,12 @@ export function TrainingLibraryPage() {
             footer={
               <section className="space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-semibold text-slate-900">任务卡结构清单</h3>
-                  <p className="text-sm text-slate-500">对照阶段资产，快速查看动作与游戏引用情况，便于微调挑战链路。</p>
+                  <h3 className="text-xl font-semibold text-slate-900">课节模板结构清单</h3>
+                  <p className="text-sm text-slate-500">对照阶段资产，快速查看动作与游戏引用情况，便于微调课节节奏。</p>
                 </div>
                 {missions.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-                    暂无任务卡结构，请在挑战卡工坊中创建。
+                    暂无课节模板结构，请在课节模板工坊中创建。
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1045,7 +1045,7 @@ export function TrainingLibraryPage() {
                                             key={`${cycle.id}-${week.week}-${missionId}`}
                                             className="rounded-xl bg-white/70 p-3 text-slate-400"
                                           >
-                                            任务卡 {missionId}
+                                            课节模板 {missionId}
                                           </div>
                                         );
                                       }
