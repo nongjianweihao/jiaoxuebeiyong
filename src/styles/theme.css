@@ -1,0 +1,660 @@
+/* 主题令牌：Classic（默认浅色） */
+:root {
+  --bg: 241 245 255; /* slate-100 with subtle blue tint */
+  --surface: 255 255 255;
+  --card: 255 255 255;
+  --text: 17 24 39; /* slate-900 */
+  --mute: 100 116 139; /* slate-500 */
+
+  --primary: 59 130 246; /* sky-500 */
+  --accent: 129 140 248; /* indigo-400 */
+  --success: 34 197 94; /* emerald-500 */
+  --warning: 249 168 37; /* amber-400 */
+  --danger: 239 68 68; /* red-500 */
+
+  --grad-primary: linear-gradient(105deg, #3b82f6 0%, #8b5cf6 45%, #f472b6 100%);
+
+  --app-shell-background: linear-gradient(135deg, #e2f2ff 0%, #f2edff 48%, #ffe9f6 100%);
+  --app-shell-overlay: radial-gradient(120% 120% at 0% 0%, rgba(79, 70, 229, 0.18) 0%, rgba(255, 255, 255, 0));
+  --app-shell-overlay-opacity: 0.55;
+
+  --sidebar-background: linear-gradient(180deg, #3b82f6 0%, #7c3aed 58%, #f472b6 100%);
+  --sidebar-foreground: rgba(255, 255, 255, 0.95);
+  --sidebar-muted: rgba(255, 255, 255, 0.75);
+  --sidebar-border: rgba(255, 255, 255, 0.32);
+  --sidebar-card-bg: rgba(255, 255, 255, 0.16);
+  --sidebar-card-border: rgba(255, 255, 255, 0.32);
+  --sidebar-card-shadow: 0 20px 50px rgba(79, 70, 229, 0.28);
+  --sidebar-backdrop-blur: 22px;
+
+  --nav-item-border: rgba(255, 255, 255, 0.28);
+  --nav-item-bg: rgba(255, 255, 255, 0.14);
+  --nav-item-hover-bg: rgba(255, 255, 255, 0.2);
+  --nav-item-hover-border: rgba(255, 255, 255, 0.4);
+  --nav-item-hover-shadow: 0 14px 30px rgba(124, 58, 237, 0.22);
+  --nav-item-foreground: rgba(255, 255, 255, 0.92);
+  --nav-item-description: rgba(255, 255, 255, 0.7);
+  --nav-item-icon: rgba(255, 255, 255, 0.88);
+  --nav-item-active-bg: rgba(255, 255, 255, 0.28);
+  --nav-item-active-border: rgba(255, 255, 255, 0.55);
+  --nav-item-active-shadow: 0 22px 40px rgba(124, 58, 237, 0.32);
+  --nav-item-active-foreground: #ffffff;
+  --nav-item-active-icon: #ffffff;
+
+  --card-radius: 1.5rem;
+  --card-surface: rgba(255, 255, 255, 0.78);
+  --card-border-color: rgba(255, 255, 255, 0.55);
+  --card-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --card-shadow-hover: 0 26px 65px rgba(99, 102, 241, 0.18);
+  --card-backdrop-blur: 18px;
+  --card-hover-translate: -6px;
+
+  --tile-surface: rgba(255, 255, 255, 0.7);
+  --tile-border: rgba(148, 163, 184, 0.28);
+  --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  --tile-hover-border: rgba(129, 140, 248, 0.45);
+
+  --chip-bg: rgba(219, 234, 254, 0.9);
+  --chip-foreground: #2563eb;
+
+  --button-radius: 0.85rem;
+  --button-primary-bg: linear-gradient(110deg, #3b82f6 0%, #7c3aed 55%, #f472b6 100%);
+  --button-primary-hover-bg: linear-gradient(110deg, #2563eb 0%, #6d28d9 55%, #ec4899 100%);
+  --button-primary-border: rgba(129, 140, 248, 0.6);
+  --button-primary-shadow: 0 18px 32px rgba(99, 102, 241, 0.35);
+  --button-primary-shadow-hover: 0 24px 45px rgba(99, 102, 241, 0.45);
+  --button-primary-foreground: #ffffff;
+
+  --button-ghost-bg: rgba(255, 255, 255, 0.68);
+  --button-ghost-border: rgba(148, 163, 184, 0.42);
+  --button-ghost-foreground: #1f2937;
+  --button-ghost-hover-bg: rgba(255, 255, 255, 0.88);
+  --button-ghost-shadow: 0 12px 25px rgba(148, 163, 184, 0.22);
+
+  --button-text-shadow: none;
+
+  --accent-foreground: #0f172a;
+  --success-foreground: #ffffff;
+  --warning-foreground: #0f172a;
+  --danger-foreground: #ffffff;
+
+  --main-background: rgba(255, 255, 255, 0.46);
+  --main-border: rgba(255, 255, 255, 0.45);
+  --main-backdrop-blur: 22px;
+  --main-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --toggle-badge-bg: rgba(255, 255, 255, 0.22);
+  --toggle-badge-foreground: #1f2937;
+
+  --stat-gradient-attendance: linear-gradient(135deg, rgba(34, 197, 94, 0.85), rgba(59, 130, 246, 0.8));
+  --stat-gradient-energy: linear-gradient(135deg, rgba(56, 189, 248, 0.85), rgba(129, 140, 248, 0.8));
+  --stat-gradient-points: linear-gradient(135deg, rgba(192, 132, 252, 0.85), rgba(244, 114, 182, 0.85));
+  --highlight-badge-gradient: linear-gradient(120deg, #a855f7 0%, #ec4899 100%);
+  --progress-gradient: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #f472b6 100%);
+}
+
+/* Game 主题（深色 + 霓虹游戏风） */
+[data-theme='game'] {
+  --bg: 8 18 43;
+  --surface: 15 32 75;
+  --card: 19 45 92;
+  --text: 215 240 255;
+  --mute: 125 162 210;
+
+  --primary: 0 214 255;
+  --accent: 138 92 255;
+  --success: 47 209 134;
+  --warning: 255 200 59;
+  --danger: 255 91 146;
+
+  --grad-primary: linear-gradient(120deg, #02d9ff 0%, #7648ff 50%, #ff4df5 100%);
+
+  --app-shell-background: radial-gradient(120% 120% at 20% 5%, rgba(0, 174, 255, 0.32) 0%, rgba(0, 174, 255, 0) 40%),
+    radial-gradient(120% 120% at 80% 0%, rgba(255, 67, 207, 0.32) 0%, rgba(255, 67, 207, 0) 45%),
+    linear-gradient(160deg, #050b1f 0%, #061836 45%, #020b24 100%);
+  --app-shell-overlay: radial-gradient(90% 90% at 50% 28%, rgba(0, 206, 255, 0.18) 0%, rgba(0, 206, 255, 0) 65%);
+  --app-shell-overlay-opacity: 1;
+
+  --sidebar-background: linear-gradient(185deg, rgba(4, 24, 54, 0.94) 0%, rgba(8, 42, 88, 0.95) 52%, rgba(18, 18, 82, 0.96) 100%);
+  --sidebar-foreground: #d9f8ff;
+  --sidebar-muted: rgba(147, 208, 255, 0.78);
+  --sidebar-border: rgba(0, 214, 255, 0.28);
+  --sidebar-card-bg: linear-gradient(140deg, rgba(9, 38, 87, 0.92), rgba(37, 15, 93, 0.9));
+  --sidebar-card-border: rgba(0, 214, 255, 0.35);
+  --sidebar-card-shadow: 0 28px 60px rgba(0, 0, 0, 0.6);
+  --sidebar-backdrop-blur: 26px;
+
+  --nav-item-border: rgba(0, 214, 255, 0.16);
+  --nav-item-bg: linear-gradient(140deg, rgba(8, 30, 78, 0.8), rgba(6, 22, 58, 0.8));
+  --nav-item-hover-bg: linear-gradient(140deg, rgba(18, 66, 140, 0.88), rgba(11, 39, 96, 0.9));
+  --nav-item-hover-border: rgba(0, 214, 255, 0.45);
+  --nav-item-hover-shadow: 0 18px 40px rgba(0, 214, 255, 0.35);
+  --nav-item-foreground: #9fdcff;
+  --nav-item-description: rgba(133, 197, 255, 0.72);
+  --nav-item-icon: rgba(0, 214, 255, 0.88);
+  --nav-item-active-bg: linear-gradient(150deg, rgba(0, 206, 255, 0.92), rgba(124, 58, 255, 0.95));
+  --nav-item-active-border: rgba(0, 229, 255, 0.9);
+  --nav-item-active-shadow: 0 28px 60px rgba(0, 206, 255, 0.45);
+  --nav-item-active-foreground: #f1fcff;
+  --nav-item-active-icon: #ffffff;
+
+  --card-surface: linear-gradient(145deg, rgba(11, 32, 76, 0.95), rgba(21, 55, 118, 0.9));
+  --card-border-color: rgba(0, 214, 255, 0.32);
+  --card-shadow: 0 30px 70px rgba(0, 0, 0, 0.65);
+  --card-shadow-hover: 0 34px 88px rgba(0, 214, 255, 0.38);
+  --card-backdrop-blur: 14px;
+  --card-hover-translate: -9px;
+
+  --tile-surface: linear-gradient(160deg, rgba(11, 41, 96, 0.92), rgba(28, 16, 83, 0.92));
+  --tile-border: rgba(0, 214, 255, 0.28);
+  --tile-shadow: inset 0 0 0 1px rgba(0, 214, 255, 0.12);
+  --tile-hover-border: rgba(255, 79, 245, 0.6);
+
+  --chip-bg: rgba(10, 180, 255, 0.18);
+  --chip-foreground: #64f6ff;
+
+  --button-primary-bg: linear-gradient(128deg, #02d9ff 0%, #6f4bff 45%, #ff4df5 100%);
+  --button-primary-hover-bg: linear-gradient(128deg, #02bfff 0%, #603dff 45%, #ff3de7 100%);
+  --button-primary-border: rgba(0, 214, 255, 0.58);
+  --button-primary-shadow: 0 0 28px rgba(0, 214, 255, 0.6), 0 18px 48px rgba(0, 0, 0, 0.45);
+  --button-primary-shadow-hover: 0 0 46px rgba(0, 214, 255, 0.75), 0 24px 65px rgba(0, 0, 0, 0.55);
+  --button-primary-foreground: #f2fbff;
+
+  --button-ghost-bg: linear-gradient(140deg, rgba(8, 32, 76, 0.72), rgba(4, 17, 53, 0.8));
+  --button-ghost-border: rgba(0, 214, 255, 0.32);
+  --button-ghost-foreground: #9fdcff;
+  --button-ghost-hover-bg: linear-gradient(140deg, rgba(18, 68, 140, 0.9), rgba(7, 24, 68, 0.9));
+  --button-ghost-shadow: 0 14px 34px rgba(0, 214, 255, 0.3);
+
+  --button-text-shadow: 0 0 12px rgba(0, 214, 255, 0.5);
+
+  --accent-foreground: #04142e;
+  --success-foreground: #03151f;
+  --warning-foreground: #05162e;
+  --danger-foreground: #05152c;
+
+  --main-background: linear-gradient(160deg, rgba(10, 29, 64, 0.78), rgba(8, 18, 52, 0.88));
+  --main-border: rgba(0, 214, 255, 0.22);
+  --main-backdrop-blur: 24px;
+  --main-shadow: inset 0 0 0 1px rgba(0, 214, 255, 0.18);
+
+  --toggle-badge-bg: rgba(0, 214, 255, 0.16);
+  --toggle-badge-foreground: #8ef9ff;
+
+  --stat-gradient-attendance: linear-gradient(135deg, rgba(0, 214, 255, 0.92), rgba(0, 255, 184, 0.85));
+  --stat-gradient-energy: linear-gradient(135deg, rgba(0, 214, 255, 0.92), rgba(132, 56, 255, 0.92));
+  --stat-gradient-points: linear-gradient(135deg, rgba(255, 73, 214, 0.92), rgba(124, 92, 255, 0.9));
+  --highlight-badge-gradient: linear-gradient(130deg, rgba(0, 214, 255, 0.95) 0%, rgba(255, 92, 239, 0.95) 100%);
+  --progress-gradient: linear-gradient(90deg, rgba(0, 214, 255, 0.95) 0%, rgba(124, 58, 255, 0.95) 50%, rgba(255, 92, 239, 0.95) 100%);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--app-shell-background);
+  color: rgb(var(--text));
+  transition: background 0.6s ease, color 0.3s ease;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  background: var(--app-shell-background);
+  color: rgb(var(--text));
+  transition: background 0.6s ease, color 0.3s ease;
+}
+
+.app-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: var(--app-shell-overlay);
+  opacity: var(--app-shell-overlay-opacity);
+  transition: opacity 0.6s ease, background 0.6s ease;
+  z-index: 0;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--sidebar-border);
+  background: var(--sidebar-background);
+  color: var(--sidebar-foreground);
+  padding: 2rem 1.5rem;
+  box-shadow: var(--sidebar-card-shadow);
+  backdrop-filter: blur(var(--sidebar-backdrop-blur));
+  gap: 1.75rem;
+}
+
+.sidebar-brand-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--sidebar-card-bg);
+  border: 1px solid var(--sidebar-card-border);
+  border-radius: 1.5rem;
+  padding: 1rem;
+  box-shadow: var(--sidebar-card-shadow);
+  color: inherit;
+  backdrop-filter: blur(calc(var(--sidebar-backdrop-blur) * 0.6));
+}
+
+.sidebar-brand-card img {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 9999px;
+  border: 1px solid var(--sidebar-border);
+  background: rgba(255, 255, 255, 0.12);
+  object-fit: contain;
+}
+
+.sidebar-brand-card h1 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.sidebar-brand-card p {
+  font-size: 0.75rem;
+  color: var(--sidebar-muted);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.sidebar-info {
+  margin-top: 1.5rem;
+  background: var(--sidebar-card-bg);
+  border: 1px solid var(--sidebar-card-border);
+  border-radius: 1.5rem;
+  padding: 1.15rem 1.3rem;
+  color: var(--sidebar-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  box-shadow: var(--sidebar-card-shadow);
+  backdrop-filter: blur(calc(var(--sidebar-backdrop-blur) * 0.6));
+}
+
+.sidebar-info-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sidebar-foreground);
+}
+
+.sidebar-info-body {
+  margin-top: 0.6rem;
+}
+
+.sidebar-info-meta {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-info-meta a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+
+.sidebar-nav-item {
+  border: 1px solid var(--nav-item-border);
+  border-radius: 1.5rem;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--nav-item-bg);
+  color: var(--nav-item-foreground);
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+.sidebar-nav-item:hover {
+  border-color: var(--nav-item-hover-border);
+  background: var(--nav-item-hover-bg);
+  box-shadow: var(--nav-item-hover-shadow);
+  color: var(--nav-item-foreground);
+}
+
+.sidebar-nav-item[data-active] {
+  border-color: var(--nav-item-active-border);
+  background: var(--nav-item-active-bg);
+  box-shadow: var(--nav-item-active-shadow);
+  color: var(--nav-item-active-foreground);
+}
+
+.sidebar-nav-topline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.sidebar-nav-icon {
+  font-size: 1.4rem;
+  color: var(--nav-item-icon);
+  transition: inherit;
+}
+
+.sidebar-nav-item[data-active] .sidebar-nav-icon {
+  color: var(--nav-item-active-icon);
+}
+
+.sidebar-nav-description {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--nav-item-description);
+  text-transform: uppercase;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.mobile-brand-card {
+  border-radius: 1.5rem;
+  padding: 1rem;
+  background: var(--sidebar-background);
+  color: var(--sidebar-foreground);
+  border: 1px solid var(--sidebar-border);
+  box-shadow: var(--sidebar-card-shadow);
+  backdrop-filter: blur(calc(var(--sidebar-backdrop-blur) * 0.6));
+}
+
+.mobile-nav {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x proximity;
+}
+
+.mobile-nav .sidebar-nav-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: max-content;
+  scroll-snap-align: start;
+}
+
+.mobile-nav .sidebar-nav-description {
+  display: none;
+}
+
+.app-main {
+  position: relative;
+  flex: 1;
+  background: var(--main-background);
+  box-shadow: var(--main-shadow);
+  backdrop-filter: blur(var(--main-backdrop-blur));
+  border-left: 1px solid var(--main-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-tile {
+  background: var(--tile-surface);
+  border: 1px solid var(--tile-border);
+  box-shadow: var(--tile-shadow);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(calc(var(--card-backdrop-blur) * 0.5));
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--tile-hover-border);
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+}
+
+.chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  background: var(--chip-bg);
+  color: var(--chip-foreground);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.ui-card {
+  position: relative;
+  border-radius: var(--card-radius);
+  background: var(--card-surface);
+  border: 1px solid var(--card-border-color);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(var(--card-backdrop-blur));
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.ui-card:hover {
+  transform: translateY(var(--card-hover-translate));
+  box-shadow: var(--card-shadow-hover);
+}
+
+.ui-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--button-radius);
+  border: 1px solid transparent;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  color: inherit;
+  text-shadow: var(--button-text-shadow);
+  cursor: pointer;
+}
+
+.ui-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--primary) / 0.2), 0 0 0 6px rgb(var(--primary) / 0.35);
+}
+
+.ui-button:active {
+  transform: translateY(1px);
+}
+
+.ui-button-primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-foreground);
+  border-color: var(--button-primary-border);
+  box-shadow: var(--button-primary-shadow);
+}
+
+.ui-button-primary:hover {
+  background: var(--button-primary-hover-bg);
+  box-shadow: var(--button-primary-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.ui-button-ghost {
+  background: var(--button-ghost-bg);
+  color: var(--button-ghost-foreground);
+  border-color: var(--button-ghost-border);
+  box-shadow: var(--button-ghost-shadow);
+}
+
+.ui-button-ghost:hover {
+  background: var(--button-ghost-hover-bg);
+  border-color: rgb(var(--primary) / 0.45);
+  transform: translateY(-1px);
+}
+
+.ui-button-accent {
+  background: rgb(var(--accent));
+  color: var(--accent-foreground);
+  border-color: rgb(var(--accent) / 0.5);
+  box-shadow: 0 18px 36px rgb(var(--accent) / 0.32);
+}
+
+.ui-button-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 46px rgb(var(--accent) / 0.42);
+}
+
+.ui-button-success {
+  background: rgb(var(--success));
+  color: var(--success-foreground);
+  border-color: rgb(var(--success) / 0.5);
+  box-shadow: 0 18px 36px rgb(var(--success) / 0.32);
+}
+
+.ui-button-warning {
+  background: rgb(var(--warning));
+  color: var(--warning-foreground);
+  border-color: rgb(var(--warning) / 0.45);
+  box-shadow: 0 18px 36px rgb(var(--warning) / 0.28);
+}
+
+.ui-button-danger {
+  background: rgb(var(--danger));
+  color: var(--danger-foreground);
+  border-color: rgb(var(--danger) / 0.45);
+  box-shadow: 0 18px 36px rgb(var(--danger) / 0.32);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-toggle-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: var(--toggle-badge-bg);
+  color: var(--toggle-badge-foreground);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme='game'] .theme-toggle-icon {
+  box-shadow: 0 0 28px rgba(0, 214, 255, 0.45), 0 14px 28px rgba(0, 0, 0, 0.45);
+}
+
+.theme-toggle-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.theme-toggle-label span:first-child {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(var(--text) / 0.55);
+}
+
+.theme-toggle-label span:last-child {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.app-sidebar .ui-button-ghost {
+  color: var(--sidebar-foreground);
+  border-color: var(--sidebar-border);
+  box-shadow: var(--button-ghost-shadow);
+}
+
+.app-sidebar .ui-button-ghost:hover {
+  border-color: var(--nav-item-hover-border);
+}
+
+.app-sidebar .theme-toggle-icon {
+  color: var(--sidebar-foreground);
+}
+
+.app-sidebar .theme-toggle-label span:first-child {
+  color: var(--nav-item-description);
+}
+
+.app-sidebar .theme-toggle-label span:last-child {
+  color: var(--sidebar-foreground);
+}
+
+.hero-card {
+  --card-surface: rgba(255, 255, 255, 0.82);
+  --card-border-color: rgba(255, 255, 255, 0.55);
+  --card-shadow: 0 24px 60px rgba(148, 163, 184, 0.28);
+}
+
+[data-theme='game'] .hero-card {
+  --card-surface: linear-gradient(150deg, rgba(12, 40, 92, 0.95), rgba(40, 15, 94, 0.9));
+  --card-border-color: rgba(0, 214, 255, 0.38);
+  --card-shadow: 0 34px 85px rgba(0, 0, 0, 0.65);
+}
+
+.stat-card {
+  --card-surface: rgba(255, 255, 255, 0.74);
+  --card-border-color: rgba(148, 163, 184, 0.25);
+}
+
+[data-theme='game'] .stat-card {
+  --card-surface: linear-gradient(155deg, rgba(9, 35, 84, 0.92), rgba(26, 17, 80, 0.9));
+  --card-border-color: rgba(0, 214, 255, 0.28);
+}
+
+[data-theme='game'] .glass-tile:hover {
+  box-shadow: 0 20px 45px rgba(0, 214, 255, 0.22);
+}
+
+.progress-track {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+[data-theme='game'] .progress-track {
+  background: rgba(0, 31, 71, 0.65);
+}
+
+.progress-bar {
+  background: var(--progress-gradient);
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: 0 8px 22px rgba(59, 130, 246, 0.25);
+}
+
+[data-theme='game'] .progress-bar {
+  box-shadow: 0 12px 30px rgba(0, 206, 255, 0.38);
+}

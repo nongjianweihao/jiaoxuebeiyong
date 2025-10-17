@@ -1,7 +1,7 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { BRANDING } from '../config/branding';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavigationItem {
   to: string;
@@ -82,126 +82,105 @@ const navigation: NavigationItem[] = [
     description: '导出备份 · 导入迁移',
     match: (pathname) => pathname.startsWith('/settings/data'),
   },
-
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-
-
-      <aside
-        className="hidden w-72 flex-col border-r border-white/40 bg-gradient-to-b from-blue-600 via-purple-600 to-pink-600 p-6 text-white shadow-xl lg:flex"
-      >
-        <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3">
-          <img
-            src={BRANDING.logoUrl}
-            alt={BRANDING.organization}
-            className="h-12 w-12 rounded-full border border-white/60 bg-white/80 object-contain"
-          />
-          <div className="space-y-0.5">
-            <h1 className="text-xl font-bold">{BRANDING.organization}</h1>
-            <p className="text-xs text-white/80">{BRANDING.tagline}</p>
+    <div className="app-shell flex min-h-screen text-text">
+      <aside className="app-sidebar hidden w-72 lg:flex">
+        <div className="sidebar-brand-card">
+          <img src={BRANDING.logoUrl} alt={BRANDING.organization} />
+          <div>
+            <h1>{BRANDING.organization}</h1>
+            <p>{BRANDING.tagline}</p>
           </div>
         </div>
-        <nav className="mt-8 flex flex-1 flex-col gap-2 text-left text-sm">
 
-
+        <nav className="sidebar-nav">
           {navigation.map((item) => {
             const isActive = item.match ? item.match(pathname) : pathname.startsWith(item.to);
             return (
               <Link
                 key={`${item.label}-${item.to}`}
                 to={item.to}
-                className={`group flex flex-col rounded-2xl px-4 py-3 transition-all hover:bg-white/20 ${
-                  isActive ? 'bg-white/20 shadow-lg shadow-purple-500/30' : 'text-white/90'
-                }`}
+                className="sidebar-nav-item"
+                data-active={isActive ? true : undefined}
               >
-                <span className="flex items-center gap-3 text-base font-semibold">
-                  <span className="text-xl" aria-hidden="true">
+                <span className="sidebar-nav-topline">
+                  <span className="sidebar-nav-icon" aria-hidden="true">
                     {item.icon}
                   </span>
                   {item.label}
                 </span>
-                <span className="mt-1 text-xs text-white/70">{item.description}</span>
+                <span className="sidebar-nav-description">{item.description}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="rounded-2xl bg-white/15 p-4 text-xs text-white/80 backdrop-blur">
-          <p className="font-semibold">AI Mission 提示</p>
-          <p className="mt-1 leading-relaxed">根据勇士表现生成挑战，完成后即可领取能量值与星星奖励。</p>
 
-
-          <div className="mt-4 space-y-1 text-[11px]">
+        <div className="sidebar-info">
+          <p className="sidebar-info-title">AI Mission 提示</p>
+          <p className="sidebar-info-body">根据勇士表现生成挑战，完成后即可领取能量值与星星奖励。</p>
+          <div className="sidebar-info-meta">
             {BRANDING.website && (
               <p>
                 官网：
-                <a
-                  href={BRANDING.website}
-                  className="text-white underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={BRANDING.website} target="_blank" rel="noreferrer">
                   {BRANDING.website.replace(/^https?:\/\//, '')}
                 </a>
               </p>
             )}
             {BRANDING.phone && <p>热线：{BRANDING.phone}</p>}
           </div>
+        </div>
 
-
+        <div className="sidebar-footer">
+          <ThemeToggle />
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto w-full p-6 lg:p-10">
-
-
+      <main className="app-main overflow-y-auto px-4 py-6 lg:px-10">
         <div className="mb-6 grid gap-3 lg:hidden">
-          <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-4 text-white shadow-lg">
+          <div className="mobile-brand-card">
             <div className="flex items-center gap-3">
               <img
                 src={BRANDING.logoUrl}
                 alt={BRANDING.organization}
-                className="h-12 w-12 rounded-full border border-white/60 bg-white/80 object-contain"
+                className="h-12 w-12 rounded-full object-contain"
               />
               <div>
-                <h1 className="text-lg font-bold">{BRANDING.organization}</h1>
-                <p className="text-xs text-white/80">{BRANDING.tagline}</p>
+                <h1 className="text-lg font-semibold">{BRANDING.organization}</h1>
+                <p className="text-xs">{BRANDING.tagline}</p>
               </div>
             </div>
           </div>
-          <nav className="flex snap-x gap-2 overflow-x-auto pb-2">
-
-
+          <nav className="mobile-nav">
             {navigation.map((item) => {
               const isActive = item.match ? item.match(pathname) : pathname.startsWith(item.to);
               return (
                 <Link
-                  key={`${item.label}-${item.to}`}
+                  key={`mobile-${item.label}-${item.to}`}
                   to={item.to}
-                  className={`snap-start rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                      : 'bg-white/80 text-slate-700 shadow'
-                  }`}
+                  className="sidebar-nav-item"
+                  data-active={isActive ? true : undefined}
                 >
-                  <span className="mr-2" aria-hidden="true">
+                  <span className="sidebar-nav-icon" aria-hidden="true">
                     {item.icon}
                   </span>
-                  {item.label}
+                  <span className="font-semibold">{item.label}</span>
                 </Link>
               );
             })}
-
           </nav>
+          <ThemeToggle />
         </div>
 
-        <div className="flex w-full flex-col gap-10">{children}</div>
-
+        <div className="flex w-full flex-col gap-10 pb-10 lg:pb-16">{children}</div>
       </main>
     </div>
   );
 }
+
+export default Layout;

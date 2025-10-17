@@ -140,7 +140,7 @@ const PuzzleQuestPage = lazy(() =>
 
 function PageLoadingFallback() {
   return (
-    <div className="flex h-full min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/60 p-10 text-lg text-slate-500">
+    <div className="flex h-full min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-card bg-surface/80 p-10 text-lg text-mute">
       页面加载中...
     </div>
   );
