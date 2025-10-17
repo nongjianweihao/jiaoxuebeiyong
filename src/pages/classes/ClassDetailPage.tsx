@@ -1838,12 +1838,10 @@ export function ClassDetailPage() {
   const averageStars = starSummaries.length
     ? starSummaries.reduce((total, item) => total + item.stars, 0) / starSummaries.length
     : null;
-  const starLeaders = [...starSummaries]
-    .sort((a, b) => {
-      if (b.stars !== a.stars) return b.stars - a.stars;
-      return a.name.localeCompare(b.name, 'zh-CN');
-    })
-    .slice(0, 3);
+  const starLeaders = [...starSummaries].sort((a, b) => {
+    if (b.stars !== a.stars) return b.stars - a.stars;
+    return a.name.localeCompare(b.name, 'zh-CN');
+  });
   const presentStudentIds = new Set(attendance.filter((item) => item.present).map((item) => item.studentId));
   const energyLeader = students
     .filter((student) => presentStudentIds.has(student.id))
