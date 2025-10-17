@@ -1254,6 +1254,8 @@ export function ClassDetailPage() {
   );
 
 
+
+
   const handleOverrideChange = (studentId: string, consume?: number) => {
     setConsumeOverrides((prev) => {
       const next = { ...prev };
@@ -1270,18 +1272,59 @@ export function ClassDetailPage() {
     if (!pendingStudentId) return;
     const candidate = allStudents.find((student) => student.id === pendingStudentId);
     if (!candidate) return;
+
+    
+
+
     setStudents((prev) => {
       if (prev.some((student) => student.id === candidate.id)) {
         return prev;
       }
       return [...prev, candidate];
     });
+
+    
+
+
     setAttendance((prev) => {
       if (prev.some((item) => item.studentId === candidate.id)) {
         return prev;
       }
       return [...prev, { studentId: candidate.id, present: true }];
     });
+
+    
+
+    setPerformanceDrafts((prev) => {
+      if (prev[candidate.id]) {
+        return prev;
+      }
+      return { ...prev, [candidate.id]: createEmptyPerformanceDraft() };
+    });
+
+    setSession((prev) => {
+      if (!prev || prev.closed) return prev;
+      if (prev.attendance.some((item) => item.studentId === candidate.id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        attendance: [...prev.attendance, { studentId: candidate.id, present: true }],
+      };
+    });
+
+    setPendingFlip((prev) => {
+      if (!prev) return prev;
+      if (prev.participantIds.includes(candidate.id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        participantIds: [...prev.participantIds, candidate.id],
+      };
+    });
+
+
     setStatus(`已添加 ${candidate.name} 加入课堂`);
     setPendingStudentId('');
   }, [allStudents, pendingStudentId]);
