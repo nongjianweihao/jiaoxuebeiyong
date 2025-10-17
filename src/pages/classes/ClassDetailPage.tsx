@@ -293,6 +293,7 @@ export function ClassDetailPage() {
   } | null>(null);
   const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
   const fallbackSessionDateRef = useRef<string>(new Date().toISOString());
+  const sessionStartDateRef = useRef<string | null>(null);
 
   const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const sessionDateLabel = useMemo(() => {
@@ -873,6 +874,7 @@ export function ClassDetailPage() {
   const restoreActiveSession = useCallback(
     (record: SessionRecord, resolvedStudents: Student[]) => {
       fallbackSessionDateRef.current = record.date;
+      sessionStartDateRef.current = record.date;
       setSession(record);
       if (record.attendance?.length) {
         setAttendance(record.attendance);
@@ -1113,6 +1115,7 @@ export function ClassDetailPage() {
           restoreActiveSession(activeSession, resolvedStudents);
         } else {
           setSession(null);
+          sessionStartDateRef.current = null;
           setAttendance([]);
           setSpeedRows([]);
           setFreestyle([]);
@@ -1233,6 +1236,7 @@ export function ClassDetailPage() {
     };
     setSession(newSession);
     fallbackSessionDateRef.current = newSession.date;
+    sessionStartDateRef.current = newSession.date;
     setAttendance(newSession.attendance);
     setSpeedRows([]);
     setPerformanceDrafts(() => {
@@ -1814,6 +1818,33 @@ export function ClassDetailPage() {
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
   const sessionActive = !!(session && !session.closed);
+
+  useEffect(() => {
+    if (!sessionActive) return;
+    setSession((prev) => {
+      if (!prev || prev.closed) return prev;
+      if (!sessionDateOverride) {
+        const originalIso = sessionStartDateRef.current;
+        if (!originalIso || originalIso === prev.date) {
+          return prev;
+        }
+        fallbackSessionDateRef.current = originalIso;
+        return { ...prev, date: originalIso };
+      }
+      const referenceIso = sessionStartDateRef.current ?? prev.date ?? fallbackSessionDateRef.current;
+      const referenceDate = referenceIso ? new Date(referenceIso) : new Date();
+      const overrideDate = buildSessionDateFromOverride(sessionDateOverride, referenceDate);
+      if (!overrideDate) {
+        return prev;
+      }
+      const nextIso = overrideDate.toISOString();
+      if (nextIso === prev.date) {
+        return prev;
+      }
+      fallbackSessionDateRef.current = nextIso;
+      return { ...prev, date: nextIso };
+    });
+  }, [sessionActive, sessionDateOverride]);
   const sessionClosed = !!(session && session.closed);
   const shareHighlights = session?.highlights?.length
     ? session.highlights
