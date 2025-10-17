@@ -397,6 +397,7 @@ export interface SessionRecord {
   closed: boolean;
   lessonConsume?: number;
   consumeOverrides?: Array<{ studentId: ID; consume: number }>;
+  attendanceEnergyAwarded?: boolean;
   highlights?: string[];
   executedBlockIds?: ID[];
 }
