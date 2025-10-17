@@ -19,6 +19,9 @@ export interface ClassShareCardProps {
   averageStars: number | null;
   highlights: string[];
   starLeaders: Array<{ name: string; stars: number; comment?: string }>;
+
+  
+
   coachComment?: string | null;
 }
 
@@ -50,6 +53,9 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
       averageStars,
       highlights,
       starLeaders,
+
+      
+
       coachComment,
     },
     ref,
@@ -61,9 +67,12 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
         : '-';
     const headerTags = (tags ?? []).filter(Boolean).slice(0, 2);
     const highlightItems = (highlights.length ? highlights : ['课堂亮点生成中…']).slice(0, 3);
+
+    
     const starItems = starLeaders.length
       ? starLeaders
       : [{ name: '敬请期待', stars: 0 }];
+
     const trimmedComment = (coachComment ?? '').trim();
     const commentText = useMemo(() => {
       const base = trimmedComment
@@ -111,11 +120,14 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
           </div>
 
           <section className="mt-5 rounded-2xl bg-white/5 p-4 shadow-inner">
+
+            
             <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-200">今日亮点</h4>
             <ul className="mt-2 space-y-2 text-xs leading-relaxed text-slate-100">
               {highlightItems.map((item, index) => (
                 <li key={`${item}-${index}`} className="flex items-start gap-2">
                   <span className="mt-[2px] text-pink-200">★</span>
+
                   <span className="flex-1">{item}</span>
                 </li>
               ))}
@@ -132,23 +144,32 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
                 return (
                   <li key={`${item.name}-${index}`} className="flex items-center justify-between gap-3">
                     <span className="font-semibold text-white">{item.name}</span>
+
+                    
                     <span className="flex items-center gap-1 text-[11px] text-amber-200">
                       <span className="text-base leading-none">{'⭐'.repeat(starCount)}</span>
                       <span className="rounded-full bg-amber-200/10 px-2 py-[2px] text-[10px] text-amber-100">
                         {starLabel}
                       </span>
                     </span>
+
                   </li>
                 );
               })}
             </ul>
           </section>
 
+
+        
+
           <section className="mt-4 rounded-2xl bg-white/5 p-4 shadow-inner">
             <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">教练评语</h4>
             <p className="mt-2 text-sm font-medium text-slate-100">{commentText}</p>
           </section>
         </section>
+
+        
+
       </div>
     );
   },
