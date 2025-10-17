@@ -1200,6 +1200,10 @@ export function ClassDetailPage() {
   };
 
   const startSession = () => {
+    if (sessionActive) {
+      setStatus('本次挑战仍在进行中，请先结束后再开启新的课堂');
+      return;
+    }
     const now = new Date();
     const baseDate = sessionDateOverride
 
@@ -1397,6 +1401,10 @@ export function ClassDetailPage() {
 
   const handleClose = async () => {
     if (!session) return;
+    if (session.closed) {
+      setStatus('本次挑战已同步，请返回上课页面');
+      return;
+    }
 
     const overrides = Object.entries(consumeOverrides)
       .filter(([, consume]) => consume !== undefined)
@@ -1805,9 +1813,8 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
-  const shareHighlights = session?.highlights?.length
-    ? session.highlights
-    : deriveHighlights();
+  const sessionActive = !!(session && !session.closed);
+  const sessionClosed = !!(session && session.closed);
   const focusTags = Array.from(
     new Set(
       Object.values(performanceDrafts).flatMap((draft) =>
@@ -1965,9 +1972,11 @@ export function ClassDetailPage() {
               <button
                 type="button"
                 onClick={startSession}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg transition hover:from-amber-200 hover:via-orange-200 hover:to-pink-200"
+                disabled={sessionActive}
+                title={sessionActive ? '挑战进行中，结束后才能重新开启' : '开启一场新的课堂挑战'}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg transition hover:from-amber-200 hover:via-orange-200 hover:to-pink-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                🚀 开启本次挑战
+                {sessionActive ? '⏳ 挑战进行中' : '🚀 开启本次挑战'}
               </button>
               <ExportPdfButton
                 targetId="class-report"
@@ -1991,7 +2000,9 @@ export function ClassDetailPage() {
         totalCount={studentCount}
         averageStars={averageStars}
         energyLeader={energyLeader}
-        highlights={shareHighlights}
+        highlights={
+          session?.highlights?.length ? session.highlights : deriveHighlights()
+        }
         focusTags={focusTags}
         starLeaders={starLeaders}
         absentNames={absentNames}
@@ -2596,7 +2607,7 @@ export function ClassDetailPage() {
     <EnergyBoard students={students} />
   </div>
 
-      {session ? (
+      {sessionActive ? (
         <div className="grid gap-6 lg:grid-cols-2" id="class-report">
           <section className="space-y-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2807,11 +2818,26 @@ export function ClassDetailPage() {
             <button
               type="button"
               onClick={handleClose}
-              className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+              disabled={!sessionActive}
+              className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
             >
               结束挑战并同步
             </button>
           </section>
+        </div>
+      ) : sessionClosed ? (
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600">
+          <h3 className="text-lg font-semibold text-slate-800">本次挑战已同步完成</h3>
+          <p className="text-sm text-slate-500">
+            课堂数据已保存，若需继续上课请先返回上课页面，再次点击上方按钮开启新的挑战。
+          </p>
+          <button
+            type="button"
+            disabled
+            className="w-full rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-500"
+          >
+            已同步 · 请返回上课页面
+          </button>
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
