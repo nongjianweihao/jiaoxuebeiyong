@@ -165,6 +165,34 @@ function createEmptyPerformanceDraft(): PerformanceDraft {
   };
 }
 
+function parseDateInput(value: string): Date | null {
+  if (!value) return null;
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  const parsed = new Date(year, month - 1, day);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function buildSessionDateFromOverride(override: string, reference: Date): Date | null {
+  const parsed = parseDateInput(override);
+  if (!parsed) return null;
+  return new Date(
+    parsed.getFullYear(),
+    parsed.getMonth(),
+    parsed.getDate(),
+    reference.getHours(),
+    reference.getMinutes(),
+    reference.getSeconds(),
+    reference.getMilliseconds(),
+  );
+}
+
 function cloneDraft(draft: PerformanceDraft): PerformanceDraft {
   return {
     ...draft,
@@ -248,6 +276,8 @@ export function ClassDetailPage() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [assigningPlan, setAssigningPlan] = useState(false);
   const [pendingStudentId, setPendingStudentId] = useState('');
+  const [sessionDateOverride, setSessionDateOverride] = useState('');
+  const sessionDateInputRef = useRef<HTMLInputElement | null>(null);
 
   const [showMissionDetail, setShowMissionDetail] = useState(false);
   const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
@@ -260,6 +290,26 @@ export function ClassDetailPage() {
   } | null>(null);
   const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
   const fallbackSessionDateRef = useRef<string>(new Date().toISOString());
+
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const sessionDateLabel = useMemo(() => {
+    if (!sessionDateOverride) return '选择上课日期';
+    const parsed = parseDateInput(sessionDateOverride);
+    if (!parsed) return '选择上课日期';
+    return `上课日期：${parsed.toLocaleDateString('zh-CN')}`;
+  }, [sessionDateOverride]);
+  const sessionDateNote = sessionDateOverride ? '将以所选日期创建记录' : '未选择时默认为今天';
+  const openSessionDatePicker = useCallback(() => {
+    const node = sessionDateInputRef.current;
+    if (!node) return;
+    const enhancedNode = node as HTMLInputElement & { showPicker?: () => void };
+    if (typeof enhancedNode.showPicker === 'function') {
+      enhancedNode.showPicker();
+      return;
+    }
+    node.focus();
+    node.click();
+  }, []);
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1141,10 +1191,14 @@ export function ClassDetailPage() {
   };
 
   const startSession = () => {
+    const now = new Date();
+    const baseDate = sessionDateOverride
+      ? buildSessionDateFromOverride(sessionDateOverride, now) ?? now
+      : now;
     const newSession: SessionRecord = {
       id: generateId(),
       classId,
-      date: new Date().toISOString(),
+      date: baseDate.toISOString(),
       templateId: classEntity?.templateId,
       cyclePlanId: cyclePlan?.id,
       missionCardIds: selectedSession ? [selectedSession.missionCardId] : undefined,
@@ -1664,10 +1718,12 @@ export function ClassDetailPage() {
       window.alert('请先勾选出勤再结算能量');
       return;
     }
+    const sessionDateIso = session?.date ?? fallbackSessionDateRef.current;
+    const awardDate = sessionDateIso ? new Date(sessionDateIso) : new Date();
     setAwardingAttendance(true);
     let totalEnergy = 0;
     for (const studentId of presentStudentIds) {
-      const { energy } = await AwardEngine.awardAttendance(studentId, classId);
+      const { energy } = await AwardEngine.awardAttendance(studentId, classId, new Date(awardDate));
       totalEnergy += energy;
       await refreshStudentEnergy(studentId);
     }
@@ -1857,6 +1913,33 @@ export function ClassDetailPage() {
                   ✏️ 调整训练营
                 </Link>
               )}
+              <div className="relative">
+                <input
+                  ref={sessionDateInputRef}
+                  type="date"
+                  value={sessionDateOverride}
+                  onChange={(event) => setSessionDateOverride(event.target.value)}
+                  max={todayIso}
+                  className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                />
+                <button
+                  type="button"
+                  onClick={openSessionDatePicker}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
+                  title={sessionDateNote}
+                >
+                  <span>📅 {sessionDateLabel}</span>
+                </button>
+              </div>
+              {sessionDateOverride ? (
+                <button
+                  type="button"
+                  onClick={() => setSessionDateOverride('')}
+                  className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 shadow-sm backdrop-blur transition hover:bg-white/20"
+                >
+                  重置日期
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={startSession}
