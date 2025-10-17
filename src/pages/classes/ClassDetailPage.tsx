@@ -1617,7 +1617,7 @@ export function ClassDetailPage() {
     setConsumeOverrides(overrideMap);
   };
 
-  const deriveHighlights = () => {
+  const deriveHighlights = useCallback(() => {
     const highlights: string[] = [];
     const prMap = speedRows.reduce<Record<string, number>>((map, row) => {
       map[row.studentId] = Math.max(map[row.studentId] ?? 0, row.reps);
@@ -1651,7 +1651,7 @@ export function ClassDetailPage() {
         });
     });
     return highlights.slice(0, 3);
-  };
+  }, [freestyle, performanceDrafts, rankMoveLookup, speedRows, students]);
   const handleSpeedSubmit = (rows: SpeedRow[]) => {
     setSpeedRows((prev) => {
       const map = new Map(
@@ -1814,41 +1814,22 @@ export function ClassDetailPage() {
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
 
-
-  const rawShareHighlights = session?.highlights?.length
-    ? session.highlights
-    : deriveHighlights();
-  const shareHighlights = rawShareHighlights.slice(0, 3);
-  const shareTags = (() => {
-    const tagSet = new Set<string>();
-    (selectedMission?.focusAbilities ?? []).forEach((ability) => {
-      const abilityMeta = qualityLookup[ability];
-      if (abilityMeta?.name) {
-        tagSet.add(abilityMeta.name);
-      }
-    });
-    if (!tagSet.size && activeWeekPlan?.focus) {
-      activeWeekPlan.focus
-        .split(/[、，,\s]+/)
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .forEach((item) => tagSet.add(item));
-    }
-    return Array.from(tagSet).slice(0, 2);
-  })();
-  const sessionNotes = session?.notes ?? [];
-  const shareCoachComment = (() => {
-    const coachNote = sessionNotes.find(
-      (note) => note.studentId === 'coach' || note.studentId === 'coach-summary' || note.tags?.includes('教练'),
-    );
-    if (coachNote?.comments?.trim()) {
-      return coachNote.comments.trim();
-    }
-    const topRated = [...sessionNotes]
-      .filter((note) => note.comments?.trim())
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    return topRated[0]?.comments?.trim() ?? null;
-  })();
+  const sessionActive = !!(session && !session.closed);
+  const sessionClosed = !!(session && session.closed);
+  const focusTags = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          Object.values(performanceDrafts).flatMap((draft) =>
+            (draft?.presetIds ?? [])
+              .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
+              .filter((preset) => preset?.tone === 'focus')
+              .map((preset) => preset!.label),
+          ),
+        ),
+      ).slice(0, 4),
+    [performanceDrafts],
+  );
 
   const starSummaries = students.map((student) => {
     const draft = performanceDrafts[student.id];
@@ -1868,6 +1849,12 @@ export function ClassDetailPage() {
   });
 
   const sessionDateForShare = session?.date ?? fallbackSessionDateRef.current;
+  const shareHighlights = useMemo(() => {
+    if (session?.highlights?.length) {
+      return session.highlights;
+    }
+    return deriveHighlights();
+  }, [deriveHighlights, session?.highlights, session?.id]);
 
   return (
     <div className="space-y-6">
@@ -2815,12 +2802,12 @@ export function ClassDetailPage() {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">今日亮点卡</h2>
             <ul className="space-y-2 text-sm text-slate-600">
-              {deriveHighlights().map((item, index) => (
+              {shareHighlights.map((item, index) => (
                 <li key={index} className="rounded-lg bg-amber-50 px-3 py-2">
                   {item}
                 </li>
               ))}
-              {!deriveHighlights().length && (
+              {!shareHighlights.length && (
                 <li className="text-slate-400">结课后自动生成亮点</li>
               )}
             </ul>
