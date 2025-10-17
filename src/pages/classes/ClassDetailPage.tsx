@@ -248,6 +248,7 @@ export function ClassDetailPage() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [assigningPlan, setAssigningPlan] = useState(false);
   const [pendingStudentId, setPendingStudentId] = useState('');
+  const [sessionDateOverride, setSessionDateOverride] = useState('');
 
   const [showMissionDetail, setShowMissionDetail] = useState(false);
   const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
@@ -260,6 +261,15 @@ export function ClassDetailPage() {
   } | null>(null);
   const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
   const fallbackSessionDateRef = useRef<string>(new Date().toISOString());
+
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const sessionDateLabel = useMemo(() => {
+    if (!sessionDateOverride) return '选择上课日期';
+    const parsed = new Date(`${sessionDateOverride}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return '选择上课日期';
+    return `上课日期：${parsed.toLocaleDateString('zh-CN')}`;
+  }, [sessionDateOverride]);
+  const sessionDateNote = sessionDateOverride ? '将以所选日期创建记录' : '未选择时默认为今天';
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1141,10 +1151,14 @@ export function ClassDetailPage() {
   };
 
   const startSession = () => {
+    const now = new Date();
+    const baseDate = sessionDateOverride
+      ? new Date(`${sessionDateOverride}T${now.toTimeString().slice(0, 8)}`)
+      : now;
     const newSession: SessionRecord = {
       id: generateId(),
       classId,
-      date: new Date().toISOString(),
+      date: baseDate.toISOString(),
       templateId: classEntity?.templateId,
       cyclePlanId: cyclePlan?.id,
       missionCardIds: selectedSession ? [selectedSession.missionCardId] : undefined,
@@ -1857,6 +1871,28 @@ export function ClassDetailPage() {
                   ✏️ 调整训练营
                 </Link>
               )}
+              <label
+                className="relative inline-flex cursor-pointer items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
+                title={sessionDateNote}
+              >
+                <span>📅 {sessionDateLabel}</span>
+                <input
+                  type="date"
+                  value={sessionDateOverride}
+                  onChange={(event) => setSessionDateOverride(event.target.value)}
+                  max={todayIso}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+              </label>
+              {sessionDateOverride ? (
+                <button
+                  type="button"
+                  onClick={() => setSessionDateOverride('')}
+                  className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 shadow-sm backdrop-blur transition hover:bg-white/20"
+                >
+                  重置日期
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={startSession}
