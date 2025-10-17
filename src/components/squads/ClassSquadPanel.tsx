@@ -393,7 +393,7 @@ export function ClassSquadPanel({
       </div>
 
       <div className="rounded-3xl bg-slate-900/90 p-6 text-slate-100 shadow-xl shadow-slate-900/30">
-        <h3 className="text-lg font-semibold">互评 (Kudos)</h3>
+        <h3 className="text-lg font-semibold">互评鼓励</h3>
         <p className="mt-1 text-sm text-slate-400">
           课堂互评让勇士彼此鼓励，每次互评被表扬者将获得 +5 能量。
         </p>

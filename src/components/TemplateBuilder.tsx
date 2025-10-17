@@ -27,6 +27,18 @@ const LOAD_LABELS: Record<string, string> = {
   high: '高负荷',
 };
 
+const ABILITY_LABELS: Record<string, string> = {
+  speed: '速度',
+  power: '力量',
+  coordination: '协调',
+  agility: '灵敏',
+  endurance: '耐力',
+  flexibility: '柔韧',
+  balance: '平衡',
+  accuracy: '精准度',
+  core: '核心',
+};
+
 
 interface SelectedUnitRow {
   key: string;
@@ -176,7 +188,7 @@ export function TemplateBuilder({ value, onChange }: TemplateBuilderProps) {
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="grid gap-1 text-sm">
-            <span className="font-medium text-slate-600">阶段 Stage</span>
+            <span className="font-medium text-slate-600">阶段设置</span>
             <select
               value={draft.stageId ?? ''}
               onChange={(event) => handleStageChange(event.target.value)}
@@ -191,7 +203,7 @@ export function TemplateBuilder({ value, onChange }: TemplateBuilderProps) {
             </select>
           </label>
           <label className="grid gap-1 text-sm">
-            <span className="font-medium text-slate-600">周期 Plan</span>
+            <span className="font-medium text-slate-600">周期计划</span>
             <select
               value={draft.planId ?? ''}
               onChange={(event) => handlePlanChange(event.target.value)}
@@ -233,7 +245,10 @@ export function TemplateBuilder({ value, onChange }: TemplateBuilderProps) {
 
             {activeStage.focusAbilities?.length ? (
               <p className="mt-2 text-xs text-slate-500">
-                重点能力：{activeStage.focusAbilities.map((ability) => ability.toUpperCase()).join(' / ')}
+                重点能力：
+                {activeStage.focusAbilities
+                  .map((ability) => ABILITY_LABELS[ability] ?? ability)
+                  .join('、')}
               </p>
             ) : null}
 
