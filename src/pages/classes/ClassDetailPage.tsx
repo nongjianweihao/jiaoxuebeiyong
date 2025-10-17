@@ -1815,18 +1815,40 @@ export function ClassDetailPage() {
   const missionBlockCount = missionBlockEntries.length;
 
 
-  const sessionActive = !!(session && !session.closed);
-  const sessionClosed = !!(session && session.closed);
-  const focusTags = Array.from(
-    new Set(
-      Object.values(performanceDrafts).flatMap((draft) =>
-        (draft?.presetIds ?? [])
-          .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
-          .filter((preset) => preset?.tone === 'focus')
-          .map((preset) => preset!.label),
-      ),
-    ),
-  ).slice(0, 4);
+  const rawShareHighlights = session?.highlights?.length
+    ? session.highlights
+    : deriveHighlights();
+  const shareHighlights = rawShareHighlights.slice(0, 3);
+  const shareTags = (() => {
+    const tagSet = new Set<string>();
+    (selectedMission?.focusAbilities ?? []).forEach((ability) => {
+      const abilityMeta = qualityLookup[ability];
+      if (abilityMeta?.name) {
+        tagSet.add(abilityMeta.name);
+      }
+    });
+    if (!tagSet.size && activeWeekPlan?.focus) {
+      activeWeekPlan.focus
+        .split(/[、，,\s]+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .forEach((item) => tagSet.add(item));
+    }
+    return Array.from(tagSet).slice(0, 2);
+  })();
+  const sessionNotes = session?.notes ?? [];
+  const shareCoachComment = (() => {
+    const coachNote = sessionNotes.find(
+      (note) => note.studentId === 'coach' || note.studentId === 'coach-summary' || note.tags?.includes('教练'),
+    );
+    if (coachNote?.comments?.trim()) {
+      return coachNote.comments.trim();
+    }
+    const topRated = [...sessionNotes]
+      .filter((note) => note.comments?.trim())
+      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    return topRated[0]?.comments?.trim() ?? null;
+  })();
 
   const starSummaries = students.map((student) => {
     const draft = performanceDrafts[student.id];
@@ -1838,12 +1860,13 @@ export function ClassDetailPage() {
   const averageStars = starSummaries.length
     ? starSummaries.reduce((total, item) => total + item.stars, 0) / starSummaries.length
     : null;
-  const starLeaders = [...starSummaries]
-    .sort((a, b) => {
-      if (b.stars !== a.stars) return b.stars - a.stars;
-      return a.name.localeCompare(b.name, 'zh-CN');
-    })
-    .slice(0, 3);
+
+
+  const starLeaders = [...starSummaries].sort((a, b) => {
+    if (b.stars !== a.stars) return b.stars - a.stars;
+    return a.name.localeCompare(b.name, 'zh-CN');
+  });
+
   const sessionDateForShare = session?.date ?? fallbackSessionDateRef.current;
 
   return (
@@ -1992,14 +2015,9 @@ export function ClassDetailPage() {
         averageStars={averageStars}
 
         
-        energyLeader={energyLeader}
-        highlights={
-          session?.highlights?.length ? session.highlights : deriveHighlights()
-        }
-        focusTags={focusTags}
-
+        highlights={shareHighlights}
         starLeaders={starLeaders}
-        badges={shareBadges}
+
         coachComment={shareCoachComment}
       />
 

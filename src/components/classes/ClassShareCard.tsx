@@ -19,7 +19,9 @@ export interface ClassShareCardProps {
   averageStars: number | null;
   highlights: string[];
   starLeaders: Array<{ name: string; stars: number; comment?: string }>;
-  badges?: string[];
+
+  
+
   coachComment?: string | null;
 }
 
@@ -51,7 +53,9 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
       averageStars,
       highlights,
       starLeaders,
-      badges,
+
+      
+
       coachComment,
     },
     ref,
@@ -63,11 +67,12 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
         : '-';
     const headerTags = (tags ?? []).filter(Boolean).slice(0, 2);
     const highlightItems = (highlights.length ? highlights : ['课堂亮点生成中…']).slice(0, 3);
-    const starItems = (starLeaders.length
+
+    
+    const starItems = starLeaders.length
       ? starLeaders
-      : [{ name: '敬请期待', stars: 0 }]
-    ).slice(0, 3);
-    const badgeItems = (badges ?? []).filter(Boolean).slice(0, 3);
+      : [{ name: '敬请期待', stars: 0 }];
+
     const trimmedComment = (coachComment ?? '').trim();
     const commentText = useMemo(() => {
       const base = trimmedComment
@@ -115,11 +120,14 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
           </div>
 
           <section className="mt-5 rounded-2xl bg-white/5 p-4 shadow-inner">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">今日亮点</h4>
+
+            
+            <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-200">今日亮点</h4>
             <ul className="mt-2 space-y-2 text-xs leading-relaxed text-slate-100">
               {highlightItems.map((item, index) => (
                 <li key={`${item}-${index}`} className="flex items-start gap-2">
-                  <span className="mt-[2px] text-sky-200">✨</span>
+                  <span className="mt-[2px] text-pink-200">★</span>
+
                   <span className="flex-1">{item}</span>
                 </li>
               ))}
@@ -136,28 +144,23 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
                 return (
                   <li key={`${item.name}-${index}`} className="flex items-center justify-between gap-3">
                     <span className="font-semibold text-white">{item.name}</span>
-                    <span className="text-[11px] text-amber-200">{'⭐'.repeat(starCount)} {starLabel}</span>
+
+                    
+                    <span className="flex items-center gap-1 text-[11px] text-amber-200">
+                      <span className="text-base leading-none">{'⭐'.repeat(starCount)}</span>
+                      <span className="rounded-full bg-amber-200/10 px-2 py-[2px] text-[10px] text-amber-100">
+                        {starLabel}
+                      </span>
+                    </span>
+
                   </li>
                 );
               })}
             </ul>
           </section>
 
-          {badgeItems.length ? (
-            <section className="mt-4 rounded-2xl bg-white/5 p-4 shadow-inner">
-              <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-200">今日徽章</h4>
-              <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                {badgeItems.map((badge) => (
-                  <span
-                    key={badge}
-                    className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-400/20 to-fuchsia-400/30 px-3 py-1 font-semibold text-fuchsia-100"
-                  >
-                    🎖 {badge}
-                  </span>
-                ))}
-              </div>
-            </section>
-          ) : null}
+
+        
 
           <section className="mt-4 rounded-2xl bg-white/5 p-4 shadow-inner">
             <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">教练评语</h4>
@@ -165,24 +168,8 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
           </section>
         </section>
 
-        <footer className="flex items-center justify-between gap-3 bg-slate-950/70 px-6 py-4 text-[10px] text-slate-300">
-          <div className="flex items-center gap-2">
-            <img
-              src="https://pic1.imgdb.cn/item/689c291858cb8da5c8205636.png"
-              alt="品牌Logo"
-              className="h-8 w-8 rounded-full border border-white/20 object-contain"
-            />
-            <div>
-              <p className="font-semibold text-white">扫码查看成长曲线</p>
-              <p className="text-[10px] text-slate-400">关注公众号了解更多课程</p>
-            </div>
-          </div>
-          <img
-            src="https://pic1.imgdb.cn/item/689c29ca58cb8da5c8205753.png"
-            alt="课程二维码"
-            className="h-12 w-12 rounded-lg border border-white/10 object-contain"
-          />
-        </footer>
+        
+
       </div>
     );
   },
