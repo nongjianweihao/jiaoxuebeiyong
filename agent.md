@@ -23,10 +23,10 @@ Codex 不仅能写代码，它本身可以“分身”为多个功能角色（Ag
 | 🟑 **DEV_AGENT** | 全栈工程师 | 编写前端 / 后端 / 配置文件 | `/dev` |
 | 🧩 **ARCH_AGENT** | 架构设计师 | 设计文件结构 / 数据库 / 接口规范 | `/arch` |
 | 🦯 **DATA_AGENT** | 数据建模师 | 生成 schema、seed、Supabase 连接 | `/data` |
-| 🧮 **REVIEW_AGENT** | 代码审查员 | 自动 lint / 输入 / test / 优化修复 | `/review` |
+| 🧮 **REVIEW_AGENT** | 代码审查员 | 自动 lint / type / test / 优化修复 | `/review` |
 | 🤮 **QA_AGENT** | 测试工程师 | 执行单测、端到端测试、视觉回归 | `/qa` |
 | 🚀 **DEPLOY_AGENT** | 运维工程师 | 构建、发布、部署上线 | `/deploy` |
-| 📏 **DOC_AGENT** | 技术文档师 | 自动生成 README、API 文档、手册 | `/doc` |
+| 📏 **DOC_AGENT** | 技术文档师 | 自动生成 README、API Docs、手册 | `/doc` |
 | 🧠 **OPTIMIZE_AGENT** | 自我优化器 | 分析代码质量与性能瓶颈并改进 | `/optimize` |
 
 ---
@@ -74,10 +74,10 @@ flowchart TD
 | 1️⃣ 任务规划 | PLAN_AGENT | 拆解目标 → 子任务 → 输出执行清单 | 任务树 / PRD |
 | 2️⃣ 架构设计 | ARCH_AGENT | 设计项目结构 / 数据库 / API | schema / 目录结构 |
 | 3️⃣ 开发实现 | DEV_AGENT | 编写核心功能代码 | 功能模块 |
-| 4️⃣ 自审修复 | REVIEW_AGENT | Lint / 请键入 / Test / Fix | 报告 + patch |
-| 5️⃣ 测试验证 | QA_AGENT | 单测、集成、端到端测试 | test-report。json |
+| 4️⃣ 自审修复 | REVIEW_AGENT | Lint / Type / Test / Fix | 报告 + patch |
+| 5️⃣ 测试验证 | QA_AGENT | 单测、集成、端到端测试 | test-report.json |
 | 6️⃣ 部署上线 | DEPLOY_AGENT | 构建 + 推送 + 发布 | 部署 URL |
-| 7️⃣ 文档生成 | DOC_AGENT | 生成技术文档 | README。md |
+| 7️⃣ 文档生成 | DOC_AGENT | 生成技术文档 | README.md |
 | 8️⃣ 自我优化 | OPTIMIZE_AGENT | 分析代码 / 性能 / 架构改进 | OPTIMIZE_REPORT.md |
 
 ---
@@ -238,4 +238,108 @@ steps:
           command: |
             npm run lint && npm run typecheck && npm run test -- --coverage || echo "⚠️ 自动修复中"
        
+
+
+
+---
+
+## 🚦 `AI-gongzuoliu/Master-Pipeline.yaml`
+```yaml
+name: Master-Pipeline
+description: Codex 全流程调度管线（PLAN → ARCH → DEV → REVIEW → QA → DEPLOY → DOC → OPTIMIZE）
+
+# 可在 /run 时覆盖的输入参数
+inputs:
+  OBJECTIVE: "请用一句话描述项目目标"
+  CONTEXT: "前端 React，后端 Supabase，部署 GitHub Pages"
+  SCOPE: "fullstack"        # 可选：frontend / backend / fullstack / docs
+  QUALITY_LEVEL: "production" # 或 prototype
+  APP_DIR: "app"             # 代码目录（不存在则按需创建）
+  SUPABASE_URL: ""
+  SUPABASE_KEY: ""
+
+steps:
+  - name: 环境准备
+    command: |
+      echo "🔧 初始化环境…"
+      git status || true
+      git pull --rebase origin main || true
+      mkdir -p plans docs logs packages .github/workflows
+      echo "{}" > logs/agent-state.json 2>/dev/null || true
+
+  - name: 需求规划（PLAN_AGENT）
+    command: |
+      echo "🧭 规划: ${{ inputs.OBJECTIVE }}"
+      /run PLAN_AGENT \
+        --OBJECTIVE="${{ inputs.OBJECTIVE }}" \
+        --CONTEXT="${{ inputs.CONTEXT }}" \
+        --SCOPE="${{ inputs.SCOPE }}"
+
+  - name: 架构设计（ARCH_AGENT）
+    command: |
+      echo "🏗️ 架构设计…"
+      /run ARCH_AGENT \
+        --OBJECTIVE="${{ inputs.OBJECTIVE }}" \
+        --CONTEXT="${{ inputs.CONTEXT }}" \
+        --SCOPE="${{ inputs.SCOPE }}"
+
+  - name: 数据与后端（DATA_AGENT，可选 Supabase）
+    command: |
+      if [ -n "${{ inputs.SUPABASE_URL }}" ] && [ -n "${{ inputs.SUPABASE_KEY }}" ]; then
+        echo "🌱 接入 Supabase"
+        /run DATA_AGENT \
+          --OBJECTIVE="${{ inputs.OBJECTIVE }}" \
+          --CONTEXT="${{ inputs.CONTEXT }}" \
+          --SCOPE="backend" \
+          --APP_DIR="${{ inputs.APP_DIR }}" \
+          --SUPABASE_URL="${{ inputs.SUPABASE_URL }}" \
+          --SUPABASE_KEY="${{ inputs.SUPABASE_KEY }}"
+      else
+        echo "🌱 略过 Supabase（未提供 SUPABASE_URL/KEY）"
+      fi
+
+  - name: 开发实现（DEV_AGENT）
+    command: |
+      echo "🧱 开发实现…"
+      /run DEV_AGENT \
+        --OBJECTIVE="${{ inputs.OBJECTIVE }}" \
+        --CONTEXT="${{ inputs.CONTEXT }}" \
+        --SCOPE="${{ inputs.SCOPE }}"
+
+  - name: 自审与修复（REVIEW_AGENT）
+    command: |
+      echo "🔍 自审与修复…"
+      /run REVIEW_AGENT --CONTEXT="${{ inputs.CONTEXT }}"
+
+  - name: 测试验证（QA_AGENT）
+    command: |
+      echo "🧪 执行测试…"
+      /run QA_AGENT --SCOPE="${{ inputs.SCOPE }}"
+
+  - name: 部署上线（DEPLOY_AGENT）
+    command: |
+      echo "🚀 部署… QUALITY=${{ inputs.QUALITY_LEVEL }}"
+      /run DEPLOY_AGENT \
+        --CONTEXT="${{ inputs.CONTEXT }}" \
+        --QUALITY_LEVEL="${{ inputs.QUALITY_LEVEL }}"
+
+  - name: 文档生成（DOC_AGENT）
+    command: |
+      echo "🧾 生成文档…"
+      /run DOC_AGENT \
+        --OBJECTIVE="${{ inputs.OBJECTIVE }}" \
+        --CONTEXT="${{ inputs.CONTEXT }}"
+
+  - name: 自我优化（OPTIMIZE_AGENT）
+    command: |
+      echo "🧠 优化与反思…"
+      /run OPTIMIZE_AGENT --CONTEXT="${{ inputs.CONTEXT }}"
+
+  - name: 写入执行日志
+    command: |
+      echo '{"status":"done","objective":"'"${{ inputs.OBJECTIVE }}"'"}' > logs/agent-state.json
+      echo "✅ 全流程完成"
+```
+
+
 
