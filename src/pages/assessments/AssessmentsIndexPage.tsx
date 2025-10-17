@@ -490,20 +490,20 @@ export function AssessmentsIndexPage() {
         <form onSubmit={handleSaveAssessment} className="mt-4 space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
             <InputField label="测评日期" name="date" type="date" value={assessmentForm.date} onChange={handleFormChange} />
-            <InputField label="身高 (cm)" name="height" value={assessmentForm.height} onChange={handleFormChange} required />
-            <InputField label="体重 (kg)" name="weight" value={assessmentForm.weight} onChange={handleFormChange} required />
-            <InputField label="50米跑 (秒)" name="run50m" value={assessmentForm.run50m} onChange={handleFormChange} />
-            <InputField label="坐位体前屈 (cm)" name="sitAndReach" value={assessmentForm.sitAndReach} onChange={handleFormChange} />
-            <InputField label="立定跳远 (cm)" name="longJump" value={assessmentForm.longJump} onChange={handleFormChange} />
-            <InputField label="仰卧起坐 (次)" name="sitUps" value={assessmentForm.sitUps} onChange={handleFormChange} />
-            <InputField label="引体向上 (次)" name="pullUps" value={assessmentForm.pullUps} onChange={handleFormChange} />
-            <InputField label="俯卧撑 (次)" name="pushUps" value={assessmentForm.pushUps} onChange={handleFormChange} />
-            <InputField label="肺活量 (ml)" name="vitalCapacity" value={assessmentForm.vitalCapacity} onChange={handleFormChange} />
-            <InputField label="3分钟单摇 (次)" name="ropeEndurance" value={assessmentForm.ropeEndurance} onChange={handleFormChange} />
-            <InputField label="30秒单摇 (次)" name="ropeSkipSpeed" value={assessmentForm.ropeSkipSpeed} onChange={handleFormChange} />
-            <InputField label="SR30 极速测试 (次)" name="sr30" value={assessmentForm.sr30} onChange={handleFormChange} />
-            <InputField label="SR60 节奏耐力 (次)" name="sr60" value={assessmentForm.sr60} onChange={handleFormChange} />
-            <InputField label="DU30 双摇 (次)" name="du30" value={assessmentForm.du30} onChange={handleFormChange} />
+            <InputField label="身高（厘米）" name="height" value={assessmentForm.height} onChange={handleFormChange} required />
+            <InputField label="体重（千克）" name="weight" value={assessmentForm.weight} onChange={handleFormChange} required />
+            <InputField label="50米跑（秒）" name="run50m" value={assessmentForm.run50m} onChange={handleFormChange} />
+            <InputField label="坐位体前屈（厘米）" name="sitAndReach" value={assessmentForm.sitAndReach} onChange={handleFormChange} />
+            <InputField label="立定跳远（厘米）" name="longJump" value={assessmentForm.longJump} onChange={handleFormChange} />
+            <InputField label="仰卧起坐（次）" name="sitUps" value={assessmentForm.sitUps} onChange={handleFormChange} />
+            <InputField label="引体向上（次）" name="pullUps" value={assessmentForm.pullUps} onChange={handleFormChange} />
+            <InputField label="俯卧撑（次）" name="pushUps" value={assessmentForm.pushUps} onChange={handleFormChange} />
+            <InputField label="肺活量（毫升）" name="vitalCapacity" value={assessmentForm.vitalCapacity} onChange={handleFormChange} />
+            <InputField label="3分钟单摇（次）" name="ropeEndurance" value={assessmentForm.ropeEndurance} onChange={handleFormChange} />
+            <InputField label="30秒单摇（次）" name="ropeSkipSpeed" value={assessmentForm.ropeSkipSpeed} onChange={handleFormChange} />
+            <InputField label="SR30 极速测试（次）" name="sr30" value={assessmentForm.sr30} onChange={handleFormChange} />
+            <InputField label="SR60 节奏耐力（次）" name="sr60" value={assessmentForm.sr60} onChange={handleFormChange} />
+            <InputField label="DU30 双摇（次）" name="du30" value={assessmentForm.du30} onChange={handleFormChange} />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-600">教练寄语</label>

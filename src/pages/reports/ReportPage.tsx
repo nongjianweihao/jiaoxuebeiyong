@@ -178,7 +178,7 @@ export function ReportPage() {
           <div>
             <p className="text-sm text-slate-700">速度段位</p>
             <p className="text-2xl font-semibold text-brand-600">L{speedRank || student?.currentRank || '-'}</p>
-            <p className="text-xs text-slate-500">30s 单摇 best {bestSingle ? `${bestSingle} 次` : '暂无成绩'}</p>
+            <p className="text-xs text-slate-500">30秒单摇最佳 {bestSingle ? `${bestSingle} 次` : '暂无成绩'}</p>
           </div>
           <div>
             <p className="text-sm text-slate-700">能量与积分</p>

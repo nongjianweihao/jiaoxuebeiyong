@@ -73,7 +73,7 @@ export function GrowthProjectionPanel({ projection }: GrowthProjectionPanelProps
       <div className="relative z-10 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-emerald-500">Growth Projection</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-emerald-500">成长共振图谱</p>
             <h2 className="text-2xl font-semibold text-slate-900">树与勇士双生系统</h2>
           </div>
           <div className="rounded-full border border-emerald-200/60 bg-white/80 px-4 py-2 text-xs font-semibold text-emerald-600 shadow-sm">
