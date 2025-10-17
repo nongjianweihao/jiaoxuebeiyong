@@ -250,7 +250,7 @@ export function GrowthMarketPage() {
       <div className="rounded-3xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 p-8 text-white shadow-xl">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-widest text-white/80">勇士成长激励 · Growth Market</p>
+            <p className="text-sm uppercase tracking-widest text-white/80">勇士成长激励 · 成长市集</p>
             <h1 className="text-3xl font-bold">成长积分兑换系统</h1>
             <p className="max-w-2xl text-sm leading-relaxed text-white/80">
               将课堂出勤、挑战与评测累计的积分、能量转化为真实奖励。激励勇士持续投入，同时让家长看见成长成果。
