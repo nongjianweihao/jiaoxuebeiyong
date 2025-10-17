@@ -14,17 +14,18 @@ interface AssessmentReportModalProps {
 }
 
 export function AssessmentReportModal({ open, onClose, report }: AssessmentReportModalProps) {
-  if (!open || !report) return null;
-  const branding = getBranding();
-  const targetId = `assessment-report-${report.student?.id ?? 'anonymous'}`;
   const freestyleStages = useMemo(() => {
-    if (!report.freestyle.length) return [];
+    if (!report?.freestyle?.length) return [];
     return report.freestyle.map((row) => ({
       rank: row.rank,
       completed: row.mastered >= row.total && row.total > 0,
       percent: row.total ? Math.round((row.mastered / row.total) * 100) : 0,
     }));
-  }, [report.freestyle]);
+  }, [report?.freestyle]);
+
+  if (!open || !report) return null;
+  const branding = getBranding();
+  const targetId = `assessment-report-${report.student?.id ?? 'anonymous'}`;
 
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4">
