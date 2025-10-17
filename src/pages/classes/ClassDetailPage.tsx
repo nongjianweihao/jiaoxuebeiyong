@@ -1617,7 +1617,7 @@ export function ClassDetailPage() {
     setConsumeOverrides(overrideMap);
   };
 
-  const deriveHighlights = useCallback(() => {
+  const deriveHighlights = () => {
     const highlights: string[] = [];
     const prMap = speedRows.reduce<Record<string, number>>((map, row) => {
       map[row.studentId] = Math.max(map[row.studentId] ?? 0, row.reps);
@@ -1651,7 +1651,7 @@ export function ClassDetailPage() {
         });
     });
     return highlights.slice(0, 3);
-  }, [freestyle, performanceDrafts, rankMoveLookup, speedRows, students]);
+  };
   const handleSpeedSubmit = (rows: SpeedRow[]) => {
     setSpeedRows((prev) => {
       const map = new Map(
@@ -1813,24 +1813,21 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
-
   const sessionActive = !!(session && !session.closed);
   const sessionClosed = !!(session && session.closed);
-  const focusTags = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          Object.values(performanceDrafts).flatMap((draft) =>
-            (draft?.presetIds ?? [])
-              .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
-              .filter((preset) => preset?.tone === 'focus')
-              .map((preset) => preset!.label),
-          ),
-        ),
-      ).slice(0, 4),
-    [performanceDrafts],
-  );
-
+  const shareHighlights = session?.highlights?.length
+    ? session.highlights
+    : deriveHighlights();
+  const focusTags = Array.from(
+    new Set(
+      Object.values(performanceDrafts).flatMap((draft) =>
+        (draft?.presetIds ?? [])
+          .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
+          .filter((preset) => preset?.tone === 'focus')
+          .map((preset) => preset!.label),
+      ),
+    ),
+  ).slice(0, 4);
   const starSummaries = students.map((student) => {
     const draft = performanceDrafts[student.id];
     return {
@@ -1841,20 +1838,27 @@ export function ClassDetailPage() {
   const averageStars = starSummaries.length
     ? starSummaries.reduce((total, item) => total + item.stars, 0) / starSummaries.length
     : null;
-
-
-  const starLeaders = [...starSummaries].sort((a, b) => {
-    if (b.stars !== a.stars) return b.stars - a.stars;
-    return a.name.localeCompare(b.name, 'zh-CN');
-  });
-
+  const starLeaders = [...starSummaries]
+    .sort((a, b) => {
+      if (b.stars !== a.stars) return b.stars - a.stars;
+      return a.name.localeCompare(b.name, 'zh-CN');
+    })
+    .slice(0, 3);
+  const presentStudentIds = new Set(attendance.filter((item) => item.present).map((item) => item.studentId));
+  const energyLeader = students
+    .filter((student) => presentStudentIds.has(student.id))
+    .reduce<{ name: string; energy: number } | null>((best, student) => {
+      const energy = student.energy ?? 0;
+      if (!best || energy > best.energy) {
+        return { name: student.name, energy };
+      }
+      return best;
+    }, null);
+  const absentNames = attendance
+    .filter((item) => !item.present)
+    .map((item) => students.find((student) => student.id === item.studentId)?.name)
+    .filter((name): name is string => Boolean(name));
   const sessionDateForShare = session?.date ?? fallbackSessionDateRef.current;
-  const shareHighlights = useMemo(() => {
-    if (session?.highlights?.length) {
-      return session.highlights;
-    }
-    return deriveHighlights();
-  }, [deriveHighlights, session?.highlights, session?.id]);
 
   return (
     <div className="space-y-6">
@@ -1994,18 +1998,15 @@ export function ClassDetailPage() {
         className={classEntity.name}
         coachName={classEntity.coachName}
         missionName={missionName}
-        weekLabel={currentWeekLabel ?? undefined}
         sessionDate={sessionDateForShare}
-        tags={shareTags}
         presentCount={presentCount}
         totalCount={studentCount}
         averageStars={averageStars}
-
-        
+        energyLeader={energyLeader}
         highlights={shareHighlights}
+        focusTags={focusTags}
         starLeaders={starLeaders}
-
-        coachComment={shareCoachComment}
+        absentNames={absentNames}
       />
 
       <section className="rounded-3xl border border-slate-100/80 bg-white/95 p-6 shadow-lg">
@@ -2802,12 +2803,12 @@ export function ClassDetailPage() {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">今日亮点卡</h2>
             <ul className="space-y-2 text-sm text-slate-600">
-              {shareHighlights.map((item, index) => (
+              {deriveHighlights().map((item, index) => (
                 <li key={index} className="rounded-lg bg-amber-50 px-3 py-2">
                   {item}
                 </li>
               ))}
-              {!shareHighlights.length && (
+              {!deriveHighlights().length && (
                 <li className="text-slate-400">结课后自动生成亮点</li>
               )}
             </ul>
