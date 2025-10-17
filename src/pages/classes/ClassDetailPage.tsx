@@ -811,6 +811,53 @@ export function ClassDetailPage() {
     };
   }, [selectedSession, sortedPlanSessions]);
 
+  const restoreActiveSession = useCallback(
+    (record: SessionRecord, resolvedStudents: Student[]) => {
+      fallbackSessionDateRef.current = record.date;
+      setSession(record);
+      if (record.attendance?.length) {
+        setAttendance(record.attendance);
+      } else {
+        setAttendance(
+          resolvedStudents.map((student) => ({ studentId: student.id, present: true })),
+        );
+      }
+      setSpeedRows(
+        (record.speed ?? []).map(({ studentId, window, mode, reps }) => ({
+          studentId,
+          window,
+          mode,
+          reps,
+        })),
+      );
+      setFreestyle(
+        (record.freestyle ?? []).map((item) => ({
+          id: item.id,
+          studentId: item.studentId,
+          moveId: item.moveId,
+          passed: item.passed,
+          note: item.note,
+        })),
+      );
+      const overrideMap: Record<string, number | undefined> = {};
+      record.consumeOverrides?.forEach((item) => {
+        overrideMap[item.studentId] = item.consume;
+      });
+      setConsumeOverrides(overrideMap);
+      const completionMap: Record<string, boolean> = {};
+      record.executedBlockIds?.forEach((id) => {
+        completionMap[id] = true;
+      });
+      setBlockCompletion(completionMap);
+      setAttendanceAwarded(Boolean(record.attendanceEnergyAwarded));
+      setStatus('已恢复上次未结课的课堂进度');
+      setPendingFlip(null);
+      setFlippingCardId(null);
+      setPendingStudentId('');
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!missionBlockEntries.length) {
       setBlockCompletion((prev) => (Object.keys(prev).length ? {} : prev));
@@ -1206,52 +1253,6 @@ export function ClassDetailPage() {
     [attendance, performanceDrafts, students],
   );
 
-  const restoreActiveSession = useCallback(
-    (record: SessionRecord, resolvedStudents: Student[]) => {
-      fallbackSessionDateRef.current = record.date;
-      setSession(record);
-      if (record.attendance?.length) {
-        setAttendance(record.attendance);
-      } else {
-        setAttendance(
-          resolvedStudents.map((student) => ({ studentId: student.id, present: true })),
-        );
-      }
-      setSpeedRows(
-        (record.speed ?? []).map(({ studentId, window, mode, reps }) => ({
-          studentId,
-          window,
-          mode,
-          reps,
-        })),
-      );
-      setFreestyle(
-        (record.freestyle ?? []).map((item) => ({
-          id: item.id,
-          studentId: item.studentId,
-          moveId: item.moveId,
-          passed: item.passed,
-          note: item.note,
-        })),
-      );
-      const overrideMap: Record<string, number | undefined> = {};
-      record.consumeOverrides?.forEach((item) => {
-        overrideMap[item.studentId] = item.consume;
-      });
-      setConsumeOverrides(overrideMap);
-      const completionMap: Record<string, boolean> = {};
-      record.executedBlockIds?.forEach((id) => {
-        completionMap[id] = true;
-      });
-      setBlockCompletion(completionMap);
-      setAttendanceAwarded(Boolean(record.attendanceEnergyAwarded));
-      setStatus('已恢复上次未结课的课堂进度');
-      setPendingFlip(null);
-      setFlippingCardId(null);
-      setPendingStudentId('');
-    },
-    [],
-  );
 
   const handleOverrideChange = (studentId: string, consume?: number) => {
     setConsumeOverrides((prev) => {
