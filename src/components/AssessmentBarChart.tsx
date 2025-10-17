@@ -37,9 +37,9 @@ export function AssessmentBarChart({
               }
               labelFormatter={(label) => `${label}`}
             />
-            <Legend formatter={(value) => (value === 'latest' ? latestLabel : previousLabel)} />
-            <Bar dataKey="latest" name="latest" fill="#ec4899" radius={[6, 6, 0, 0]} maxBarSize={38} />
-            <Bar dataKey="previous" name="previous" fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={38} />
+            <Legend formatter={(_value, entry) => (entry?.dataKey === 'latest' ? latestLabel : previousLabel)} />
+            <Bar dataKey="latest" name={latestLabel} fill="#ec4899" radius={[6, 6, 0, 0]} maxBarSize={38} />
+            <Bar dataKey="previous" name={previousLabel} fill="#6366f1" radius={[6, 6, 0, 0]} maxBarSize={38} />
           </BarChart>
         </ResponsiveContainer>
       </div>

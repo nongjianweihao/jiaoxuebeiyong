@@ -1,0 +1,156 @@
+import { useMemo, useState } from 'react';
+import type { JumpMode, Student, WindowSec } from '../types';
+import { StudentAvatar } from './StudentAvatar';
+
+export interface SpeedRow {
+  studentId: string;
+  window: WindowSec;
+  mode: JumpMode;
+  reps: number;
+}
+
+interface SpeedInputProps {
+  students: Student[];
+  defaultWindow?: WindowSec;
+  onSubmit: (rows: SpeedRow[]) => void;
+  previousRows?: SpeedRow[];
+}
+
+const windows: WindowSec[] = [10, 20, 30, 60];
+const modes: JumpMode[] = ['single', 'double'];
+
+export function SpeedInput({
+  students,
+  defaultWindow = 30,
+  onSubmit,
+  previousRows,
+}: SpeedInputProps) {
+  const [window, setWindow] = useState<WindowSec>(defaultWindow);
+  const [mode, setMode] = useState<JumpMode>('single');
+  const [values, setValues] = useState<Record<string, number>>({});
+
+  const previousMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    previousRows
+      ?.filter((row) => row.window === window && row.mode === mode)
+      .forEach((row) => {
+        map[row.studentId] = row.reps;
+      });
+    return map;
+  }, [previousRows, window, mode]);
+
+  const handleSave = () => {
+    const rows: SpeedRow[] = students
+      .filter((student) => Number.isFinite(values[student.id]))
+      .map((student) => ({
+        studentId: student.id,
+        window,
+        mode,
+        reps: Number(values[student.id] ?? 0),
+      }));
+    onSubmit(rows);
+  };
+
+  const handleCopyPrevious = () => {
+    if (!previousRows?.length) return;
+    setValues(previousMap);
+  };
+
+  const handleClear = () => {
+    setValues({});
+  };
+
+  return (
+    <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-500">计时窗口</span>
+          <div className="flex rounded-full border border-slate-200 bg-slate-50 p-1">
+            {windows.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  window === item ? 'bg-brand-500 text-white' : 'text-slate-600'
+                }`}
+                onClick={() => setWindow(item)}
+              >
+                {item}s
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-slate-500">模式</span>
+          <div className="flex rounded-full border border-slate-200 bg-slate-50 p-1">
+            {modes.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                  mode === item ? 'bg-brand-500 text-white' : 'text-slate-600'
+                }`}
+                onClick={() => setMode(item)}
+              >
+                {item === 'single' ? '单摇' : '双摇'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleSave}
+          className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-600"
+        >
+          保存成绩
+        </button>
+        <button
+          type="button"
+          onClick={handleCopyPrevious}
+          className="rounded-lg border border-brand-300 px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
+          disabled={!previousRows?.length}
+        >
+          复制上次
+        </button>
+        <button
+          type="button"
+          onClick={handleClear}
+          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+        >
+          清空
+        </button>
+      </div>
+      <div className="grid gap-2">
+        {students.map((student) => (
+          <label key={student.id} className="flex items-center justify-between rounded-lg border bg-slate-50 px-4 py-2">
+            <div className="flex items-center gap-3">
+              <StudentAvatar
+                name={student.name}
+                avatarUrl={student.avatarUrl}
+                avatarPresetId={student.avatarPresetId}
+                size="xs"
+                badge={student.currentRank ? `L${student.currentRank}` : undefined}
+              />
+              <span className="text-sm font-medium text-slate-900">{student.name}</span>
+            </div>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              className="w-28 rounded-md border border-slate-200 px-3 py-1 text-right text-sm"
+              value={values[student.id] ?? ''}
+              placeholder={
+                previousMap[student.id] !== undefined
+                  ? `上次 ${previousMap[student.id]}`
+                  : '次数'
+              }
+              onChange={(event) =>
+                setValues((prev) => ({ ...prev, [student.id]: Number(event.target.value) }))
+              }
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}

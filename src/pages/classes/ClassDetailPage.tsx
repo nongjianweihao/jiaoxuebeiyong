@@ -249,7 +249,10 @@ export function ClassDetailPage() {
   const [assigningPlan, setAssigningPlan] = useState(false);
   const [pendingStudentId, setPendingStudentId] = useState('');
   const [sessionDateOverride, setSessionDateOverride] = useState('');
+
+  
   const sessionDateInputRef = useRef<HTMLInputElement | null>(null);
+
 
   const [showMissionDetail, setShowMissionDetail] = useState(false);
   const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
@@ -271,6 +274,8 @@ export function ClassDetailPage() {
     return `上课日期：${parsed.toLocaleDateString('zh-CN')}`;
   }, [sessionDateOverride]);
   const sessionDateNote = sessionDateOverride ? '将以所选日期创建记录' : '未选择时默认为今天';
+
+
   const openSessionDatePicker = useCallback(() => {
     const node = sessionDateInputRef.current;
     if (!node) return;
@@ -282,6 +287,7 @@ export function ClassDetailPage() {
     node.focus();
     node.click();
   }, []);
+
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1883,13 +1889,18 @@ export function ClassDetailPage() {
                   ✏️ 调整训练营
                 </Link>
               )}
+
+              
               <div className="relative">
                 <input
                   ref={sessionDateInputRef}
+
                   type="date"
                   value={sessionDateOverride}
                   onChange={(event) => setSessionDateOverride(event.target.value)}
                   max={todayIso}
+
+                  
                   className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
                 />
                 <button
@@ -1901,6 +1912,7 @@ export function ClassDetailPage() {
                   <span>📅 {sessionDateLabel}</span>
                 </button>
               </div>
+
               {sessionDateOverride ? (
                 <button
                   type="button"
@@ -2698,7 +2710,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              閫熷害鎴愮哗
+              速度成绩
             </h2>
             <SpeedInput
               students={students}
@@ -2716,7 +2728,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              鑺辨牱鎸戞垬
+              花样挑战
             </h2>
             <FreestyleEditor
               students={students}
@@ -2995,7 +3007,7 @@ function FreestyleEditor({
           onClick={handleAdd}
           className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
         >
-          璁板綍
+          记录
         </button>
       </div>
       <div className="space-y-2 text-sm">

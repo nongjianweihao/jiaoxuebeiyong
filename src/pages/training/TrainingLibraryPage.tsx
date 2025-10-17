@@ -55,7 +55,7 @@ const abilityOrder: AbilityKey[] = ['speed', 'power', 'coordination', 'agility',
 const PUZZLE_CATEGORY_META: Record<PuzzleCategory, { label: string; accent: string; description: string }> = {
   poem: { label: '诗词文化', accent: 'from-amber-400 to-orange-500', description: '分句拼读，适合语文拓展与低年级课堂。' },
   motivation: { label: '激励语录', accent: 'from-pink-400 to-rose-500', description: '成长语句逐条解锁，强化坚持和复盘。' },
-  emoji: { label: 'Emoji 暗语', accent: 'from-purple-400 to-fuchsia-500', description: '符号猜词，适合7-12岁调动节奏。' },
+  emoji: { label: '表情暗语', accent: 'from-purple-400 to-fuchsia-500', description: '符号猜词，适合7-12岁调动节奏。' },
   mosaic: { label: '图腾拼片', accent: 'from-sky-400 to-cyan-500', description: '能量碎片点亮图腾，适合团队协作。' },
   story: { label: '情境故事', accent: 'from-indigo-400 to-blue-500', description: '章节剧情推进，营造课堂主线感。' },
   math: { label: '逻辑数锁', accent: 'from-emerald-400 to-teal-500', description: '等式线索与体能练习结合。' },
