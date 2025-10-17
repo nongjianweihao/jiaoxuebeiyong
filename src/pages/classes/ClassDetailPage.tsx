@@ -250,6 +250,10 @@ export function ClassDetailPage() {
   const [pendingStudentId, setPendingStudentId] = useState('');
   const [sessionDateOverride, setSessionDateOverride] = useState('');
 
+  
+  const sessionDateInputRef = useRef<HTMLInputElement | null>(null);
+
+
   const [showMissionDetail, setShowMissionDetail] = useState(false);
   const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
   const [puzzleQuest, setPuzzleQuest] = useState<PuzzleQuestInstance | null>(null);
@@ -270,6 +274,20 @@ export function ClassDetailPage() {
     return `上课日期：${parsed.toLocaleDateString('zh-CN')}`;
   }, [sessionDateOverride]);
   const sessionDateNote = sessionDateOverride ? '将以所选日期创建记录' : '未选择时默认为今天';
+
+
+  const openSessionDatePicker = useCallback(() => {
+    const node = sessionDateInputRef.current;
+    if (!node) return;
+    const enhancedNode = node as HTMLInputElement & { showPicker?: () => void };
+    if (typeof enhancedNode.showPicker === 'function') {
+      enhancedNode.showPicker();
+      return;
+    }
+    node.focus();
+    node.click();
+  }, []);
+
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1871,19 +1889,30 @@ export function ClassDetailPage() {
                   ✏️ 调整训练营
                 </Link>
               )}
-              <label
-                className="relative inline-flex cursor-pointer items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
-                title={sessionDateNote}
-              >
-                <span>📅 {sessionDateLabel}</span>
+
+              
+              <div className="relative">
                 <input
+                  ref={sessionDateInputRef}
+
                   type="date"
                   value={sessionDateOverride}
                   onChange={(event) => setSessionDateOverride(event.target.value)}
                   max={todayIso}
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+
+                  
+                  className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
                 />
-              </label>
+                <button
+                  type="button"
+                  onClick={openSessionDatePicker}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
+                  title={sessionDateNote}
+                >
+                  <span>📅 {sessionDateLabel}</span>
+                </button>
+              </div>
+
               {sessionDateOverride ? (
                 <button
                   type="button"
