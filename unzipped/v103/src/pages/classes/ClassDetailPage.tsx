@@ -2645,7 +2645,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              速度成绩
+              閫熷害鎴愮哗
             </h2>
             <SpeedInput
               students={students}
@@ -2663,7 +2663,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              花样挑战
+              鑺辨牱鎸戞垬
             </h2>
             <FreestyleEditor
               students={students}
@@ -2942,7 +2942,7 @@ function FreestyleEditor({
           onClick={handleAdd}
           className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
         >
-          记录
+          璁板綍
         </button>
       </div>
       <div className="space-y-2 text-sm">

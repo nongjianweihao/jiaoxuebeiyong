@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 
@@ -74,25 +74,25 @@ interface FreestyleDraft {
 }
 
 const INTENSITY_META: Record<IntensityLevel, { label: string; bg: string; text: string }> = {
-  '⚡': { label: '高强度', bg: 'bg-rose-100 text-rose-600', text: 'text-rose-600' },
-  '🌈': { label: '中等强度', bg: 'bg-violet-100 text-violet-600', text: 'text-violet-600' },
-  '💧': { label: '恢复强度', bg: 'bg-sky-100 text-sky-600', text: 'text-sky-600' },
+  '鈿?: { label: '楂樺己搴?, bg: 'bg-rose-100 text-rose-600', text: 'text-rose-600' },
+  '馃寛': { label: '涓瓑寮哄害', bg: 'bg-violet-100 text-violet-600', text: 'text-violet-600' },
+  '馃挧': { label: '鎭㈠寮哄害', bg: 'bg-sky-100 text-sky-600', text: 'text-sky-600' },
 };
 
 const STIMULUS_LABEL: Record<StimulusType, string> = {
-  neural: '神经',
-  strength: '力量',
-  metabolic: '代谢',
-  technical: '技术',
-  psychological: '心理',
+  neural: '绁炵粡',
+  strength: '鍔涢噺',
+  metabolic: '浠ｈ阿',
+  technical: '鎶€鏈?,
+  psychological: '蹇冪悊',
 };
 
 
 const PERIOD_LABEL: Record<Period | 'ALL', string> = {
-  PREP: '准备期',
-  SPEC: '专项准备期',
-  COMP: '比赛期',
-  ALL: '通用阶段',
+  PREP: '鍑嗗鏈?,
+  SPEC: '涓撻」鍑嗗鏈?,
+  COMP: '姣旇禌鏈?,
+  ALL: '閫氱敤闃舵',
 };
 
 function compactUnique<T>(values: Array<T | null | undefined>): T[] {
@@ -376,7 +376,7 @@ export function ClassDetailPage() {
   const handleOpenPuzzleFlip = useCallback(
     (cardId: string) => {
       if (!puzzleQuest) {
-        window.alert('请先开启本次挑战后再翻牌');
+        window.alert('璇峰厛寮€鍚湰娆℃寫鎴樺悗鍐嶇炕鐗?);
         return;
       }
       const defaultParticipants = attendance
@@ -457,12 +457,12 @@ export function ClassDetailPage() {
       const totalEnergy = Array.from(energyMap.values()).reduce((sum, value) => sum + value, 0);
       if (card) {
         setToastMessage(
-          `翻开「${card.title}」${totalEnergy > 0 ? ` +${totalEnergy} 能量` : ''}`,
+          `缈诲紑銆?{card.title}銆?{totalEnergy > 0 ? ` +${totalEnergy} 鑳介噺` : ''}`,
         );
       }
     } catch (error) {
       console.error(error);
-      window.alert('翻牌失败，请稍后再试');
+      window.alert('缈荤墝澶辫触锛岃绋嶅悗鍐嶈瘯');
     } finally {
       setFlippingCardId(null);
       setPendingFlip(null);
@@ -561,15 +561,15 @@ export function ClassDetailPage() {
   const missionChoices = useMemo(() => {
     return sortedPlanSessions.map((session) => {
       const mission = missionLookup[session.missionCardId];
-      const label = `${mission?.name ?? '任务卡'} · 第${session.week}周`;
+      const label = `${mission?.name ?? '浠诲姟鍗?} 路 绗?{session.week}鍛╜;
       return { value: session.id, label, status: session.status };
     });
   }, [sortedPlanSessions, missionLookup]);
 
   const formatDate = (iso: string) => {
-    if (!iso) return '未排期';
+    if (!iso) return '鏈帓鏈?;
     const parsed = new Date(iso);
-    if (Number.isNaN(parsed.getTime())) return '未排期';
+    if (Number.isNaN(parsed.getTime())) return '鏈帓鏈?;
     return parsed.toLocaleDateString();
   };
 
@@ -670,8 +670,8 @@ export function ClassDetailPage() {
         title:
           selectedMission?.name ??
           (weekLabel
-            ? `第${weekLabel}周${focusLabel ? ` · ${focusLabel}` : ''}`
-            : '周期计划主线谜题'),
+            ? `绗?{weekLabel}鍛?{focusLabel ? ` 路 ${focusLabel}` : ''}`
+            : '鍛ㄦ湡璁″垝涓荤嚎璋滈'),
       });
     }
     if (!entries.length) return null;
@@ -704,7 +704,7 @@ export function ClassDetailPage() {
       week: selectedSession.week,
       plannedDate: selectedSession.plannedDate,
       status: selectedSession.status,
-      missionName: selectedMission?.name ?? template?.name ?? '任务卡',
+      missionName: selectedMission?.name ?? template?.name ?? '浠诲姟鍗?,
       totalDuration: totalDuration && totalDuration > 0 ? totalDuration : undefined,
       blocks,
     };
@@ -765,8 +765,8 @@ export function ClassDetailPage() {
       puzzleTemplate.totalEnergy ??
       puzzleTemplate.cards.reduce((sum, card) => sum + (card.reward?.energy ?? 0), 0);
     const bindingCount = puzzleBindings?.blockBindings.length ?? 0;
-    const bindingText = bindingCount ? `关联 ${bindingCount} 个训练环节` : '完成训练环节即可翻牌';
-    return `${bindingText} · 总能量 ${totalEnergy}⚡`;
+    const bindingText = bindingCount ? `鍏宠仈 ${bindingCount} 涓缁冪幆鑺俙 : '瀹屾垚璁粌鐜妭鍗冲彲缈荤墝';
+    return `${bindingText} 路 鎬昏兘閲?${totalEnergy}鈿;
   }, [puzzleTemplate, puzzleBindings]);
 
   const puzzleAssignments = useMemo(() => {
@@ -850,7 +850,7 @@ export function ClassDetailPage() {
       });
       setBlockCompletion(completionMap);
       setAttendanceAwarded(Boolean(record.attendanceEnergyAwarded));
-      setStatus('已恢复上次未结课的课堂进度');
+      setStatus('宸叉仮澶嶄笂娆℃湭缁撹鐨勮鍫傝繘搴?);
       setPendingFlip(null);
       setFlippingCardId(null);
       setPendingStudentId('');
@@ -911,7 +911,7 @@ export function ClassDetailPage() {
         setPuzzleQuest(quest);
         if (puzzleBindings.hasMixedTemplates) {
           console.warn(
-            '检测到多个主线谜题模板被绑定到同一课节，默认使用第一个模板:',
+            '妫€娴嬪埌澶氫釜涓荤嚎璋滈妯℃澘琚粦瀹氬埌鍚屼竴璇捐妭锛岄粯璁や娇鐢ㄧ涓€涓ā鏉?',
             puzzleBindings.templateId,
           );
         }
@@ -945,7 +945,7 @@ export function ClassDetailPage() {
             setTemplate(null);
             setCyclePlan(null);
             setSelectedSessionId(null);
-            setLoadError('未找到该训练营，可能已被移除。');
+            setLoadError('鏈壘鍒拌璁粌钀ワ紝鍙兘宸茶绉婚櫎銆?);
           }
           return;
         }
@@ -1066,9 +1066,9 @@ export function ClassDetailPage() {
           setPendingStudentId('');
         }
       } catch (error) {
-        console.error('加载训练营详情失败', error);
+        console.error('鍔犺浇璁粌钀ヨ鎯呭け璐?, error);
         if (!disposed) {
-          setLoadError('加载训练营数据失败，请稍后再试');
+          setLoadError('鍔犺浇璁粌钀ユ暟鎹け璐ワ紝璇风◢鍚庡啀璇?);
           setClassEntity(null);
           setStudents([]);
           setTemplate(null);
@@ -1134,7 +1134,7 @@ export function ClassDetailPage() {
       });
       setCyclePlan(plan);
       setSelectedSessionId(plan.sessions[0]?.id ?? null);
-      setStatus('已生成新的周期计划');
+      setStatus('宸茬敓鎴愭柊鐨勫懆鏈熻鍒?);
     } finally {
       setAssigningPlan(false);
     }
@@ -1179,7 +1179,7 @@ export function ClassDetailPage() {
     });
     setBlockCompletion(completionMap);
     setConsumeOverrides({});
-    setStatus('本次挑战已开启，可随时离开页面继续');
+    setStatus('鏈鎸戞垬宸插紑鍚紝鍙殢鏃剁寮€椤甸潰缁х画');
     setAttendanceAwarded(false);
     setPendingFlip(null);
     setFlippingCardId(null);
@@ -1232,12 +1232,12 @@ export function ClassDetailPage() {
         const dimensionSummary = dimensionScores
           .map((item) => {
             const meta = PERFORMANCE_DIMENSIONS.find((dimension) => dimension.id === item.dimension);
-            return `${meta?.label ?? item.dimension}${item.score}分`;
+            return `${meta?.label ?? item.dimension}${item.score}鍒哷;
           })
-          .join('｜');
+          .join('锝?);
         const commentParts = [dimensionSummary];
-        if (highlightLabels.length) commentParts.push(`亮点：${highlightLabels.join('、')}`);
-        if (focusLabels.length) commentParts.push(`关注：${focusLabels.join('、')}`);
+        if (highlightLabels.length) commentParts.push(`浜偣锛?{highlightLabels.join('銆?)}`);
+        if (focusLabels.length) commentParts.push(`鍏虫敞锛?{focusLabels.join('銆?)}`);
         if (entry.comment) commentParts.push(entry.comment);
 
         notes.push({
@@ -1325,7 +1325,7 @@ export function ClassDetailPage() {
     });
 
 
-    setStatus(`已添加 ${candidate.name} 加入课堂`);
+    setStatus(`宸叉坊鍔?${candidate.name} 鍔犲叆璇惧爞`);
     setPendingStudentId('');
   }, [allStudents, pendingStudentId]);
 
@@ -1425,7 +1425,7 @@ export function ClassDetailPage() {
 
     record.attendance.forEach((entry) => {
       if (entry.present) {
-        pushEvent(entry.studentId, 'attendance', getPointValue('attendance'), '到课');
+        pushEvent(entry.studentId, 'attendance', getPointValue('attendance'), '鍒拌');
       }
     });
 
@@ -1441,8 +1441,8 @@ export function ClassDetailPage() {
         if (currentBest > prevBest) {
           const reason =
             prevBest > 0
-              ? `30s单摇最佳 ${prevBest} -> ${currentBest}`
-              : `30s单摇达到 ${currentBest}`;
+              ? `30s鍗曟憞鏈€浣?${prevBest} -> ${currentBest}`
+              : `30s鍗曟憞杈惧埌 ${currentBest}`;
           pushEvent(student.id, 'pr', getPointValue('pr'), reason);
         }
 
@@ -1464,7 +1464,7 @@ export function ClassDetailPage() {
       .forEach((item) => {
         const meta = rankMoveLookup[item.moveId];
         const reward = getFreestyleReward(meta?.rank ?? 1);
-        const reason = meta ? `通过花样 ${meta.name}` : '通过花样挑战';
+        const reason = meta ? `閫氳繃鑺辨牱 ${meta.name}` : '閫氳繃鑺辨牱鎸戞垬';
         pushEvent(item.studentId, 'freestyle_pass', reward.points, reason);
 
         if (meta && reward.energy > 0) {
@@ -1496,11 +1496,11 @@ export function ClassDetailPage() {
         .filter((preset) => preset?.tone === 'highlight')
         .map((preset) => {
           const meta = PERFORMANCE_DIMENSIONS.find((dimension) => dimension.id === preset!.dimension);
-          const prefix = meta ? `${meta.label}·` : '';
+          const prefix = meta ? `${meta.label}路` : '';
           return `${prefix}${preset!.label}`;
         });
       if (highlightReasons.length) {
-        const reason = highlightReasons.join('、');
+        const reason = highlightReasons.join('銆?);
         pushEvent(entry.studentId, 'excellent', getPointValue('excellent'), reason);
       }
     });
@@ -1526,7 +1526,7 @@ export function ClassDetailPage() {
       });
       return map;
     });
-    setStatus('本次挑战已同步到成长册');
+    setStatus('鏈鎸戞垬宸插悓姝ュ埌鎴愰暱鍐?);
 
     setPreviousSpeedRecords(record.speed);
 
@@ -1552,7 +1552,7 @@ export function ClassDetailPage() {
     Object.entries(prMap).forEach(([studentId, reps]) => {
       const student = students.find((item) => item.id === studentId);
       if (student) {
-        highlights.push(`${student.name} 30s单摇刷新到 ${reps} 次`);
+        highlights.push(`${student.name} 30s鍗曟憞鍒锋柊鍒?${reps} 娆);
       }
     });
     freestyle
@@ -1561,7 +1561,7 @@ export function ClassDetailPage() {
         const student = students.find((stu) => stu.id === item.studentId);
         const move = rankMoveLookup[item.moveId];
         if (student && move) {
-          highlights.push(`${student.name} 通过花样 ${move.name}`);
+          highlights.push(`${student.name} 閫氳繃鑺辨牱 ${move.name}`);
         }
       });
     Object.entries(performanceDrafts).forEach(([studentId, draft]) => {
@@ -1572,7 +1572,7 @@ export function ClassDetailPage() {
         .filter((preset) => preset?.tone === 'highlight')
         .forEach((preset) => {
           const meta = PERFORMANCE_DIMENSIONS.find((dimension) => dimension.id === preset!.dimension);
-          const label = meta ? `${meta.label}·${preset!.label}` : preset!.label;
+          const label = meta ? `${meta.label}路${preset!.label}` : preset!.label;
           highlights.push(`${student.name} ${label}`);
         });
     });
@@ -1633,7 +1633,7 @@ export function ClassDetailPage() {
       try {
         await sessionsRepo.upsert(record);
       } catch (error) {
-        console.error('保存课堂进度失败', error);
+        console.error('淇濆瓨璇惧爞杩涘害澶辫触', error);
       }
     })();
   }, [
@@ -1661,7 +1661,7 @@ export function ClassDetailPage() {
       .filter((item) => item.present)
       .map((item) => item.studentId);
     if (!presentStudentIds.length) {
-      window.alert('请先勾选出勤再结算能量');
+      window.alert('璇峰厛鍕鹃€夊嚭鍕ゅ啀缁撶畻鑳介噺');
       return;
     }
     setAwardingAttendance(true);
@@ -1673,7 +1673,7 @@ export function ClassDetailPage() {
     }
     setAwardingAttendance(false);
     setAttendanceAwarded(true);
-    setToastMessage(`签到完成 +${totalEnergy} 能量`);
+    setToastMessage(`绛惧埌瀹屾垚 +${totalEnergy} 鑳介噺`);
   };
 
   const handleReload = () => {
@@ -1683,7 +1683,7 @@ export function ClassDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-[360px] items-center justify-center rounded-3xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-500 shadow">
-        正在加载训练营数据…
+        姝ｅ湪鍔犺浇璁粌钀ユ暟鎹€?
       </div>
     );
   }
@@ -1699,7 +1699,7 @@ export function ClassDetailPage() {
           onClick={handleReload}
           className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-600"
         >
-          重新加载训练营数据
+          閲嶆柊鍔犺浇璁粌钀ユ暟鎹?
         </button>
       </div>
     );
@@ -1709,14 +1709,14 @@ export function ClassDetailPage() {
     return (
       <div className="space-y-4">
         <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-500 shadow">
-          未找到该训练营，可能已被删除或尚未初始化。
+          鏈壘鍒拌璁粌钀ワ紝鍙兘宸茶鍒犻櫎鎴栧皻鏈垵濮嬪寲銆?
         </div>
         <button
           type="button"
           onClick={handleReload}
           className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-600"
         >
-          刷新列表
+          鍒锋柊鍒楄〃
         </button>
       </div>
     );
@@ -1726,16 +1726,16 @@ export function ClassDetailPage() {
   const presentCount = attendance.filter((item) => item.present).length;
   const totalEnergy = students.reduce((sum, student) => sum + (student.energy ?? 0), 0);
   const currentWeekLabel = selectedSession
-    ? `第${selectedSession.week}周`
+    ? `绗?{selectedSession.week}鍛╜
     : cyclePlan
-      ? `第${cyclePlan.currentWeek}周`
+      ? `绗?{cyclePlan.currentWeek}鍛╜
       : null;
   const nextSessionLabel = selectedSession?.plannedDate
     ? formatDate(selectedSession.plannedDate)
     : cyclePlan
-      ? '等待排期'
-      : '尚未生成课表';
-  const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
+      ? '绛夊緟鎺掓湡'
+      : '灏氭湭鐢熸垚璇捐〃';
+  const missionName = selectedMission?.name ?? template?.name ?? '娆箰浠诲姟鍗?;
   const missionBlockCount = missionBlockEntries.length;
   const shareHighlights = session?.highlights?.length
     ? session.highlights
@@ -1790,7 +1790,7 @@ export function ClassDetailPage() {
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
-              <span>勇士课堂</span>
+              <span>鍕囧＋璇惧爞</span>
               {currentWeekLabel ? (
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">
                   {currentWeekLabel}
@@ -1798,52 +1798,52 @@ export function ClassDetailPage() {
               ) : null}
             </div>
             <h1 className="text-2xl font-black drop-shadow-sm md:text-3xl">
-              {classEntity?.name ?? '训练营作战台'}
+              {classEntity?.name ?? '璁粌钀ヤ綔鎴樺彴'}
             </h1>
             <p className="max-w-xl text-xs text-white/80 md:text-sm">
-              主教练：{classEntity?.coachName ?? '未设置'} · 训练时间：
-              {classEntity?.schedule ?? '未设置'}
+              涓绘暀缁冿細{classEntity?.coachName ?? '鏈缃?} 路 璁粌鏃堕棿锛?
+              {classEntity?.schedule ?? '鏈缃?}
             </p>
             {cyclePlan?.goal ? (
               <p className="max-w-xl text-xs text-white/80 md:text-sm">
-                🌟 {cyclePlan.goal}
+                馃専 {cyclePlan.goal}
               </p>
             ) : null}
             {status ? (
               <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white shadow-sm backdrop-blur">
-                <span className="text-lg">🎉</span>
+                <span className="text-lg">馃帀</span>
                 <span>{status}</span>
               </div>
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
-                  <span>今日勇士</span>
-                  <span className="text-lg">🧑‍🚀</span>
+                  <span>浠婃棩鍕囧＋</span>
+                  <span className="text-lg">馃鈥嶐煔€</span>
                 </div>
                 <p className="mt-2 text-xl font-black md:text-2xl">
                   {presentCount}
                   <span className="ml-1 text-base font-semibold text-white/70">/{studentCount}</span>
                 </p>
-                <p className="mt-1 text-xs text-white/70">已到场人数</p>
+                <p className="mt-1 text-xs text-white/70">宸插埌鍦轰汉鏁?/p>
               </div>
               <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
-                  <span>今日任务</span>
-                  <span className="text-lg">🪐</span>
+                  <span>浠婃棩浠诲姟</span>
+                  <span className="text-lg">馃獝</span>
                 </div>
                 <p className="mt-2 text-base font-semibold leading-snug md:text-lg">{missionName}</p>
                 <p className="mt-1 text-xs text-white/70">
-                  {cyclePlan ? `第${cyclePlan.currentWeek}周目标` : '等待选择任务'}
+                  {cyclePlan ? `绗?{cyclePlan.currentWeek}鍛ㄧ洰鏍嘸 : '绛夊緟閫夋嫨浠诲姟'}
                 </p>
               </div>
               <div className="rounded-2xl bg-white/15 p-4 shadow-sm backdrop-blur">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/70">
-                  <span>能量池</span>
-                  <span className="text-lg">⚡</span>
+                  <span>鑳介噺姹?/span>
+                  <span className="text-lg">鈿?/span>
                 </div>
                 <p className="mt-2 text-xl font-black md:text-2xl">{totalEnergy}</p>
-                <p className="mt-1 text-xs text-white/70">勇士已累计的能量值</p>
+                <p className="mt-1 text-xs text-white/70">鍕囧＋宸茬疮璁＄殑鑳介噺鍊?/p>
               </div>
             </div>
           </div>
@@ -1854,7 +1854,7 @@ export function ClassDetailPage() {
                   to={`/classes/${classEntity.id}/edit`}
                   className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/25"
                 >
-                  ✏️ 调整训练营
+                  鉁忥笍 璋冩暣璁粌钀?
                 </Link>
               )}
               <button
@@ -1862,7 +1862,7 @@ export function ClassDetailPage() {
                 onClick={startSession}
                 className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg transition hover:from-amber-200 hover:via-orange-200 hover:to-pink-200"
               >
-                🚀 开启本次挑战
+                馃殌 寮€鍚湰娆℃寫鎴?
               </button>
               <ExportPdfButton
                 targetId="class-report"
@@ -1871,7 +1871,7 @@ export function ClassDetailPage() {
               />
             </div>
             <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 shadow-sm backdrop-blur">
-              📅 下次集结：{nextSessionLabel} · 训练环节 {missionBlockCount} 个
+              馃搮 涓嬫闆嗙粨锛歿nextSessionLabel} 路 璁粌鐜妭 {missionBlockCount} 涓?
             </div>
           </div>
         </div>
@@ -1900,9 +1900,9 @@ export function ClassDetailPage() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-600">
-              <span>当前周期</span>
+              <span>褰撳墠鍛ㄦ湡</span>
               <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-fuchsia-600">
-                {cyclePlan.durationWeeks} 周
+                {cyclePlan.durationWeeks} 鍛?
               </span>
             </div>
             <h2 className="text-xl font-black text-slate-900 md:text-2xl">{cyclePlan.cycleName}</h2>
@@ -1918,7 +1918,7 @@ export function ClassDetailPage() {
                     className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200"
                     style={{ color: quality?.color ?? '#475569', borderColor: quality?.color ? `${quality.color}33` : undefined }}
                   >
-                    <span>{quality?.icon ?? '🏋️'}</span>
+                    <span>{quality?.icon ?? '馃弸锔?}</span>
                     <span>{quality?.name ?? ability.toUpperCase()}</span>
                   </span>
                 );
@@ -1927,38 +1927,38 @@ export function ClassDetailPage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[240px]">
             <div className="rounded-2xl bg-sky-50 p-3 text-sky-700 shadow-sm md:p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">计划周数</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">璁″垝鍛ㄦ暟</p>
               <p className="mt-2 text-xl font-black md:text-2xl">{cyclePlan.durationWeeks}</p>
               <p className="mt-1 text-xs text-sky-500">{cyclePlan.cycleName}</p>
             </div>
             <div className="rounded-2xl bg-amber-50 p-3 text-amber-700 shadow-sm md:p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">当前进度</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">褰撳墠杩涘害</p>
               <p className="mt-2 text-xl font-black md:text-2xl">
-                {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
+                {selectedSession ? `绗?{selectedSession.week}鍛╜ : `绗?{cyclePlan.currentWeek}鍛╜}
               </p>
               <p className="mt-1 text-xs text-amber-500">{nextSessionLabel}</p>
             </div>
             <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700 shadow-sm md:p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">任务卡</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">浠诲姟鍗?/p>
               <p className="mt-2 text-xl font-black md:text-2xl">{missionChoices.length}</p>
-              <p className="mt-1 text-xs text-emerald-500">活跃环节 {missionBlockCount} 个</p>
+              <p className="mt-1 text-xs text-emerald-500">娲昏穬鐜妭 {missionBlockCount} 涓?/p>
             </div>
           </div>
         </div>
         <div className="rounded-2xl bg-gradient-to-br from-white via-indigo-50 to-sky-50 p-5 shadow-lg ring-1 ring-indigo-100">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">当前周次</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">褰撳墠鍛ㄦ</p>
               <p className="text-base font-bold text-indigo-700 md:text-lg">
-                {selectedSession ? `第${selectedSession.week}周` : `第${cyclePlan.currentWeek}周`}
+                {selectedSession ? `绗?{selectedSession.week}鍛╜ : `绗?{cyclePlan.currentWeek}鍛╜}
               </p>
-              <p className="text-xs text-indigo-400 md:text-sm">计划日期：{selectedSession ? formatDate(selectedSession.plannedDate) : '未排期'}</p>
+              <p className="text-xs text-indigo-400 md:text-sm">璁″垝鏃ユ湡锛歿selectedSession ? formatDate(selectedSession.plannedDate) : '鏈帓鏈?}</p>
             </div>
             <div className="space-y-2 text-left sm:text-right">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-500">今日任务卡</p>
-              <p className="text-base font-bold text-pink-600 md:text-lg">{selectedMission?.name ?? '请选择任务卡'}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-pink-500">浠婃棩浠诲姟鍗?/p>
+              <p className="text-base font-bold text-pink-600 md:text-lg">{selectedMission?.name ?? '璇烽€夋嫨浠诲姟鍗?}</p>
               {selectedMission?.durationMin ? (
-                <p className="text-xs text-pink-400 md:text-sm">建议时长 {selectedMission.durationMin} 分钟</p>
+                <p className="text-xs text-pink-400 md:text-sm">寤鸿鏃堕暱 {selectedMission.durationMin} 鍒嗛挓</p>
               ) : null}
             </div>
           </div>
@@ -1971,27 +1971,27 @@ export function ClassDetailPage() {
                   className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-indigo-600 shadow-sm ring-1 ring-indigo-100"
                   style={{ color: quality?.color ?? '#475569', borderColor: quality?.color ? `${quality.color}33` : undefined }}
                 >
-                  <span>{quality?.icon ?? '🏋️'}</span>
+                  <span>{quality?.icon ?? '馃弸锔?}</span>
                   <span>{quality?.name ?? ability.toUpperCase()}</span>
                 </span>
               );
             })}
             {!selectedMission && (
-              <span className="text-xs text-indigo-400">选择任务卡后可查看主攻素质</span>
+              <span className="text-xs text-indigo-400">閫夋嫨浠诲姟鍗″悗鍙煡鐪嬩富鏀荤礌璐?/span>
             )}
           </div>
           <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500 md:text-sm">
-            <span>切换本节任务</span>
+            <span>鍒囨崲鏈妭浠诲姟</span>
             <select
               value={selectedSessionId ?? ''}
               onChange={(event) => setSelectedSessionId(event.target.value || null)}
               className="mt-2 w-full rounded-2xl border-none bg-white/90 px-4 py-2 text-base font-semibold text-indigo-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-300"
             >
-              <option value="">请选择任务卡</option>
+              <option value="">璇烽€夋嫨浠诲姟鍗?/option>
               {missionChoices.map((choice, index) => (
                 <option key={`${choice.value}-${index}`} value={choice.value}>
                   {choice.label}
-                  {choice.status === 'completed' ? ' · 已完成' : ''}
+                  {choice.status === 'completed' ? ' 路 宸插畬鎴? : ''}
                 </option>
               ))}
             </select>
@@ -2005,21 +2005,21 @@ export function ClassDetailPage() {
             />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-            <span>周期进度 {Math.round((cyclePlan.progress ?? 0) * 100)}%</span>
+            <span>鍛ㄦ湡杩涘害 {Math.round((cyclePlan.progress ?? 0) * 100)}%</span>
             <button
               type="button"
               onClick={() => setShowMissionDetail((prev) => !prev)}
               className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-purple-300 hover:text-purple-600"
             >
-              {showMissionDetail ? '收起任务卡详情' : '查看任务卡详情'}
+              {showMissionDetail ? '鏀惰捣浠诲姟鍗¤鎯? : '鏌ョ湅浠诲姟鍗¤鎯?}
             </button>
           </div>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 lg:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-xl font-bold text-slate-900">本节课训练安排</h3>
-              <p className="mt-1 text-sm text-slate-500">聚焦当前课节的热身、速度、爆发力与游戏内容，滑动切换不同环节。</p>
+              <h3 className="text-xl font-bold text-slate-900">鏈妭璇捐缁冨畨鎺?/h3>
+              <p className="mt-1 text-sm text-slate-500">鑱氱劍褰撳墠璇捐妭鐨勭儹韬€侀€熷害銆佺垎鍙戝姏涓庢父鎴忓唴瀹癸紝婊戝姩鍒囨崲涓嶅悓鐜妭銆?/p>
             </div>
             {selectedSession ? (
               <div className="flex items-center gap-2 text-base">
@@ -2029,7 +2029,7 @@ export function ClassDetailPage() {
                   disabled={!previousSession}
                   className="rounded-full border border-slate-200 px-4 py-1.5 font-semibold text-slate-500 transition hover:border-purple-300 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  上一节
+                  涓婁竴鑺?
                 </button>
                 <button
                   type="button"
@@ -2037,7 +2037,7 @@ export function ClassDetailPage() {
                   disabled={!nextSession}
                   className="rounded-full border border-slate-200 px-4 py-1.5 font-semibold text-slate-500 transition hover:border-purple-300 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  下一节
+                  涓嬩竴鑺?
                 </button>
               </div>
             ) : null}
@@ -2048,12 +2048,12 @@ export function ClassDetailPage() {
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   {template?.resolvedStage ? (
                     <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-600">
-                      阶段：{template.resolvedStage.name}
+                      闃舵锛歿template.resolvedStage.name}
                     </span>
                   ) : null}
                   {template?.resolvedPlan ? (
                     <span className="rounded-full bg-indigo-50 px-3 py-1 font-semibold text-indigo-600">
-                      周期：{template.resolvedPlan.name} · {template.resolvedPlan.durationWeeks} 周
+                      鍛ㄦ湡锛歿template.resolvedPlan.name} 路 {template.resolvedPlan.durationWeeks} 鍛?
                     </span>
                   ) : null}
                 </div>
@@ -2080,7 +2080,7 @@ export function ClassDetailPage() {
                                 {index + 1}. {unit.name}
                               </div>
                               {unit.focus ? (
-                                <p className="mt-1 text-xs text-slate-500">目标：{unit.focus}</p>
+                                <p className="mt-1 text-xs text-slate-500">鐩爣锛歿unit.focus}</p>
                               ) : null}
                               {unit.tags?.length ? (
                                 <div className="mt-2 flex flex-wrap gap-1 text-[11px] text-slate-400">
@@ -2095,7 +2095,7 @@ export function ClassDetailPage() {
                             <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600">
                               {unit.period ? (
                                 <span className="rounded-full bg-white px-3 py-1 text-slate-600">
-                                  周期：{PERIOD_LABEL[unit.period]}
+                                  鍛ㄦ湡锛歿PERIOD_LABEL[unit.period]}
                                 </span>
                               ) : null}
                               {stimuli.map((stimulus) => (
@@ -2103,7 +2103,7 @@ export function ClassDetailPage() {
                                   key={`${unit.id}-stimulus-${stimulus}`}
                                   className="rounded-full bg-amber-50 px-3 py-1 text-amber-600"
                                 >
-                                  刺激：{STIMULUS_LABEL[stimulus]}
+                                  鍒烘縺锛歿STIMULUS_LABEL[stimulus]}
                                 </span>
                               ))}
                               {intensityLevels.map((level) => (
@@ -2111,12 +2111,12 @@ export function ClassDetailPage() {
                                   key={`${unit.id}-intensity-${level}`}
                                   className={`rounded-full px-3 py-1 ${INTENSITY_META[level].bg}`}
                                 >
-                                  强度：{INTENSITY_META[level].label}
+                                  寮哄害锛歿INTENSITY_META[level].label}
                                 </span>
                               ))}
                               {estimatedDuration ? (
                                 <span className="rounded-full bg-slate-200/70 px-3 py-1 text-slate-700">
-                                  预计 {estimatedDuration} 分钟
+                                  棰勮 {estimatedDuration} 鍒嗛挓
                                 </span>
                               ) : null}
                             </div>
@@ -2127,7 +2127,7 @@ export function ClassDetailPage() {
                           {blockList.length ? (
                             <details className="mt-3 rounded-lg border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
                               <summary className="cursor-pointer select-none font-semibold text-slate-700">
-                                查看 {blockList.length} 个环节拆解
+                                鏌ョ湅 {blockList.length} 涓幆鑺傛媶瑙?
                               </summary>
                               <div className="mt-2 space-y-2">
                                 {blockList.map((block) => (
@@ -2135,12 +2135,12 @@ export function ClassDetailPage() {
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                       <span className="font-semibold text-slate-700">{block.title}</span>
                                       <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                                        {block.durationMin ? <span>{block.durationMin} 分钟</span> : null}
-                                        {block.period ? <span>阶段：{PERIOD_LABEL[block.period]}</span> : null}
-                                        {block.stimulus ? <span>刺激：{STIMULUS_LABEL[block.stimulus]}</span> : null}
+                                        {block.durationMin ? <span>{block.durationMin} 鍒嗛挓</span> : null}
+                                        {block.period ? <span>闃舵锛歿PERIOD_LABEL[block.period]}</span> : null}
+                                        {block.stimulus ? <span>鍒烘縺锛歿STIMULUS_LABEL[block.stimulus]}</span> : null}
                                         {block.intensity ? (
                                           <span className={INTENSITY_META[block.intensity].text}>
-                                            强度：{INTENSITY_META[block.intensity].label}
+                                            寮哄害锛歿INTENSITY_META[block.intensity].label}
                                           </span>
                                         ) : null}
                                       </div>
@@ -2160,10 +2160,10 @@ export function ClassDetailPage() {
                 ) : null}
               <div className="flex flex-wrap items-center gap-3 text-base text-slate-600 sm:text-lg">
                 <span className="rounded-full bg-slate-100 px-4 py-1.5 font-semibold text-slate-700">
-                  第{currentSessionPlan.week}周
+                  绗瑊currentSessionPlan.week}鍛?
                 </span>
                 <span className="rounded-full bg-slate-100 px-4 py-1.5">
-                  计划日期：{formatDate(currentSessionPlan.plannedDate)}
+                  璁″垝鏃ユ湡锛歿formatDate(currentSessionPlan.plannedDate)}
                 </span>
                 <span
                   className={`rounded-full px-4 py-1.5 font-semibold ${
@@ -2172,18 +2172,18 @@ export function ClassDetailPage() {
                       : 'bg-sky-100 text-sky-600'
                   }`}
                 >
-                  {currentSessionPlan.status === 'completed' ? '已完成' : '待执行'}
+                  {currentSessionPlan.status === 'completed' ? '宸插畬鎴? : '寰呮墽琛?}
                 </span>
                 {currentSessionPlan.totalDuration ? (
                   <span className="rounded-full bg-slate-100 px-4 py-1.5">
-                    总时长约 {currentSessionPlan.totalDuration} 分钟
+                    鎬绘椂闀跨害 {currentSessionPlan.totalDuration} 鍒嗛挓
                   </span>
                 ) : null}
               </div>
               <div>
                 <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-slate-500 md:text-lg">训练环节</h4>
-                  <span className="text-xs text-slate-400 md:text-sm">向左 / 向右滑动切换</span>
+                  <h4 className="text-base font-semibold text-slate-500 md:text-lg">璁粌鐜妭</h4>
+                  <span className="text-xs text-slate-400 md:text-sm">鍚戝乏 / 鍚戝彸婊戝姩鍒囨崲</span>
                 </div>
                 <div className="mt-3 overflow-x-auto pb-2">
                   <div className="flex gap-3 pb-1">
@@ -2209,10 +2209,10 @@ export function ClassDetailPage() {
                             <div className="space-y-1">
                               <p className="text-xl font-semibold">{block.title}</p>
                               <div className="flex flex-wrap items-center gap-2 text-sm">
-                                {block.duration ? <span>时长 {block.duration} 分钟</span> : null}
+                                {block.duration ? <span>鏃堕暱 {block.duration} 鍒嗛挓</span> : null}
                                 {stimulusLabel ? (
                                   <span className="rounded-full bg-white/70 px-2 py-0.5 text-sm font-semibold">
-                                    {stimulusLabel} 刺激
+                                    {stimulusLabel} 鍒烘縺
                                   </span>
                                 ) : null}
                                 {intensityMeta ? (
@@ -2236,10 +2236,10 @@ export function ClassDetailPage() {
                       <p className="text-base font-semibold text-purple-500 md:text-lg">{currentSessionPlan.missionName}</p>
                       <h4 className="mt-1 text-3xl font-bold text-slate-900">{activeBlock.title}</h4>
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-base text-slate-600">
-                        {activeBlock.duration ? <span>建议 {activeBlock.duration} 分钟</span> : null}
+                        {activeBlock.duration ? <span>寤鸿 {activeBlock.duration} 鍒嗛挓</span> : null}
                         {activeStimulusLabel ? (
                           <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-600">
-                            {activeStimulusLabel} 刺激
+                            {activeStimulusLabel} 鍒烘縺
                           </span>
                         ) : null}
                         {activeIntensityMeta ? (
@@ -2253,21 +2253,21 @@ export function ClassDetailPage() {
                   <div className={`mt-6 grid grid-cols-1 gap-6 ${activeBlockColumnsClass}`}>
                     {activeBlock.drills.length ? (
                       <div className="space-y-3">
-                        <p className="text-xl font-semibold text-slate-700">训练动作</p>
+                        <p className="text-xl font-semibold text-slate-700">璁粌鍔ㄤ綔</p>
                         <ul className="space-y-4 text-lg text-slate-700">
                           {activeBlock.drills.map((drill) => (
                             <li key={drill.id} className="rounded-2xl bg-white/80 p-4 shadow-sm">
                               <p className="text-2xl font-bold text-slate-900">
                                 {drill.name}
                                 <span className="ml-3 text-base font-medium text-slate-500">
-                                  {drill.durationMin} 分钟 · {INTENSITY_META[drill.intensity]?.label}
+                                  {drill.durationMin} 鍒嗛挓 路 {INTENSITY_META[drill.intensity]?.label}
                                 </span>
                               </p>
                               {drill.coachTips ? (
-                                <p className="mt-3 text-base text-purple-600">教练提示：{drill.coachTips}</p>
+                                <p className="mt-3 text-base text-purple-600">鏁欑粌鎻愮ず锛歿drill.coachTips}</p>
                               ) : null}
                               {drill.equipment?.length ? (
-                                <p className="mt-3 text-base text-slate-500">器材：{drill.equipment.join('、')}</p>
+                                <p className="mt-3 text-base text-slate-500">鍣ㄦ潗锛歿drill.equipment.join('銆?)}</p>
                               ) : null}
                             </li>
                           ))}
@@ -2276,24 +2276,24 @@ export function ClassDetailPage() {
                     ) : null}
                     {activeBlock.games.length ? (
                       <div className="space-y-3">
-                        <p className="text-xl font-semibold text-slate-700">游戏 / 对抗</p>
+                        <p className="text-xl font-semibold text-slate-700">娓告垙 / 瀵规姉</p>
                         <ul className="space-y-4 text-lg text-slate-700">
                           {activeBlock.games.map((game) => (
                             <li key={game.id} className="rounded-2xl bg-white/80 p-4 shadow-sm">
                               <p className="text-2xl font-bold text-slate-900">
                                 {game.name}
                                 <span className="ml-3 text-base font-medium text-slate-500">
-                                  {game.durationMin} 分钟 · {game.groupSize}
+                                  {game.durationMin} 鍒嗛挓 路 {game.groupSize}
                                 </span>
                               </p>
                               {game.goal ? (
-                                <p className="mt-3 text-base text-slate-600">目标：{game.goal}</p>
+                                <p className="mt-3 text-base text-slate-600">鐩爣锛歿game.goal}</p>
                               ) : null}
                               {game.rules ? (
-                                <p className="mt-3 text-base text-slate-600">玩法：{game.rules}</p>
+                                <p className="mt-3 text-base text-slate-600">鐜╂硶锛歿game.rules}</p>
                               ) : null}
                               {game.coachTips ? (
-                                <p className="mt-3 text-base text-purple-600">教练提示：{game.coachTips}</p>
+                                <p className="mt-3 text-base text-purple-600">鏁欑粌鎻愮ず锛歿game.coachTips}</p>
                               ) : null}
                             </li>
                           ))}
@@ -2303,19 +2303,19 @@ export function ClassDetailPage() {
                   </div>
                   {!activeBlock.drills.length && !activeBlock.games.length ? (
                     <div className="mt-4 rounded-2xl border border-dashed border-purple-200 bg-white/80 p-6 text-center text-base text-slate-500">
-                      当前环节尚未配置训练内容。
+                      褰撳墠鐜妭灏氭湭閰嶇疆璁粌鍐呭銆?
                     </div>
                   ) : null}
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-base text-slate-500">
-                  请选择上方环节查看详细训练内容。
+                  璇烽€夋嫨涓婃柟鐜妭鏌ョ湅璇︾粏璁粌鍐呭銆?
                 </div>
               )}
             </div>
           ) : (
             <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-base text-slate-500">
-              请选择任务卡后查看本节课训练安排。
+              璇烽€夋嫨浠诲姟鍗″悗鏌ョ湅鏈妭璇捐缁冨畨鎺掋€?
             </div>
           )}
         </div>
@@ -2323,12 +2323,12 @@ export function ClassDetailPage() {
     ) : (
       <form onSubmit={handleAssignPlan} className="space-y-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-slate-900">创建班级周期计划</h2>
-          <p className="text-sm text-slate-500">选择一套周期模板并设置开始日期，系统将自动生成任务卡课表与进度管理。</p>
+          <h2 className="text-lg font-semibold text-slate-900">鍒涘缓鐝骇鍛ㄦ湡璁″垝</h2>
+          <p className="text-sm text-slate-500">閫夋嫨涓€濂楀懆鏈熸ā鏉垮苟璁剧疆寮€濮嬫棩鏈燂紝绯荤粺灏嗚嚜鍔ㄧ敓鎴愪换鍔″崱璇捐〃涓庤繘搴︾鐞嗐€?/p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm">
-            <span className="text-slate-600">选择模板</span>
+            <span className="text-slate-600">閫夋嫨妯℃澘</span>
             <select
               value={selectedTemplateId}
               onChange={(event) => setSelectedTemplateId(event.target.value)}
@@ -2336,13 +2336,13 @@ export function ClassDetailPage() {
             >
               {cycleTemplates.map((templateOption) => (
                 <option key={templateOption.id} value={templateOption.id}>
-                  {templateOption.name} · {templateOption.durationWeeks}周
+                  {templateOption.name} 路 {templateOption.durationWeeks}鍛?
                 </option>
               ))}
             </select>
           </label>
           <label className="space-y-2 text-sm">
-            <span className="text-slate-600">开始日期</span>
+            <span className="text-slate-600">寮€濮嬫棩鏈?/span>
             <input
               type="date"
               value={planStartDate}
@@ -2365,7 +2365,7 @@ export function ClassDetailPage() {
               >
                 <p className="text-sm font-semibold text-slate-800">{templateOption.name}</p>
                 <p className="mt-1 text-xs text-slate-500">{templateOption.goal}</p>
-                <p className="mt-2 text-xs text-slate-400">周期 {templateOption.durationWeeks} 周</p>
+                <p className="mt-2 text-xs text-slate-400">鍛ㄦ湡 {templateOption.durationWeeks} 鍛?/p>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {(Array.isArray(templateOption.focusAbilities) ? templateOption.focusAbilities : []).map((ability) => {
                     const quality = qualityLookup[ability];
@@ -2375,7 +2375,7 @@ export function ClassDetailPage() {
                         className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
                         style={{ borderColor: quality?.color ?? '#cbd5f5', color: quality?.color ?? '#475569' }}
                       >
-                        {quality?.icon ?? '🏋️'} {quality?.name ?? ability.toUpperCase()}
+                        {quality?.icon ?? '馃弸锔?} {quality?.name ?? ability.toUpperCase()}
                       </span>
                     );
                   })}
@@ -2390,7 +2390,7 @@ export function ClassDetailPage() {
             disabled={assigningPlan || !selectedTemplateId}
             className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-2 text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {assigningPlan ? '生成中...' : '生成周期课表'}
+            {assigningPlan ? '鐢熸垚涓?..' : '鐢熸垚鍛ㄦ湡璇捐〃'}
           </button>
         </div>
       </form>
@@ -2408,20 +2408,20 @@ export function ClassDetailPage() {
             <PuzzleGrid
               cards={puzzleCards}
               loading={puzzleLoading}
-              title={puzzleTemplate?.name ?? '课堂主线谜题'}
+              title={puzzleTemplate?.name ?? '璇惧爞涓荤嚎璋滈'}
               subtitle={puzzleSubtitle}
               onFlip={handleOpenPuzzleFlip}
             />
             {puzzleAssignments.length ? (
               <section className="rounded-2xl border border-dashed border-purple-200 bg-purple-50/70 p-4 text-xs text-purple-700">
-                <h3 className="text-sm font-semibold text-purple-700">翻牌指引</h3>
+                <h3 className="text-sm font-semibold text-purple-700">缈荤墝鎸囧紩</h3>
                 <ul className="mt-2 space-y-1">
                   {puzzleAssignments.map((assignment) => (
                     <li key={assignment.key} className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-purple-800">{assignment.title}</span>
-                      <span className="text-purple-400">→</span>
+                      <span className="text-purple-400">鈫?/span>
                       {assignment.allCards ? (
-                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs">默认顺序翻牌</span>
+                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs">榛樿椤哄簭缈荤墝</span>
                       ) : assignment.cards.length ? (
                         assignment.cards.map((card) => (
                           <span
@@ -2432,7 +2432,7 @@ export function ClassDetailPage() {
                           </span>
                         ))
                       ) : (
-                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs">按顺序翻牌</span>
+                        <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs">鎸夐『搴忕炕鐗?/span>
                       )}
                     </li>
                   ))}
@@ -2441,18 +2441,18 @@ export function ClassDetailPage() {
             ) : null}
             {puzzleBindings.hasMixedTemplates ? (
               <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-600">
-                当前课节绑定了多个谜题模板，系统默认使用 {puzzleBindings.templateId}。
+                褰撳墠璇捐妭缁戝畾浜嗗涓皽棰樻ā鏉匡紝绯荤粺榛樿浣跨敤 {puzzleBindings.templateId}銆?
               </div>
             ) : null}
           </div>
         ) : (
           <section className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-6 text-sm text-slate-500">
-            当前课节未绑定主线谜题，可在课程模板或任务卡中选择谜题后重新开启挑战。
+            褰撳墠璇捐妭鏈粦瀹氫富绾胯皽棰橈紝鍙湪璇剧▼妯℃澘鎴栦换鍔″崱涓€夋嫨璋滈鍚庨噸鏂板紑鍚寫鎴樸€?
           </section>
         )
       ) : (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-6 text-sm text-slate-500">
-          点击「开启本次挑战」后即可解锁主线谜题翻牌面板。
+          鐐瑰嚮銆屽紑鍚湰娆℃寫鎴樸€嶅悗鍗冲彲瑙ｉ攣涓荤嚎璋滈缈荤墝闈㈡澘銆?
         </section>
       )}
 
@@ -2461,30 +2461,30 @@ export function ClassDetailPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-800">
-                任务卡详情 · {selectedMission?.name ?? template?.name ?? '未配置'}
+                浠诲姟鍗¤鎯?路 {selectedMission?.name ?? template?.name ?? '鏈厤缃?}
               </h2>
               <p className="text-xs text-slate-500">
                 {selectedMission
-                  ? `阶段：${selectedMission.phase} · 总时长 ${selectedMission.durationMin} 分钟`
+                  ? `闃舵锛?{selectedMission.phase} 路 鎬绘椂闀?${selectedMission.durationMin} 鍒嗛挓`
                   : template
-                  ? `周期：${template.period} · 建议周数：${template.weeks ?? '—'}`
-                  : '暂无任务卡结构'}
+                  ? `鍛ㄦ湡锛?{template.period} 路 寤鸿鍛ㄦ暟锛?{template.weeks ?? '鈥?}`
+                  : '鏆傛棤浠诲姟鍗＄粨鏋?}
               </p>
             </div>
           </div>
           {missionBlockEntries.length ? (
             <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
-              详细的训练环节已在上方“本节课训练安排”中呈现，此处无需重复显示。
+              璇︾粏鐨勮缁冪幆鑺傚凡鍦ㄤ笂鏂光€滄湰鑺傝璁粌瀹夋帓鈥濅腑鍛堢幇锛屾澶勬棤闇€閲嶅鏄剧ず銆?
             </p>
           ) : (
             <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-400">
-              当前任务卡暂无结构信息
+              褰撳墠浠诲姟鍗℃殏鏃犵粨鏋勪俊鎭?
             </div>
           )}
         </section>
       ) : (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-6 text-sm text-slate-500">
-          点击「查看任务卡详情」后，可展开任务卡结构并执行评星结算。
+          鐐瑰嚮銆屾煡鐪嬩换鍔″崱璇︽儏銆嶅悗锛屽彲灞曞紑浠诲姟鍗＄粨鏋勫苟鎵ц璇勬槦缁撶畻銆?
         </section>
       )}
     </div>
@@ -2496,14 +2496,14 @@ export function ClassDetailPage() {
           <section className="space-y-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">出勤 · 星级 · 课堂表现</h2>
+                <h2 className="text-lg font-semibold text-slate-800">鍑哄嫟 路 鏄熺骇 路 璇惧爞琛ㄧ幇</h2>
                 <p className="text-xs text-slate-500">
-                  签到、评星与点评集中处理，自动沉淀到勇士档案与成长雷达。
+                  绛惧埌銆佽瘎鏄熶笌鐐硅瘎闆嗕腑澶勭悊锛岃嚜鍔ㄦ矇娣€鍒板媷澹。妗堜笌鎴愰暱闆疯揪銆?
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <label className="flex items-center gap-1">
-                  <span>标准课时</span>
+                  <span>鏍囧噯璇炬椂</span>
                   <input
                     type="number"
                     min={0}
@@ -2528,7 +2528,7 @@ export function ClassDetailPage() {
                   disabled={awardingAttendance || attendanceAwarded}
                   className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {attendanceAwarded ? '已结算能量' : awardingAttendance ? '结算中…' : '签到能量结算'}
+                  {attendanceAwarded ? '宸茬粨绠楄兘閲? : awardingAttendance ? '缁撶畻涓€? : '绛惧埌鑳介噺缁撶畻'}
                 </button>
               </div>
             </div>
@@ -2538,17 +2538,17 @@ export function ClassDetailPage() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <label className="flex-1 text-xs font-semibold text-slate-500">
                       <span className="block text-[11px] uppercase tracking-[0.3em] text-slate-400">
-                        添加临时学员
+                        娣诲姞涓存椂瀛﹀憳
                       </span>
                       <select
                         value={pendingStudentId}
                         onChange={(event) => setPendingStudentId(event.target.value)}
                         className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none"
                       >
-                        <option value="">选择勇士加入课堂</option>
+                        <option value="">閫夋嫨鍕囧＋鍔犲叆璇惧爞</option>
                         {availableStudentsToAdd.map((student) => (
                           <option key={student.id} value={student.id}>
-                            {student.name} · 段位 L{student.currentRank ?? '-'}
+                            {student.name} 路 娈典綅 L{student.currentRank ?? '-'}
                           </option>
                         ))}
                       </select>
@@ -2559,16 +2559,16 @@ export function ClassDetailPage() {
                       disabled={!pendingStudentId || !availableStudentsToAdd.length}
                       className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      添加到课堂
+                      娣诲姞鍒拌鍫?
                     </button>
                   </div>
                   {availableStudentsToAdd.length ? (
                     <p className="mt-2 text-[11px] text-slate-400">
-                      临时添加的勇士仅参与本次课堂，不会改变训练营常规名单。
+                      涓存椂娣诲姞鐨勫媷澹粎鍙備笌鏈璇惧爞锛屼笉浼氭敼鍙樿缁冭惀甯歌鍚嶅崟銆?
                     </p>
                   ) : (
                     <p className="mt-2 text-[11px] text-slate-400">
-                      所有勇士均已在课堂中，可在成长册中创建新学员后再加入。
+                      鎵€鏈夊媷澹潎宸插湪璇惧爞涓紝鍙湪鎴愰暱鍐屼腑鍒涘缓鏂板鍛樺悗鍐嶅姞鍏ャ€?
                     </p>
                   )}
                 </div>
@@ -2583,7 +2583,7 @@ export function ClassDetailPage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">勇士名单</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">鍕囧＋鍚嶅崟</p>
                   <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
                     {students.map((student) => {
                       const draft = performanceDrafts[student.id] ?? createEmptyPerformanceDraft();
@@ -2610,7 +2610,7 @@ export function ClassDetailPage() {
                             <div>
                               <p className="font-semibold">{student.name}</p>
                               <p className="text-xs text-slate-400">
-                                {draft.stars} 星 · {draft.presetIds.length} 条点评
+                                {draft.stars} 鏄?路 {draft.presetIds.length} 鏉＄偣璇?
                               </p>
                             </div>
                           </div>
@@ -2636,7 +2636,7 @@ export function ClassDetailPage() {
                   />
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-400">
-                    请选择勇士，快速完成星级与多维点评。
+                    璇烽€夋嫨鍕囧＋锛屽揩閫熷畬鎴愭槦绾т笌澶氱淮鐐硅瘎銆?
                   </div>
                 )}
               </div>
@@ -2645,7 +2645,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              速度成绩
+              闁喎瀹抽幋鎰摋
             </h2>
             <SpeedInput
               students={students}
@@ -2663,7 +2663,7 @@ export function ClassDetailPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800">
-              花样挑战
+              閼鸿鲸鐗遍幐鎴炲灛
             </h2>
             <FreestyleEditor
               students={students}
@@ -2684,7 +2684,7 @@ export function ClassDetailPage() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800">今日亮点卡</h2>
+            <h2 className="text-lg font-semibold text-slate-800">浠婃棩浜偣鍗?/h2>
             <ul className="space-y-2 text-sm text-slate-600">
               {deriveHighlights().map((item, index) => (
                 <li key={index} className="rounded-lg bg-amber-50 px-3 py-2">
@@ -2692,25 +2692,25 @@ export function ClassDetailPage() {
                 </li>
               ))}
               {!deriveHighlights().length && (
-                <li className="text-slate-400">结课后自动生成亮点</li>
+                <li className="text-slate-400">缁撹鍚庤嚜鍔ㄧ敓鎴愪寒鐐?/li>
               )}
             </ul>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800">同步与导出</h2>
+            <h2 className="text-lg font-semibold text-slate-800">鍚屾涓庡鍑?/h2>
             <button
               type="button"
               onClick={handleClose}
               className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
             >
-              结束挑战并同步
+              缁撴潫鎸戞垬骞跺悓姝?
             </button>
           </section>
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-          点击「开启本次挑战」进入作战台。
+          鐐瑰嚮銆屽紑鍚湰娆℃寫鎴樸€嶈繘鍏ヤ綔鎴樺彴銆?
         </div>
       )}
 
@@ -2727,15 +2727,15 @@ export function ClassDetailPage() {
           <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-purple-400">翻牌任务</p>
-                <h3 className="mt-1 text-2xl font-bold text-slate-900">翻开「{pendingFlipCard.title}」</h3>
+                <p className="text-xs uppercase tracking-[0.3em] text-purple-400">缈荤墝浠诲姟</p>
+                <h3 className="mt-1 text-2xl font-bold text-slate-900">缈诲紑銆寋pendingFlipCard.title}銆?/h3>
                 <p className="mt-2 text-sm text-slate-500">
-                  选择参与的勇士，能量将按人数自动平分。
+                  閫夋嫨鍙備笌鐨勫媷澹紝鑳介噺灏嗘寜浜烘暟鑷姩骞冲垎銆?
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span>类型：{pendingFlipCard.type.toUpperCase()}</span>
-                  <span>预计奖励 ⚡ {pendingFlipCard.reward?.energy ?? 0}</span>
-                  {pendingFlipCard.reward?.badge ? <span>徽章：{pendingFlipCard.reward.badge}</span> : null}
+                  <span>绫诲瀷锛歿pendingFlipCard.type.toUpperCase()}</span>
+                  <span>棰勮濂栧姳 鈿?{pendingFlipCard.reward?.energy ?? 0}</span>
+                  {pendingFlipCard.reward?.badge ? <span>寰界珷锛歿pendingFlipCard.reward.badge}</span> : null}
                 </div>
               </div>
               <button
@@ -2743,9 +2743,9 @@ export function ClassDetailPage() {
                 onClick={() => setPendingFlip(null)}
                 disabled={flippingCardId === pendingFlip.cardId}
                 className="rounded-full border border-slate-200 p-2 text-slate-400 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="关闭翻牌面板"
+                aria-label="鍏抽棴缈荤墝闈㈡澘"
               >
-                ✕
+                鉁?
               </button>
             </div>
             <div className="mt-5 max-h-[320px] overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
@@ -2776,14 +2776,14 @@ export function ClassDetailPage() {
                         badge={student.currentRank ? `L${student.currentRank}` : undefined}
                       />
                       <span className="font-semibold">{student.name}</span>
-                      <span className="ml-auto text-xs text-slate-400">⚡ {student.energy ?? 0}</span>
+                      <span className="ml-auto text-xs text-slate-400">鈿?{student.energy ?? 0}</span>
                     </label>
                   );
                 })}
               </div>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-              <span>已选 {pendingFlip.participantIds.length} 人</span>
+              <span>宸查€?{pendingFlip.participantIds.length} 浜?/span>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -2791,7 +2791,7 @@ export function ClassDetailPage() {
                   disabled={flippingCardId === pendingFlip.cardId}
                   className="rounded-full border border-slate-200 px-3 py-1 font-semibold text-slate-600 hover:border-purple-300 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  全员到场
+                  鍏ㄥ憳鍒板満
                 </button>
                 <button
                   type="button"
@@ -2799,7 +2799,7 @@ export function ClassDetailPage() {
                   disabled={flippingCardId === pendingFlip.cardId}
                   className="rounded-full border border-slate-200 px-3 py-1 font-semibold text-slate-600 hover:border-purple-300 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  清空
+                  娓呯┖
                 </button>
               </div>
             </div>
@@ -2810,7 +2810,7 @@ export function ClassDetailPage() {
                 disabled={flippingCardId === pendingFlip.cardId}
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-purple-300 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                取消
+                鍙栨秷
               </button>
               <button
                 type="button"
@@ -2818,7 +2818,7 @@ export function ClassDetailPage() {
                 disabled={flippingCardId === pendingFlip.cardId}
                 className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-2 text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {flippingCardId === pendingFlip.cardId ? '翻牌中…' : '翻开并结算'}
+                {flippingCardId === pendingFlip.cardId ? '缈荤墝涓€? : '缈诲紑骞剁粨绠?}
               </button>
             </div>
           </div>
@@ -2901,7 +2901,7 @@ function FreestyleEditor({
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3 text-sm">
         <label className="grid gap-1">
-          <span className="text-xs text-slate-500">勇士</span>
+          <span className="text-xs text-slate-500">鍕囧＋</span>
           <select
             value={studentId}
             onChange={(event) => setStudentId(event.target.value)}
@@ -2915,7 +2915,7 @@ function FreestyleEditor({
           </select>
         </label>
         <label className="grid gap-1">
-          <span className="text-xs text-slate-500">动作</span>
+          <span className="text-xs text-slate-500">鍔ㄤ綔</span>
           <select
             value={moveId}
             onChange={(event) => setMoveId(event.target.value)}
@@ -2923,18 +2923,18 @@ function FreestyleEditor({
           >
             {uniqueMoves.map((move) => (
               <option key={move.id} value={move.id}>
-                L{move.rank ?? '-'} - {move.name ?? '未命名动作'}
+                L{move.rank ?? '-'} - {move.name ?? '鏈懡鍚嶅姩浣?}
               </option>
             ))}
           </select>
         </label>
         <label className="grid flex-1 gap-1">
-          <span className="text-xs text-slate-500">备注</span>
+          <span className="text-xs text-slate-500">澶囨敞</span>
           <input
             value={note}
             onChange={(event) => setNote(event.target.value)}
             className="rounded-lg border border-slate-200 px-3 py-2"
-            placeholder="通关细节或提醒"
+            placeholder="閫氬叧缁嗚妭鎴栨彁閱?
           />
         </label>
         <button
@@ -2942,7 +2942,7 @@ function FreestyleEditor({
           onClick={handleAdd}
           className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
         >
-          记录
+          鐠佹澘缍?
         </button>
       </div>
       <div className="space-y-2 text-sm">
@@ -2956,7 +2956,7 @@ function FreestyleEditor({
             >
               <div>
                 <p className="font-medium text-slate-700">
-                  {student?.name} · {move?.name}
+                  {student?.name} 路 {move?.name}
                 </p>
                 {item.note && (
                   <p className="text-xs text-slate-500">{item.note}</p>
@@ -2972,14 +2972,14 @@ function FreestyleEditor({
                       : "bg-slate-200 text-slate-500"
                   }`}
                 >
-                  {item.passed ? "通过" : "未过"}
+                  {item.passed ? "閫氳繃" : "鏈繃"}
                 </button>
                 <button
                   type="button"
                   onClick={() => onRemove(item.id)}
                   className="text-xs text-slate-400 hover:text-red-500"
                 >
-                  删除
+                  鍒犻櫎
                 </button>
               </div>
             </div>
@@ -2987,7 +2987,7 @@ function FreestyleEditor({
         })}
         {!items.length && (
           <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-slate-400">
-            暂无记录
+            鏆傛棤璁板綍
           </div>
         )}
       </div>
@@ -3024,7 +3024,7 @@ function StudentPerformanceReview({
             badge={student.currentRank ? `L${student.currentRank}` : undefined}
           />
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">当前勇士</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">褰撳墠鍕囧＋</p>
             <h3 className="mt-1 text-2xl font-bold text-slate-900">{student.name}</h3>
           </div>
         </div>
@@ -3039,7 +3039,7 @@ function StudentPerformanceReview({
               <button
                 key={score}
                 type="button"
-                aria-label={`${score} 星`}
+                aria-label={`${score} 鏄焋}
                 onClick={() => onStarsChange(score)}
                 className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl transition ${
                   isActive
@@ -3047,7 +3047,7 @@ function StudentPerformanceReview({
                     : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-amber-400'
                 }`}
               >
-                <span aria-hidden="true">{isActive ? '★' : '☆'}</span>
+                <span aria-hidden="true">{isActive ? '鈽? : '鈽?}</span>
               </button>
             );
           })}
@@ -3085,7 +3085,7 @@ function StudentPerformanceReview({
                       <button
                         key={option}
                         type="button"
-                        aria-label={`${option} 星`}
+                        aria-label={`${option} 鏄焋}
                         onClick={() => onDimensionChange(dimension.id, option)}
                         className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition ${
                           isFilled
@@ -3093,7 +3093,7 @@ function StudentPerformanceReview({
                             : 'bg-slate-100 text-slate-300 hover:bg-slate-200 hover:text-purple-400'
                         }`}
                       >
-                        <span aria-hidden="true">{isFilled ? '★' : '☆'}</span>
+                        <span aria-hidden="true">{isFilled ? '鈽? : '鈽?}</span>
                       </button>
                     );
                   })}
@@ -3106,7 +3106,7 @@ function StudentPerformanceReview({
               <div className="mt-3 space-y-2 text-xs">
                 {highlightPresets.length ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-emerald-500">亮点</span>
+                    <span className="font-semibold text-emerald-500">浜偣</span>
                     {highlightPresets.map((preset) => {
                       const active = selectedPresetIds.includes(preset.id);
                       return (
@@ -3128,7 +3128,7 @@ function StudentPerformanceReview({
                 ) : null}
                 {focusPresets.length ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-amber-500">关注</span>
+                    <span className="font-semibold text-amber-500">鍏虫敞</span>
                     {focusPresets.map((preset) => {
                       const active = selectedPresetIds.includes(preset.id);
                       return (
@@ -3154,11 +3154,11 @@ function StudentPerformanceReview({
         })}
       </div>
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-slate-500">教练寄语</p>
+        <p className="text-xs font-semibold text-slate-500">鏁欑粌瀵勮</p>
         <textarea
           value={draft.comment}
           onChange={(event) => onCommentChange(event.target.value)}
-          placeholder="记录今天的鼓励、提醒或下一次训练重点..."
+          placeholder="璁板綍浠婂ぉ鐨勯紦鍔便€佹彁閱掓垨涓嬩竴娆¤缁冮噸鐐?.."
           className="h-24 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 shadow-inner"
         />
       </div>
@@ -3228,7 +3228,7 @@ function AnalyticsSection({
   const windowOptions: WindowSec[] = [10, 20, 30, 60];
 
   const formatWindowLabel = (window: WindowSec) =>
-    window === 60 ? '1分钟' : `${window}s`;
+    window === 60 ? '1鍒嗛挓' : `${window}s`;
 
   useEffect(() => {
     async function load() {
@@ -3249,10 +3249,10 @@ function AnalyticsSection({
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-slate-800">训练分析</h2>
+      <h2 className="text-lg font-semibold text-slate-800">璁粌鍒嗘瀽</h2>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/80 p-3">
         <div className="flex items-center gap-2 text-xs text-slate-500">
-          <span>计时窗口</span>
+          <span>璁℃椂绐楀彛</span>
           <div className="flex rounded-full border border-slate-200 bg-slate-50 p-1">
             {windowOptions.map((window) => {
               const active = window === selectedWindow;
@@ -3273,14 +3273,14 @@ function AnalyticsSection({
         </div>
         <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-[#2563eb]" /> 单摇
+            <span className="h-2 w-2 rounded-full bg-[#2563eb]" /> 鍗曟憞
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-[#f97316]" /> 双摇
+            <span className="h-2 w-2 rounded-full bg-[#f97316]" /> 鍙屾憞
           </span>
           {includeDraft && (
             <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-600">
-              已含今日实时成绩
+              宸插惈浠婃棩瀹炴椂鎴愮哗
             </span>
           )}
         </div>
@@ -3342,23 +3342,23 @@ function AnalyticsSection({
                     {student.name}
                   </p>
                   <p className="text-xs text-slate-500">
-                    段位 L{student.currentRank ?? "-"}{" "}
+                    娈典綅 L{student.currentRank ?? "-"}{" "}
                   </p>
                 </div>
               </div>
               <ProgressChart
-                title={`速度曲线 · ${formatWindowLabel(selectedWindow)}`}
+                title={`閫熷害鏇茬嚎 路 ${formatWindowLabel(selectedWindow)}`}
                 series={[
-                  { label: '单摇', color: '#2563eb', data: singleSeries },
-                  { label: '双摇', color: '#f97316', data: doubleSeries },
+                  { label: '鍗曟憞', color: '#2563eb', data: singleSeries },
+                  { label: '鍙屾憞', color: '#f97316', data: doubleSeries },
                 ]}
               />
-              <ProgressChart title="勇士进阶积分" series={freestyleSeries} />
+              <ProgressChart title="鍕囧＋杩涢樁绉垎" series={freestyleSeries} />
               <ProgressChart
-                title="技能成长曲线"
+                title="鎶€鑳芥垚闀挎洸绾?
                 series={[
-                  { label: '速度段位', color: '#ec4899', data: speedRankSeries },
-                  { label: '花样段位', color: '#f97316', data: rankSeries },
+                  { label: '閫熷害娈典綅', color: '#ec4899', data: speedRankSeries },
+                  { label: '鑺辨牱娈典綅', color: '#f97316', data: rankSeries },
                 ]}
                 yDomain={[0, 9]}
                 yTicks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
@@ -3373,3 +3373,4 @@ function AnalyticsSection({
     </section>
   );
 }
+

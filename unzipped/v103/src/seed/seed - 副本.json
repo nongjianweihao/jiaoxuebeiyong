@@ -1,0 +1,150 @@
+{
+  "students": [
+    {
+      "id": "stu-ava",
+      "name": "林安",
+      "gender": "F",
+      "currentRank": 3,
+      "joinDate": "2025-01-05T00:00:00.000Z",
+      "tags": ["基础", "竞赛"],
+      "guardian": { "name": "林女士", "phone": "13800001111" }
+    },
+    {
+      "id": "stu-bryce",
+      "name": "周亦",
+      "gender": "M",
+      "currentRank": 2,
+      "joinDate": "2024-11-01T00:00:00.000Z",
+      "tags": ["进阶"],
+      "guardian": { "name": "周先生", "phone": "13900002222" }
+    }
+  ],
+  "classes": [
+    {
+      "id": "class-rising",
+      "name": "勇士进阶班",
+      "coachName": "Alex 教练",
+      "schedule": "周二 / 周五 18:30",
+      "templateId": "tpl-prep-speed",
+      "studentIds": ["stu-ava", "stu-bryce"]
+    }
+  ],
+  "rankMoves": [
+    { "id": "rm-l1-basic", "rank": 1, "name": "并脚单摇", "criteria": "30s≥120" },
+    { "id": "rm-l2-cross", "rank": 2, "name": "交叉二摇", "criteria": "30s≥60" },
+    { "id": "rm-l3-double", "rank": 3, "name": "双摇", "criteria": "30s≥80" }
+  ],
+  "warriorNodes": [
+    { "id": "wp-start", "rank": 1, "title": "速度小勇士", "moveIds": ["rm-l1-basic"], "points": 40 },
+    { "id": "wp-speed", "rank": 2, "title": "节奏掌控者", "moveIds": ["rm-l2-cross"], "points": 60 },
+    { "id": "wp-power", "rank": 3, "title": "爆发勇士", "moveIds": ["rm-l3-double"], "points": 80 }
+  ],
+  "gameDrills": [
+    { "id": "game-traffic", "name": "红灯绿灯", "qualityTags": ["agility", "coordination"] },
+    { "id": "game-relay", "name": "接力挑战", "qualityTags": ["speed", "endurance"] }
+  ],
+  "templates": [
+    {
+      "id": "tpl-prep-speed",
+      "name": "PREP-速度与协调 45min",
+      "period": "PREP",
+      "weeks": 6,
+      "createdAt": "2025-02-01T09:00:00.000Z",
+      "blocks": [
+        {
+          "id": "block-warm",
+          "title": "激活热身",
+          "period": "ALL",
+          "durationMin": 8,
+          "notes": "动态拉伸 + 关节激活"
+        },
+        {
+          "id": "block-speed",
+          "title": "速度冲刺",
+          "period": "PREP",
+          "durationMin": 15,
+          "rankMoveIds": ["rm-l1-basic", "rm-l3-double"],
+          "qualities": ["speed", "power"],
+          "notes": "10s×4 组，节奏逐步提升"
+        },
+        {
+          "id": "block-freestyle",
+          "title": "花样挑战",
+          "period": "SPEC",
+          "durationMin": 12,
+          "rankMoveIds": ["rm-l2-cross", "rm-l3-double"],
+          "notes": "组合串联 + 勇士积分"
+        },
+        {
+          "id": "block-game",
+          "title": "游戏化收尾",
+          "period": "ALL",
+          "durationMin": 10,
+          "gameIds": ["game-traffic", "game-relay"],
+          "notes": "团队配合 + 反应力"
+        }
+      ]
+    }
+  ],
+  "fitnessTestItems": [
+    { "id": "item-speed30", "name": "30s 单摇", "quality": "speed", "unit": "count" },
+    { "id": "item-plank", "name": "平板支撑", "quality": "core", "unit": "s" }
+  ],
+  "fitnessTests": [
+    {
+      "id": "test-ava-q1",
+      "studentId": "stu-ava",
+      "quarter": "2025Q1",
+      "date": "2025-03-28T10:00:00.000Z",
+      "items": [
+        { "itemId": "item-speed30", "value": 180 },
+        { "itemId": "item-plank", "value": 75 }
+      ],
+      "radar": {
+        "speed": 72,
+        "power": 65,
+        "endurance": 68,
+        "coordination": 70,
+        "agility": 66,
+        "balance": 74,
+        "flexibility": 62,
+        "core": 69,
+        "accuracy": 60
+      }
+    }
+  ],
+  "lessonPackages": [
+    {
+      "id": "pkg-ava-001",
+      "studentId": "stu-ava",
+      "purchasedLessons": 20,
+      "price": 3600,
+      "unitPrice": 180,
+      "purchasedAt": "2025-01-05T00:00:00.000Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "pay-ava-001",
+      "studentId": "stu-ava",
+      "packageId": "pkg-ava-001",
+      "amount": 3600,
+      "method": "wechat",
+      "paidAt": "2025-01-05T00:00:00.000Z"
+    }
+  ],
+  "benchmarks": [
+    {
+      "id": "bench-speed-u10",
+      "quality": "speed",
+      "ageMin": 8,
+      "ageMax": 10,
+      "unit": "count",
+      "p25": 120,
+      "p50": 150,
+      "p75": 180,
+      "min": 90,
+      "max": 210
+    }
+  ]
+}
