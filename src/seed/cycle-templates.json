@@ -3,7 +3,7 @@
 
 
     "id": "cycle-speed-4w",
-    "name": "Speed-4W-Cycle",
+    "name": "极速 4 周周期",
     "goal": "提升神经反应速度与节奏控制，冲刺SR30/SR60",
     "durationWeeks": 4,
     "focusAbilities": ["speed", "power"],
@@ -19,7 +19,7 @@
   },
   {
     "id": "cycle-freestyle-8w",
-    "name": "Freestyle-8W-Cycle",
+    "name": "花样 8 周周期",
     "goal": "八周花样协调专项，打造稳定串联与表演力",
     "durationWeeks": 8,
     "focusAbilities": ["coordination", "flexibility"],
@@ -39,7 +39,7 @@
   },
   {
     "id": "cycle-exam-12w",
-    "name": "Exam-12W-Cycle",
+    "name": "中考 12 周周期",
     "goal": "十二周中考专项，提升综合体能与成绩稳定性",
     "durationWeeks": 12,
     "focusAbilities": ["power", "endurance", "agility"],
