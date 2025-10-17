@@ -74,10 +74,55 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
     const allAbsent = absentNames?.filter(Boolean) ?? [];
     const trimmedComment = (coachComment ?? '').trim();
     const commentText = useMemo(() => {
-      const base = trimmedComment
+      const base =
+        trimmedComment
         || DEFAULT_COACH_COMMENTS[Math.floor(Math.random() * DEFAULT_COACH_COMMENTS.length)];
-      return base.slice(0, 24);
-    }, [trimmedComment]);
+      const topStars = starItems
+        .filter((item) => item.name && item.name !== '敬请期待')
+        .slice(0, 2)
+        .map((item) => {
+          const value = Number.isFinite(item.stars) ? Number(item.stars).toFixed(1) : '';
+          return value ? `${item.name} ${value}⭐` : item.name;
+        });
+      const focus = focusItems[0];
+      const highlight = highlightItems[0];
+
+      const followUps: string[] = [];
+      if (topStars.length) {
+        followUps.push(`重点表扬 ${topStars.join('、')}`);
+      }
+      if (focus) {
+        followUps.push(`下堂课继续巩固「${focus}」`);
+      } else if (highlight) {
+        followUps.push(`保持课堂亮点「${highlight}」`);
+      }
+
+      if (!followUps.length) {
+        return base;
+      }
+      const normalized = base.replace(/[。！？\s]+$/, '');
+      return `${normalized}。${followUps.join('，')}。`;
+    }, [trimmedComment, starItems, focusItems, highlightItems]);
+
+    const reminderItems = useMemo(() => {
+      const items: string[] = [];
+      const focusList = focusItems.slice(0, 3);
+      if (focusList.length) {
+        focusList.forEach((item) => {
+          items.push(`围绕「${item}」安排家庭巩固或练习`);
+        });
+      }
+      if (highlightItems.length) {
+        items.push(`和孩子聊聊课堂亮点「${highlightItems[0]}」，强化积极体验`);
+      }
+      if (energyLeader) {
+        items.push(`表扬 ${energyLeader.name} 的能量表现，让全队都被看见`);
+      }
+      if (!items.length) {
+        items.push('今日课程已记录，保持练习与作息节奏。');
+      }
+      return items;
+    }, [energyLeader, focusItems, highlightItems]);
 
     const secretaryNote = useMemo(() => {
       const presentLabel = `${presentCount} / ${totalCount}`;
@@ -185,43 +230,24 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
 
           <section className="mt-4 rounded-2xl bg-white/10 p-4 shadow-inner backdrop-blur">
             <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">教练评语</h4>
-            <p className="mt-2 text-sm font-medium text-slate-100">{commentText}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-100">{commentText}</p>
           </section>
           <section className="mt-4 rounded-2xl bg-white/10 p-4 shadow-inner backdrop-blur">
             <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">课后提醒</h4>
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-100">
-              {(focusItems.length ? focusItems : ['保持拉伸，注意恢复']).map((tag, index) => (
-                <span
-                  key={`${tag}-${index}`}
-                  className="rounded-full bg-sky-500/20 px-3 py-1 text-[10px] font-semibold text-sky-100"
+            <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-slate-100">
+              {reminderItems.map((item, index) => (
+                <li
+                  key={`${item}-${index}`}
+                  className="flex items-start gap-2 rounded-2xl bg-sky-500/15 px-3 py-2"
                 >
-                  #{tag}
-                </span>
+                  <span className="mt-[2px] text-sky-200">✔</span>
+                  <span className="flex-1">{item}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
 
-          <section className="mt-4 rounded-2xl bg-white/10 p-4 shadow-inner backdrop-blur">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-200">多视角提示</h4>
-            <div className="mt-3 grid grid-cols-1 gap-2 text-[11px] text-slate-100">
-              <div className="rounded-2xl bg-white/8 px-3 py-2">
-                <p className="font-semibold text-sky-100">🗂️ 顶级秘书</p>
-                <p className="mt-1 leading-relaxed">{secretaryNote}</p>
-              </div>
-              <div className="rounded-2xl bg-white/8 px-3 py-2">
-                <p className="font-semibold text-emerald-100">🏅 教练视角</p>
-                <p className="mt-1 leading-relaxed">{coachNote}</p>
-              </div>
-              <div className="rounded-2xl bg-white/8 px-3 py-2">
-                <p className="font-semibold text-amber-100">👪 家长视角</p>
-                <p className="mt-1 leading-relaxed">{parentNote}</p>
-              </div>
-              <div className="rounded-2xl bg-white/8 px-3 py-2">
-                <p className="font-semibold text-fuchsia-100">🎯 学员视角</p>
-                <p className="mt-1 leading-relaxed">{studentNote}</p>
-              </div>
-            </div>
-          </section>
+
 
           <footer className="mt-5 text-[11px] text-slate-200">
             {allAbsent.length ? (
@@ -230,7 +256,7 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
                 <span className="ml-1 text-emerald-200">期待下次并肩作战！</span>
               </p>
             ) : (
-              <p className="text-emerald-200">全员到齐，保持这份专注与默契，下一堂课继续发光！</p>
+              <p className="text-emerald-200">希望大家保持这份专注与默契，下一堂课继续发光！</p>
             )}
           </footer>
         </section>
