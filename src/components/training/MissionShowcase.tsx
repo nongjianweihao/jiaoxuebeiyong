@@ -363,7 +363,7 @@ export function MissionShowcase({ className, footer }: { className?: string; foo
       <header className="rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-xl">
         <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.4em] text-white/70">Session Template Library</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/70">课节模板精选</p>
             <h2 className="text-3xl font-extrabold md:text-4xl">课节模板展示</h2>
             <p className="max-w-2xl text-sm text-white/80">
               聚合课程模板中精选的课节，覆盖热身、技巧、挑战与整理全流程。每个模板均包含可直接引用的课堂环节，帮助教练在排课与授课时快速落地。
@@ -393,7 +393,7 @@ export function MissionShowcase({ className, footer }: { className?: string; foo
         <section key={group.id} className="space-y-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Stage</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">阶段主题</p>
               <h3 className="text-2xl font-bold text-slate-900">{group.title}</h3>
               <p className="text-sm text-slate-500">{group.description}</p>
             </div>
@@ -466,7 +466,7 @@ function SessionTemplateCard({ template }: { template: SessionTemplate }) {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Step {index + 1}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">环节 {index + 1}</p>
                   <p className="text-base font-semibold text-slate-800">{segment.title}</p>
                   <p className="text-xs text-slate-500">{segment.focus}</p>
                 </div>

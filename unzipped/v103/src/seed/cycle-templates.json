@@ -1,0 +1,64 @@
+[
+  {
+
+
+    "id": "cycle-speed-4w",
+    "name": "极速 4 周周期",
+    "goal": "提升神经反应速度与节奏控制，冲刺SR30/SR60",
+    "durationWeeks": 4,
+    "focusAbilities": ["speed", "power"],
+    "weekPlan": [
+      {"week": 1, "focus": "神经激活", "missionCards": ["mc-speed-ignite"]},
+      {"week": 2, "focus": "极速爆发", "missionCards": ["mc-speed-neural-boost"]},
+      {"week": 3, "focus": "节奏稳定", "missionCards": ["mc-agility-react", "mc-endurance-3min"]},
+      {"week": 4, "focus": "比赛模拟", "missionCards": ["mc-competition-sim"]}
+    ],
+
+    "trackingMetrics": ["sr30", "sr60", "ropeSkipSpeed"]
+
+  },
+  {
+    "id": "cycle-freestyle-8w",
+    "name": "花样 8 周周期",
+    "goal": "八周花样协调专项，打造稳定串联与表演力",
+    "durationWeeks": 8,
+    "focusAbilities": ["coordination", "flexibility"],
+    "weekPlan": [
+      {"week": 1, "focus": "柔韧激活", "missionCards": ["mc-recovery-reset"]},
+      {"week": 2, "focus": "节奏入门", "missionCards": ["mc-coordination-campus"]},
+      {"week": 3, "focus": "花样扩展", "missionCards": ["mc-coord-freestyle"]},
+      {"week": 4, "focus": "团队协同", "missionCards": ["mc-team-integration"]},
+      {"week": 5, "focus": "花样打磨", "missionCards": ["mc-coord-freestyle"]},
+      {"week": 6, "focus": "节奏挑战", "missionCards": ["mc-speed-ignite", "mc-coord-freestyle"]},
+      {"week": 7, "focus": "舞台表现", "missionCards": ["mc-coord-freestyle", "mc-team-integration"]},
+      {"week": 8, "focus": "展示汇报", "missionCards": ["mc-competition-sim"]}
+    ],
+
+    "trackingMetrics": ["du30", "ropeSkipSpeed"]
+
+  },
+  {
+    "id": "cycle-exam-12w",
+    "name": "中考 12 周周期",
+    "goal": "十二周中考专项，提升综合体能与成绩稳定性",
+    "durationWeeks": 12,
+    "focusAbilities": ["power", "endurance", "agility"],
+    "weekPlan": [
+      {"week": 1, "focus": "基础唤醒", "missionCards": ["mc-recovery-reset"]},
+      {"week": 2, "focus": "速度打底", "missionCards": ["mc-speed-ignite"]},
+      {"week": 3, "focus": "耐力强化", "missionCards": ["mc-endurance-3min"]},
+      {"week": 4, "focus": "爆发提升", "missionCards": ["mc-power-du30"]},
+      {"week": 5, "focus": "节奏稳定", "missionCards": ["mc-agility-react"]},
+      {"week": 6, "focus": "专项整合", "missionCards": ["mc-middle-school-exam"]},
+      {"week": 7, "focus": "体能进阶", "missionCards": ["mc-endurance-3min", "mc-power-du30"]},
+      {"week": 8, "focus": "花样调节", "missionCards": ["mc-coord-freestyle"]},
+      {"week": 9, "focus": "综合模拟", "missionCards": ["mc-competition-sim"]},
+      {"week": 10, "focus": "节奏巩固", "missionCards": ["mc-speed-neural-boost"]},
+      {"week": 11, "focus": "考试预演", "missionCards": ["mc-middle-school-exam"]},
+      {"week": 12, "focus": "恢复调整", "missionCards": ["mc-recovery-reset"]}
+    ],
+
+    "trackingMetrics": ["sr30", "sr60", "du30", "longJump"]
+
+  }
+]

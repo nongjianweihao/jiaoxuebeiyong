@@ -1,0 +1,75 @@
+﻿import { useMemo, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
+import { ClassShareCard, type ClassShareCardProps } from './ClassShareCard';
+
+interface ClassSharePanelProps extends ClassShareCardProps {}
+
+export function ClassSharePanel(props: ClassSharePanelProps) {
+  const [sharing, setSharing] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const hiddenCardRef = useRef<HTMLDivElement>(null);
+
+  const summary = useMemo(() => {
+    return {
+      attendance: `${props.presentCount}/${props.totalCount}`,
+      averageStars:
+        typeof props.averageStars === 'number' && Number.isFinite(props.averageStars)
+          ? props.averageStars.toFixed(1)
+          : '-',
+      highlightCount: props.highlights.length,
+    };
+  }, [props.presentCount, props.totalCount, props.averageStars, props.highlights.length]);
+
+  const handleShare = async () => {
+    if (!hiddenCardRef.current) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(hiddenCardRef.current, { scale: 2, backgroundColor: null });
+      const image = canvas.toDataURL('image/png');
+      const newWindow = window.open('');
+      if (newWindow) {
+        newWindow.document.write(`<img src="${image}" alt="鐝骇璇惧悗閫熸姤" style="width:100%" />`);
+        setToast('鍒嗕韩鍗＄墖宸茬敓鎴愶紝璇烽暱鎸変繚瀛樺浘鐗囥€?);
+      }
+    } finally {
+      setSharing(false);
+      setTimeout(() => setToast(null), 3200);
+    }
+  };
+
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">璇惧悗閫熸姤</p>
+          <h2 className="mt-1 text-2xl font-bold text-slate-900">涓€閿敓鎴愮彮绾у垎浜崱鐗?/h2>
+          <p className="mt-2 text-sm text-slate-500">
+            鍑哄嫟 {summary.attendance} 路 骞冲潎鏄熺骇 {summary.averageStars} 路 浜偣 {summary.highlightCount} 鏉?
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {sharing ? '鐢熸垚涓€? : '鐢熸垚鍒嗕韩鍥剧墖'}
+          </button>
+        </div>
+      </div>
+      <div className="mt-6 overflow-x-auto">
+        <div className="inline-block">
+          <ClassShareCard {...props} />
+        </div>
+      </div>
+      {toast ? (
+        <div className="mt-4 rounded-2xl bg-emerald-50 p-3 text-xs text-emerald-600">{toast}</div>
+      ) : null}
+      <div className="pointer-events-none fixed left-[-9999px] top-[-9999px]">
+        <ClassShareCard ref={hiddenCardRef} {...props} />
+      </div>
+    </section>
+  );
+}
+
