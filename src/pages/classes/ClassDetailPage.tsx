@@ -296,6 +296,7 @@ export function ClassDetailPage() {
   const sessionStartDateRef = useRef<string | null>(null);
 
   const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const sessionActive = !!(session && !session.closed);
   const sessionDateLabel = useMemo(() => {
     if (!sessionDateOverride) return '选择上课日期';
 
@@ -318,8 +319,32 @@ export function ClassDetailPage() {
     node.click();
   }, []);
 
-
-
+  useEffect(() => {
+    if (!sessionActive) return;
+    setSession((prev) => {
+      if (!prev || prev.closed) return prev;
+      if (!sessionDateOverride) {
+        const originalIso = sessionStartDateRef.current;
+        if (!originalIso || originalIso === prev.date) {
+          return prev;
+        }
+        fallbackSessionDateRef.current = originalIso;
+        return { ...prev, date: originalIso };
+      }
+      const referenceIso = sessionStartDateRef.current ?? prev.date ?? fallbackSessionDateRef.current;
+      const referenceDate = referenceIso ? new Date(referenceIso) : new Date();
+      const overrideDate = buildSessionDateFromOverride(sessionDateOverride, referenceDate);
+      if (!overrideDate) {
+        return prev;
+      }
+      const nextIso = overrideDate.toISOString();
+      if (nextIso === prev.date) {
+        return prev;
+      }
+      fallbackSessionDateRef.current = nextIso;
+      return { ...prev, date: nextIso };
+    });
+  }, [sessionActive, sessionDateOverride]);
 
   useEffect(() => {
     setPerformanceDrafts((prev) => {
@@ -1817,34 +1842,8 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
-  const sessionActive = !!(session && !session.closed);
 
-  useEffect(() => {
-    if (!sessionActive) return;
-    setSession((prev) => {
-      if (!prev || prev.closed) return prev;
-      if (!sessionDateOverride) {
-        const originalIso = sessionStartDateRef.current;
-        if (!originalIso || originalIso === prev.date) {
-          return prev;
-        }
-        fallbackSessionDateRef.current = originalIso;
-        return { ...prev, date: originalIso };
-      }
-      const referenceIso = sessionStartDateRef.current ?? prev.date ?? fallbackSessionDateRef.current;
-      const referenceDate = referenceIso ? new Date(referenceIso) : new Date();
-      const overrideDate = buildSessionDateFromOverride(sessionDateOverride, referenceDate);
-      if (!overrideDate) {
-        return prev;
-      }
-      const nextIso = overrideDate.toISOString();
-      if (nextIso === prev.date) {
-        return prev;
-      }
-      fallbackSessionDateRef.current = nextIso;
-      return { ...prev, date: nextIso };
-    });
-  }, [sessionActive, sessionDateOverride]);
+
   const sessionClosed = !!(session && session.closed);
   const shareHighlights = session?.highlights?.length
     ? session.highlights
