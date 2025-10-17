@@ -16,9 +16,9 @@ export function ClassSharePanel(props: ClassSharePanelProps) {
         typeof props.averageStars === 'number' && Number.isFinite(props.averageStars)
           ? props.averageStars.toFixed(1)
           : '-',
-      highlightCount: props.highlights.length,
+      highlightCount: props.highlights?.length ?? 0,
     };
-  }, [props.presentCount, props.totalCount, props.averageStars, props.highlights.length]);
+  }, [props.presentCount, props.totalCount, props.averageStars, props.highlights]);
 
   const handleShare = async () => {
     if (!hiddenCardRef.current) return;

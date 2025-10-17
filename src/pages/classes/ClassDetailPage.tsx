@@ -1813,6 +1813,8 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
+
+
   const sessionActive = !!(session && !session.closed);
   const sessionClosed = !!(session && session.closed);
   const focusTags = Array.from(
@@ -1825,6 +1827,7 @@ export function ClassDetailPage() {
       ),
     ),
   ).slice(0, 4);
+
   const starSummaries = students.map((student) => {
     const draft = performanceDrafts[student.id];
     return {
@@ -1841,20 +1844,6 @@ export function ClassDetailPage() {
       return a.name.localeCompare(b.name, 'zh-CN');
     })
     .slice(0, 3);
-  const presentStudentIds = new Set(attendance.filter((item) => item.present).map((item) => item.studentId));
-  const energyLeader = students
-    .filter((student) => presentStudentIds.has(student.id))
-    .reduce<{ name: string; energy: number } | null>((best, student) => {
-      const energy = student.energy ?? 0;
-      if (!best || energy > best.energy) {
-        return { name: student.name, energy };
-      }
-      return best;
-    }, null);
-  const absentNames = attendance
-    .filter((item) => !item.present)
-    .map((item) => students.find((student) => student.id === item.studentId)?.name)
-    .filter((name): name is string => Boolean(name));
   const sessionDateForShare = session?.date ?? fallbackSessionDateRef.current;
 
   return (
@@ -1995,17 +1984,23 @@ export function ClassDetailPage() {
         className={classEntity.name}
         coachName={classEntity.coachName}
         missionName={missionName}
+        weekLabel={currentWeekLabel ?? undefined}
         sessionDate={sessionDateForShare}
+        tags={shareTags}
         presentCount={presentCount}
         totalCount={studentCount}
         averageStars={averageStars}
+
+        
         energyLeader={energyLeader}
         highlights={
           session?.highlights?.length ? session.highlights : deriveHighlights()
         }
         focusTags={focusTags}
+
         starLeaders={starLeaders}
-        absentNames={absentNames}
+        badges={shareBadges}
+        coachComment={shareCoachComment}
       />
 
       <section className="rounded-3xl border border-slate-100/80 bg-white/95 p-6 shadow-lg">
