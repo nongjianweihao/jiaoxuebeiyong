@@ -426,6 +426,14 @@ export function StudentDetailPage() {
     [allStudents],
   );
 
+  const rankMoveLookup = useMemo(
+    () =>
+      Object.fromEntries(
+        rankMoves.map((move) => [move.id, { rank: move.rank, name: move.name }]),
+      ),
+    [rankMoves],
+  );
+
   const lessonSessionRows = useMemo<LessonSessionRecord[]>(() => {
     return sessions
       .map((session) => {
@@ -449,10 +457,21 @@ export function StudentDetailPage() {
         const speedHighlight = speedRecord
           ? `${speedRecord.window}s ${speedRecord.mode === 'single' ? '单摇' : '双摇'} ${speedRecord.reps}`
           : undefined;
+        const freestyleHighlights = session.freestyle
+          .filter((record) => record.studentId === studentId && record.passed)
+          .map((record) => {
+            const move = rankMoveLookup[record.moveId];
+            const moveLabel = move?.name ? `挑战通关 ${move.name}` : '挑战通关';
+            const note = record.note?.trim();
+            return note ? `${moveLabel}（${note}）` : moveLabel;
+          });
         const coachNote = session.notes.find((note) => note.studentId === studentId)?.comments?.trim();
         const detailParts: string[] = [];
         if (speedHighlight) {
           detailParts.push(`速度亮点 ${speedHighlight}`);
+        }
+        if (freestyleHighlights.length) {
+          detailParts.push(`挑战记录：${freestyleHighlights.join('；')}`);
         }
         if (coachNote) {
           detailParts.push(`教练鼓励：${coachNote}`);
@@ -469,7 +488,7 @@ export function StudentDetailPage() {
       })
       .filter((item): item is LessonSessionRecord => Boolean(item))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [sessions, studentId, classLookup, templateLookup]);
+  }, [sessions, studentId, classLookup, templateLookup, rankMoveLookup]);
 
   const speedSeriesByWindow = useMemo<Record<WindowSec, SpeedSeriesBundle>>(
     () => {
@@ -486,13 +505,6 @@ export function StudentDetailPage() {
   const speedSeriesSingle = speedSeriesByWindow[selectedWindow]?.single ?? [];
   const speedSeriesDouble = speedSeriesByWindow[selectedWindow]?.double ?? [];
   const speedSeriesSingle30 = speedSeriesByWindow[30]?.single ?? [];
-  const rankMoveLookup = useMemo(
-    () =>
-      Object.fromEntries(
-        rankMoves.map((move) => [move.id, { rank: move.rank, name: move.name }]),
-      ),
-    [rankMoves],
-  );
   const freestyleRankSeries = useMemo(
     () => buildRankTrajectory(sessions, studentId, rankMoveLookup),
     [sessions, studentId, rankMoveLookup],
