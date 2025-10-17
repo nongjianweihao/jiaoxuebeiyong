@@ -1,6 +1,7 @@
 import { db } from '../db';
 import type { LessonPackage, LessonWallet, PaymentRecord } from '../../types';
 import { calculateWallet } from './utils';
+import { isSessionClosed } from '../../utils/session';
 
 export const billingRepo = {
   async addPackage(pkg: LessonPackage) {
@@ -25,7 +26,7 @@ export const billingRepo = {
   async calcWallet(studentId: string): Promise<LessonWallet> {
     const [packages, sessions, ledgerEntries] = await Promise.all([
       billingRepo.listPackagesByStudent(studentId),
-      db.sessions.filter((session) => session.closed).toArray(),
+      db.sessions.filter((session) => isSessionClosed(session)).toArray(),
       db.lessonLedger.where({ studentId }).toArray(),
     ]);
     return calculateWallet(studentId, packages, sessions, ledgerEntries);
@@ -33,7 +34,7 @@ export const billingRepo = {
   async calcAllWallets(): Promise<LessonWallet[]> {
     const [students, sessions, packages, ledgerEntries] = await Promise.all([
       db.students.toArray(),
-      db.sessions.filter((session) => session.closed).toArray(),
+      db.sessions.filter((session) => isSessionClosed(session)).toArray(),
       db.lessonPackages.toArray(),
       db.lessonLedger.toArray(),
     ]);

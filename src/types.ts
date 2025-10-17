@@ -395,6 +395,7 @@ export interface SessionRecord {
   notes: TrainingNote[];
   performance?: SessionPerformanceEntry[];
   closed: boolean;
+  finalizedAt?: ISODate;
   lessonConsume?: number;
   consumeOverrides?: Array<{ studentId: ID; consume: number }>;
   attendanceEnergyAwarded?: boolean;

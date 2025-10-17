@@ -1,6 +1,7 @@
 import { db } from '../db';
 import type { LessonPackage, LessonWallet, PaymentRecord, Student } from '../../types';
 import { calculateWallet } from './utils';
+import { isSessionClosed } from '../../utils/session';
 
 export const studentsRepo = {
   async upsert(student: Student) {
@@ -24,7 +25,7 @@ export const studentsRepo = {
   async wallet(studentId: string): Promise<LessonWallet> {
     const [packages, sessions, ledgerEntries] = await Promise.all([
       studentsRepo.listPackages(studentId),
-      db.sessions.filter((session) => session.closed).toArray(),
+      db.sessions.filter((session) => isSessionClosed(session)).toArray(),
       db.lessonLedger.where({ studentId }).toArray(),
     ]);
     return calculateWallet(studentId, packages, sessions, ledgerEntries);

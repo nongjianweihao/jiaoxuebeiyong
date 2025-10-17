@@ -25,6 +25,7 @@ import { trainingRepo } from "../../store/repositories/trainingRepo";
 import { generateId } from "../../store/repositories/utils";
 import { db } from "../../store/db";
 import { puzzlesRepo } from "../../store/repositories/puzzlesRepo";
+import { isSessionClosed } from "../../utils/session";
 import type {
   AttendanceItem,
   ClassCyclePlan,
@@ -298,7 +299,8 @@ export function ClassDetailPage() {
   const sessionStartDateRef = useRef<string | null>(null);
 
   const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const sessionActive = !!(session && !session.closed);
+  const sessionClosed = isSessionClosed(session);
+  const sessionActive = Boolean(session && !sessionClosed);
   const sessionDateLabel = useMemo(() => {
     if (!sessionDateOverride) return '选择上课日期';
 
@@ -324,7 +326,7 @@ export function ClassDetailPage() {
   useEffect(() => {
     if (!sessionActive) return;
     setSession((prev) => {
-      if (!prev || prev.closed) return prev;
+      if (!prev || isSessionClosed(prev)) return prev;
       if (!sessionDateOverride) {
         const originalIso = sessionStartDateRef.current;
         if (!originalIso || originalIso === prev.date) {
@@ -1095,11 +1097,12 @@ export function ClassDetailPage() {
         setTrainingGames(trainingGameList);
         setSelectedTemplateId((prev) => prev || templateList[0]?.id || '');
 
-        const lastClosed = [...sessionHistory].filter((item) => item.closed).pop();
+        const lastClosed = [...sessionHistory].filter((item) => isSessionClosed(item)).pop();
         setPreviousSpeedRecords(lastClosed?.speed ?? []);
         setLastClosedSession(lastClosed ?? null);
 
-        const activeSession = [...sessionHistory].filter((item) => !item.closed).pop() ?? null;
+        const activeSession =
+          [...sessionHistory].filter((item) => !isSessionClosed(item)).pop() ?? null;
         const resolvedStudents = (() => {
           if (!activeSession) return rosterStudents;
           const extraStudents = activeSession.attendance
@@ -1406,7 +1409,7 @@ export function ClassDetailPage() {
     });
 
     setSession((prev) => {
-      if (!prev || prev.closed) return prev;
+      if (!prev || isSessionClosed(prev)) return prev;
       if (prev.attendance.some((item) => item.studentId === candidate.id)) {
         return prev;
       }
@@ -1434,7 +1437,7 @@ export function ClassDetailPage() {
 
   const handleClose = async () => {
     if (!session) return;
-    if (session.closed) {
+    if (isSessionClosed(session)) {
       setStatus('本次挑战已同步，请返回上课页面');
       return;
     }
@@ -1460,6 +1463,7 @@ export function ClassDetailPage() {
       .map(([blockId]) => blockId);
 
     const now = new Date().toISOString();
+    const finalizedAt = now;
     const { performanceEntries, notes } = buildPerformanceArtifacts(now);
 
     const record: SessionRecord = {
@@ -1476,6 +1480,7 @@ export function ClassDetailPage() {
       notes,
       performance: performanceEntries,
       closed: true,
+      finalizedAt,
       highlights: deriveHighlights(),
       consumeOverrides: overrides.length ? overrides : undefined,
       executedBlockIds: executedBlockIds.length ? executedBlockIds : undefined,
@@ -1506,8 +1511,11 @@ export function ClassDetailPage() {
       await sessionsRepo.upsert(record);
       const latest = await sessionsRepo.get(record.id);
       if (latest) {
-        if (!latest.closed) {
-          persistedRecord = { ...latest, closed: true };
+        if (!isSessionClosed(latest)) {
+          persistedRecord = { ...latest, closed: true, finalizedAt };
+          await sessionsRepo.upsert(persistedRecord);
+        } else if (!latest.finalizedAt) {
+          persistedRecord = { ...latest, finalizedAt };
           await sessionsRepo.upsert(persistedRecord);
         } else {
           persistedRecord = latest;
@@ -1686,11 +1694,17 @@ export function ClassDetailPage() {
     try {
       const classSessions = await sessionsRepo.listByClass(classId);
       const staleSessions = classSessions.filter(
-        (item) => !item.closed && item.id !== record.id,
+        (item) => !isSessionClosed(item) && item.id !== record.id,
       );
       if (staleSessions.length) {
         await Promise.all(
-          staleSessions.map((item) => sessionsRepo.upsert({ ...item, closed: true })),
+          staleSessions.map((item) =>
+            sessionsRepo.upsert({
+              ...item,
+              closed: true,
+              finalizedAt: item.finalizedAt ?? finalizedAt,
+            }),
+          ),
         );
       }
     } catch (error) {
@@ -1782,7 +1796,7 @@ export function ClassDetailPage() {
 
 
   useEffect(() => {
-    if (!session || session.closed) return;
+    if (!session || isSessionClosed(session)) return;
     const overrides = Object.entries(consumeOverrides)
       .filter(([, value]) => value !== undefined)
       .map(([studentId, consume]) => ({
@@ -1845,7 +1859,7 @@ export function ClassDetailPage() {
 
   useEffect(() => {
     setSession((prev) => {
-      if (!prev || prev.closed) return prev;
+      if (!prev || isSessionClosed(prev)) return prev;
       if (prev.attendanceEnergyAwarded === attendanceAwarded) return prev;
       return { ...prev, attendanceEnergyAwarded: attendanceAwarded };
     });
@@ -1936,7 +1950,6 @@ export function ClassDetailPage() {
   const missionBlockCount = missionBlockEntries.length;
 
 
-  const sessionClosed = !!(session && session.closed);
   const latestClosedSession = sessionClosed ? session : lastClosedSession;
   const shareHighlights = session?.highlights?.length
     ? session.highlights
@@ -3457,11 +3470,12 @@ function AnalyticsSection({
     return map;
   }, [draftSpeedRows]);
 
-  const includeDraft = Boolean(activeSession && !activeSession.closed && draftSpeedRows.length);
+  const activeSessionClosed = isSessionClosed(activeSession);
+  const includeDraft = Boolean(activeSession && !activeSessionClosed && draftSpeedRows.length);
   const draftSessionDate = useMemo(() => {
-    if (!activeSession) return null;
+    if (!activeSession || activeSessionClosed) return null;
     return new Date(activeSession.date).toISOString();
-  }, [activeSession]);
+  }, [activeSession, activeSessionClosed]);
 
   const appendDraftPoint = useCallback(
     (
@@ -3498,7 +3512,7 @@ function AnalyticsSection({
       setRadars(Object.fromEntries(radarMapEntries));
     }
     if (students.length) void load();
-  }, [classId, students, activeSession?.id, activeSession?.closed]);
+  }, [classId, students, activeSession?.id, activeSessionClosed]);
 
   return (
     <section className="space-y-4">

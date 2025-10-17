@@ -18,6 +18,7 @@ import {
 
 import { sessionsRepo } from '../../store/repositories/sessionsRepo';
 import { studentsRepo } from '../../store/repositories/studentsRepo';
+import { isSessionClosed } from '../../utils/session';
 import { testsRepo } from '../../store/repositories/testsRepo';
 import { pointEventsRepo } from '../../store/repositories/pointEventsRepo';
 import { db } from '../../store/db';
@@ -442,7 +443,7 @@ export function StudentDetailPage() {
         const present = attendance?.present ?? false;
         const baseConsume = session.lessonConsume ?? 1;
         const consumeAmount = override?.consume ?? (present ? baseConsume : 0);
-        if (!session.closed || !consumeAmount) {
+        if (!isSessionClosed(session) || !consumeAmount) {
           return null;
         }
         const className = classLookup[session.classId] ?? '课堂挑战';

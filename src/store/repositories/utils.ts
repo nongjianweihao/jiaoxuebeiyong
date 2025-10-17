@@ -5,6 +5,7 @@ import type {
   LessonWallet,
   SessionRecord,
 } from '../../types';
+import { isSessionClosed } from '../../utils/session';
 
 export function generateId() {
   return uuid();
@@ -18,7 +19,7 @@ export function calculateWallet(
 ): LessonWallet {
   const totalPurchased = packages.reduce((sum, pkg) => sum + pkg.purchasedLessons, 0);
   const sessionConsumed = sessions.reduce((sum, session) => {
-    if (!session.closed) return sum;
+    if (!isSessionClosed(session)) return sum;
     const base = session.lessonConsume ?? 1;
     const attendance = session.attendance.filter((a) => a.studentId === studentId && a.present);
     if (attendance.length === 0) {

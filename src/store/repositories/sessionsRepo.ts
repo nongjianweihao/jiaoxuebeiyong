@@ -1,5 +1,6 @@
 import { db } from '../db';
 import type { SessionRecord } from '../../types';
+import { isSessionClosed } from '../../utils/session';
 
 export const sessionsRepo = {
   async upsert(record: SessionRecord) {
@@ -23,7 +24,7 @@ export const sessionsRepo = {
     return db.sessions
       .filter(
         (session) =>
-          session.closed &&
+          isSessionClosed(session) &&
           session.id !== excludeSessionId &&
           session.attendance.some((entry) => entry.studentId === studentId),
       )
