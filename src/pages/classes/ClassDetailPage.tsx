@@ -258,6 +258,7 @@ export function ClassDetailPage() {
   const [activePerformanceStudentId, setActivePerformanceStudentId] = useState<string | null>(null);
   const [freestyle, setFreestyle] = useState<FreestyleDraft[]>([]);
   const [session, setSession] = useState<SessionRecord | null>(null);
+  const lastAutoSaveRef = useRef<Promise<void> | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [blockCompletion, setBlockCompletion] = useState<
     Record<string, boolean>
@@ -1435,6 +1436,16 @@ export function ClassDetailPage() {
       return;
     }
 
+    if (lastAutoSaveRef.current) {
+      try {
+        await lastAutoSaveRef.current;
+      } catch (error) {
+        console.error('等待课堂自动保存完成失败', error);
+      } finally {
+        lastAutoSaveRef.current = null;
+      }
+    }
+
     const overrides = Object.entries(consumeOverrides)
       .filter(([, consume]) => consume !== undefined)
       .map(([studentId, consume]) => ({
@@ -1468,37 +1479,64 @@ export function ClassDetailPage() {
     };
 
     const previousBestMap = new Map<string, number>();
-    await Promise.all(
-      students.map(async (student) => {
-        const history = await sessionsRepo.listClosedByStudent(student.id, session.id);
-        const best = history.reduce((max, item) => {
-          const candidate = item.speed
-            .filter((row) => row.studentId === student.id && row.mode === 'single' && row.window === 30)
-            .reduce((inner, row) => Math.max(inner, row.reps), 0);
-          return Math.max(max, candidate);
-        }, 0);
-        previousBestMap.set(student.id, best);
-      }),
-    );
+    try {
+      await Promise.all(
+        students.map(async (student) => {
+          const history = await sessionsRepo.listClosedByStudent(student.id, session.id);
+          const best = history.reduce((max, item) => {
+            const candidate = item.speed
+              .filter((row) => row.studentId === student.id && row.mode === 'single' && row.window === 30)
+              .reduce((inner, row) => Math.max(inner, row.reps), 0);
+            return Math.max(max, candidate);
+          }, 0);
+          previousBestMap.set(student.id, best);
+        }),
+      );
+    } catch (error) {
+      console.error('加载历史最佳成绩失败', error);
+    }
 
-    await sessionsRepo.upsert(record);
+    let syncSuccessful = true;
+
+    try {
+      await sessionsRepo.upsert(record);
+    } catch (error) {
+      syncSuccessful = false;
+      console.error('保存课堂记录失败', error);
+    }
 
     if (cyclePlan) {
       const targetSessionIds = record.cycleSessionIds && record.cycleSessionIds.length
         ? record.cycleSessionIds
         : record.missionCardIds ?? [];
       if (targetSessionIds.length) {
-        await Promise.all(
-          targetSessionIds.map((sessionId) =>
-            trainingRepo.markSessionCompleted(cyclePlan.id, sessionId, record.date),
-          ),
-        );
+        try {
+          await Promise.all(
+            targetSessionIds.map((sessionId) =>
+              trainingRepo.markSessionCompleted(cyclePlan.id, sessionId, record.date),
+            ),
+          );
+        } catch (error) {
+          syncSuccessful = false;
+          console.error('更新周期计划进度失败', error);
+        }
       }
-      const refreshedPlan = await trainingRepo.getActivePlan(classId);
-      setCyclePlan(refreshedPlan ?? null);
+      try {
+        const refreshedPlan = await trainingRepo.getActivePlan(classId);
+        setCyclePlan(refreshedPlan ?? null);
+      } catch (error) {
+        syncSuccessful = false;
+        console.error('刷新周期计划失败', error);
+      }
     }
 
-    await pointEventsRepo.removeBySession(record.id);
+    try {
+      await pointEventsRepo.removeBySession(record.id);
+    } catch (error) {
+      syncSuccessful = false;
+      console.error('清理积分记录失败', error);
+    }
+
     const totals = new Map<string, number>();
     const pointEvents: PointEvent[] = [];
 
@@ -1534,30 +1572,35 @@ export function ClassDetailPage() {
 
     const updatedStudents = new Map<string, Student>();
 
-    await Promise.all(
-      students.map(async (student) => {
-        const prevBest = previousBestMap.get(student.id) ?? 0;
-        const currentBest = record.speed
-          .filter((row) => row.studentId === student.id && row.mode === 'single' && row.window === 30)
-          .reduce((max, row) => Math.max(max, row.reps), prevBest);
+    try {
+      await Promise.all(
+        students.map(async (student) => {
+          const prevBest = previousBestMap.get(student.id) ?? 0;
+          const currentBest = record.speed
+            .filter((row) => row.studentId === student.id && row.mode === 'single' && row.window === 30)
+            .reduce((max, row) => Math.max(max, row.reps), prevBest);
 
-        if (currentBest > prevBest) {
-          const reason =
-            prevBest > 0
-              ? `30s单摇最佳 ${prevBest} -> ${currentBest}`
-              : `30s单摇达到 ${currentBest}`;
-          pushEvent(student.id, 'pr', getPointValue('pr'), reason);
-        }
+          if (currentBest > prevBest) {
+            const reason =
+              prevBest > 0
+                ? `30s单摇最佳 ${prevBest} -> ${currentBest}`
+                : `30s单摇达到 ${currentBest}`;
+            pushEvent(student.id, 'pr', getPointValue('pr'), reason);
+          }
 
-        const updated = { ...student };
-        const before = updated.currentRank ?? 0;
-        const after = maybeUpgradeRank(updated, currentBest);
-        if (after > before) {
-          await studentsRepo.upsert(updated);
-          updatedStudents.set(student.id, updated);
-        }
-      }),
-    );
+          const updated = { ...student };
+          const before = updated.currentRank ?? 0;
+          const after = maybeUpgradeRank(updated, currentBest);
+          if (after > before) {
+            await studentsRepo.upsert(updated);
+            updatedStudents.set(student.id, updated);
+          }
+        }),
+      );
+    } catch (error) {
+      syncSuccessful = false;
+      console.error('更新学员段位失败', error);
+    }
 
     const sessionDate = new Date(record.date);
     const freestyleEnergyAwards: Array<Promise<void>> = [];
@@ -1590,7 +1633,12 @@ export function ClassDetailPage() {
       });
 
     if (freestyleEnergyAwards.length) {
-      await Promise.all(freestyleEnergyAwards);
+      try {
+        await Promise.all(freestyleEnergyAwards);
+      } catch (error) {
+        syncSuccessful = false;
+        console.error('发放花样挑战能量失败', error);
+      }
     }
 
     record.performance?.forEach((entry) => {
@@ -1609,7 +1657,12 @@ export function ClassDetailPage() {
     });
 
     if (pointEvents.length) {
-      await pointEventsRepo.bulkAdd(pointEvents);
+      try {
+        await pointEventsRepo.bulkAdd(pointEvents);
+      } catch (error) {
+        syncSuccessful = false;
+        console.error('写入课堂积分失败', error);
+      }
     }
 
     if (updatedStudents.size) {
@@ -1629,7 +1682,8 @@ export function ClassDetailPage() {
       });
       return map;
     });
-    setStatus('本次挑战已同步到成长册');
+
+    setStatus(syncSuccessful ? '本次挑战已同步到成长册' : '同步出现异常，请稍后在成长册核对数据');
 
     setPreviousSpeedRecords(record.speed);
 
@@ -1732,13 +1786,19 @@ export function ClassDetailPage() {
       highlights: deriveHighlights(),
       attendanceEnergyAwarded: attendanceAwarded,
     };
-    void (async () => {
+    const task = (async () => {
       try {
         await sessionsRepo.upsert(record);
       } catch (error) {
         console.error('保存课堂进度失败', error);
       }
     })();
+    void task.finally(() => {
+      if (lastAutoSaveRef.current === task) {
+        lastAutoSaveRef.current = null;
+      }
+    });
+    lastAutoSaveRef.current = task;
   }, [
     session,
     attendance,
