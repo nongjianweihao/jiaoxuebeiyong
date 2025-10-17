@@ -156,6 +156,8 @@ function createDimensionScoreMap(): Record<PerformanceDimensionId, number> {
 
 function createEmptyPerformanceDraft(): PerformanceDraft {
   return {
+    performanceId: generateId(),
+    noteId: generateId(),
     stars: DEFAULT_PERFORMANCE_SCORE,
     comment: '',
     presetIds: [],
@@ -212,6 +214,7 @@ export function ClassDetailPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [classEntity, setClassEntity] = useState<ClassEntity | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [template, setTemplate] = useState<TrainingTemplate | null>(null);
   const [rankMoves, setRankMoves] = useState<RankMove[]>([]);
   const [warriorNodes, setWarriorNodes] = useState<WarriorPathNode[]>([]);
@@ -244,6 +247,7 @@ export function ClassDetailPage() {
   const [planStartDate, setPlanStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [assigningPlan, setAssigningPlan] = useState(false);
+  const [pendingStudentId, setPendingStudentId] = useState('');
 
   const [showMissionDetail, setShowMissionDetail] = useState(false);
   const [activeBlockKey, setActiveBlockKey] = useState<string | null>(null);
@@ -361,6 +365,13 @@ export function ClassDetailPage() {
   const activePerformanceDraft = activePerformanceStudent
     ? performanceDrafts[activePerformanceStudent.id] ?? createEmptyPerformanceDraft()
     : null;
+
+  const availableStudentsToAdd = useMemo(() => {
+    const existingIds = new Set(students.map((student) => student.id));
+    return allStudents
+      .filter((student) => !existingIds.has(student.id))
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+  }, [allStudents, students]);
 
   const handleOpenPuzzleFlip = useCallback(
     (cardId: string) => {
@@ -800,6 +811,53 @@ export function ClassDetailPage() {
     };
   }, [selectedSession, sortedPlanSessions]);
 
+  const restoreActiveSession = useCallback(
+    (record: SessionRecord, resolvedStudents: Student[]) => {
+      fallbackSessionDateRef.current = record.date;
+      setSession(record);
+      if (record.attendance?.length) {
+        setAttendance(record.attendance);
+      } else {
+        setAttendance(
+          resolvedStudents.map((student) => ({ studentId: student.id, present: true })),
+        );
+      }
+      setSpeedRows(
+        (record.speed ?? []).map(({ studentId, window, mode, reps }) => ({
+          studentId,
+          window,
+          mode,
+          reps,
+        })),
+      );
+      setFreestyle(
+        (record.freestyle ?? []).map((item) => ({
+          id: item.id,
+          studentId: item.studentId,
+          moveId: item.moveId,
+          passed: item.passed,
+          note: item.note,
+        })),
+      );
+      const overrideMap: Record<string, number | undefined> = {};
+      record.consumeOverrides?.forEach((item) => {
+        overrideMap[item.studentId] = item.consume;
+      });
+      setConsumeOverrides(overrideMap);
+      const completionMap: Record<string, boolean> = {};
+      record.executedBlockIds?.forEach((id) => {
+        completionMap[id] = true;
+      });
+      setBlockCompletion(completionMap);
+      setAttendanceAwarded(Boolean(record.attendanceEnergyAwarded));
+      setStatus('已恢复上次未结课的课堂进度');
+      setPendingFlip(null);
+      setFlippingCardId(null);
+      setPendingStudentId('');
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!missionBlockEntries.length) {
       setBlockCompletion((prev) => (Object.keys(prev).length ? {} : prev));
@@ -898,10 +956,10 @@ export function ClassDetailPage() {
 
         const studentList = await studentsRepo.list();
         if (disposed) return;
-        const filtered = rosterIds.length
+        setAllStudents(studentList);
+        const rosterStudents = rosterIds.length
           ? studentList.filter((student) => rosterIds.includes(student.id))
           : [];
-        setStudents(filtered);
 
         if (cls.templateId) {
           const tpl = await templatesRepo.get(cls.templateId);
@@ -921,9 +979,10 @@ export function ClassDetailPage() {
           qualityList,
           trainingDrillList,
           trainingGameList,
+          sessionHistory,
         ] = await Promise.all([
 
-          
+
 
           db.rankMoves.toArray(),
           db.warriorNodes.toArray(),
@@ -933,6 +992,7 @@ export function ClassDetailPage() {
           trainingRepo.listQualities(),
           trainingRepo.listDrills(),
           trainingRepo.listGames(),
+          sessionsRepo.listByClass(classId),
         ]);
 
         if (disposed) return;
@@ -947,20 +1007,63 @@ export function ClassDetailPage() {
         setTrainingGames(trainingGameList);
         setSelectedTemplateId((prev) => prev || templateList[0]?.id || '');
 
+        const lastClosed = [...sessionHistory].filter((item) => item.closed).pop();
+        setPreviousSpeedRecords(lastClosed?.speed ?? []);
+
+        const activeSession = [...sessionHistory].filter((item) => !item.closed).pop() ?? null;
+        const resolvedStudents = (() => {
+          if (!activeSession) return rosterStudents;
+          const extraStudents = activeSession.attendance
+            .map(({ studentId }) => studentList.find((student) => student.id === studentId))
+            .filter((student): student is Student => Boolean(student));
+          const map = new Map<string, Student>();
+          [...rosterStudents, ...extraStudents].forEach((student) => {
+            map.set(student.id, student);
+          });
+          return Array.from(map.values());
+        })();
+        setStudents(resolvedStudents);
+
         if (plan?.sessions.length) {
           const sorted = [...plan.sessions].sort(
             (a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime(),
           );
-          const next = sorted.find((session) => session.status !== 'completed') ?? sorted[sorted.length - 1];
-          setSelectedSessionId(next?.id ?? null);
+          if (activeSession?.cycleSessionIds?.length) {
+            setSelectedSessionId(activeSession.cycleSessionIds[0]);
+          } else if (activeSession?.missionCardIds?.length) {
+            const matching = sorted.find((session) =>
+              activeSession.missionCardIds?.includes(session.missionCardId),
+            );
+            if (matching) {
+              setSelectedSessionId(matching.id);
+            } else {
+              const next =
+                sorted.find((session) => session.status !== 'completed') ?? sorted[sorted.length - 1];
+              setSelectedSessionId(next?.id ?? null);
+            }
+          } else {
+            const next =
+              sorted.find((session) => session.status !== 'completed') ?? sorted[sorted.length - 1];
+            setSelectedSessionId(next?.id ?? null);
+          }
         } else {
           setSelectedSessionId(null);
         }
 
-        const history = await sessionsRepo.listByClass(classId);
-        if (!disposed) {
-          const lastClosed = [...history].filter((item) => item.closed).pop();
-          setPreviousSpeedRecords(lastClosed?.speed ?? []);
+        if (activeSession) {
+          restoreActiveSession(activeSession, resolvedStudents);
+        } else {
+          setSession(null);
+          setAttendance([]);
+          setSpeedRows([]);
+          setFreestyle([]);
+          setConsumeOverrides({});
+          setAttendanceAwarded(false);
+          setBlockCompletion({});
+          setPendingFlip(null);
+          setFlippingCardId(null);
+          setStatus(null);
+          setPendingStudentId('');
         }
       } catch (error) {
         console.error('加载训练营详情失败', error);
@@ -984,7 +1087,7 @@ export function ClassDetailPage() {
     return () => {
       disposed = true;
     };
-  }, [classId, reloadToken]);
+  }, [classId, reloadToken, restoreActiveSession]);
 
   useEffect(() => {
     if (!cyclePlan) {
@@ -1056,8 +1159,10 @@ export function ClassDetailPage() {
       performance: [],
       closed: false,
       lessonConsume: 1,
+      attendanceEnergyAwarded: false,
     };
     setSession(newSession);
+    fallbackSessionDateRef.current = newSession.date;
     setAttendance(newSession.attendance);
     setSpeedRows([]);
     setPerformanceDrafts(() => {
@@ -1074,17 +1179,79 @@ export function ClassDetailPage() {
     });
     setBlockCompletion(completionMap);
     setConsumeOverrides({});
-    setStatus(null);
+    setStatus('本次挑战已开启，可随时离开页面继续');
     setAttendanceAwarded(false);
     setPendingFlip(null);
     setFlippingCardId(null);
     setPuzzleQuest(null);
     setPuzzleTemplate(null);
+    setPendingStudentId('');
+    void sessionsRepo.upsert(newSession);
   };
 
   const addFreestyle = (draft: Omit<FreestyleDraft, "id">) => {
     setFreestyle((prev) => [...prev, { ...draft, id: generateId() }]);
   };
+
+  const buildPerformanceArtifacts = useCallback(
+    (updatedAt: string) => {
+      const performanceEntries: SessionPerformanceEntry[] = [];
+      const notes: TrainingNote[] = [];
+      students.forEach((student) => {
+        const draft = performanceDrafts[student.id] ?? createEmptyPerformanceDraft();
+        const dimensionScores = PERFORMANCE_DIMENSIONS.map((dimension) => ({
+          dimension: dimension.id,
+          score: draft.dimensionScores[dimension.id] ?? DEFAULT_PERFORMANCE_SCORE,
+        }));
+        const presetIds = draft.presetIds ?? [];
+        const noteId = draft.noteId ?? generateId();
+        const performanceId = draft.performanceId ?? generateId();
+        const entry: SessionPerformanceEntry = {
+          id: performanceId,
+          studentId: student.id,
+          stars: draft.stars,
+          presetIds,
+          comment: draft.comment.trim() ? draft.comment.trim() : undefined,
+          noteId,
+          attendance: attendance.find((item) => item.studentId === student.id)?.present
+            ? 'present'
+            : 'absent',
+          dimensions: dimensionScores,
+          updatedAt,
+        };
+        performanceEntries.push(entry);
+
+        const highlightLabels = presetIds
+          .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
+          .filter((preset) => preset?.tone === 'highlight')
+          .map((preset) => preset!.label);
+        const focusLabels = presetIds
+          .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
+          .filter((preset) => preset?.tone === 'focus')
+          .map((preset) => preset!.label);
+        const dimensionSummary = dimensionScores
+          .map((item) => {
+            const meta = PERFORMANCE_DIMENSIONS.find((dimension) => dimension.id === item.dimension);
+            return `${meta?.label ?? item.dimension}${item.score}分`;
+          })
+          .join('｜');
+        const commentParts = [dimensionSummary];
+        if (highlightLabels.length) commentParts.push(`亮点：${highlightLabels.join('、')}`);
+        if (focusLabels.length) commentParts.push(`关注：${focusLabels.join('、')}`);
+        if (entry.comment) commentParts.push(entry.comment);
+
+        notes.push({
+          id: noteId,
+          studentId: student.id,
+          rating: entry.stars,
+          comments: commentParts.join(' / '),
+          tags: highlightLabels,
+        });
+      });
+      return { performanceEntries, notes };
+    },
+    [attendance, performanceDrafts, students],
+  );
 
   const handleOverrideChange = (studentId: string, consume?: number) => {
     setConsumeOverrides((prev) => {
@@ -1097,6 +1264,26 @@ export function ClassDetailPage() {
       return next;
     });
   };
+
+  const handleAddStudent = useCallback(() => {
+    if (!pendingStudentId) return;
+    const candidate = allStudents.find((student) => student.id === pendingStudentId);
+    if (!candidate) return;
+    setStudents((prev) => {
+      if (prev.some((student) => student.id === candidate.id)) {
+        return prev;
+      }
+      return [...prev, candidate];
+    });
+    setAttendance((prev) => {
+      if (prev.some((item) => item.studentId === candidate.id)) {
+        return prev;
+      }
+      return [...prev, { studentId: candidate.id, present: true }];
+    });
+    setStatus(`已添加 ${candidate.name} 加入课堂`);
+    setPendingStudentId('');
+  }, [allStudents, pendingStudentId]);
 
   const handleClose = async () => {
     if (!session) return;
@@ -1112,59 +1299,7 @@ export function ClassDetailPage() {
       .map(([blockId]) => blockId);
 
     const now = new Date().toISOString();
-    const performanceEntries: SessionPerformanceEntry[] = [];
-    const notes: TrainingNote[] = [];
-
-    students.forEach((student) => {
-      const draft = performanceDrafts[student.id] ?? createEmptyPerformanceDraft();
-      const dimensionScores = PERFORMANCE_DIMENSIONS.map((dimension) => ({
-        dimension: dimension.id,
-        score: draft.dimensionScores[dimension.id] ?? DEFAULT_PERFORMANCE_SCORE,
-      }));
-      const presetIds = draft.presetIds ?? [];
-      const noteId = draft.noteId ?? generateId();
-      const entry: SessionPerformanceEntry = {
-        id: draft.performanceId ?? generateId(),
-        studentId: student.id,
-        stars: draft.stars,
-        presetIds,
-        comment: draft.comment.trim() ? draft.comment.trim() : undefined,
-        noteId,
-        attendance: attendance.find((item) => item.studentId === student.id)?.present
-          ? 'present'
-          : 'absent',
-        dimensions: dimensionScores,
-        updatedAt: now,
-      };
-      performanceEntries.push(entry);
-
-      const highlightLabels = presetIds
-        .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
-        .filter((preset) => preset?.tone === 'highlight')
-        .map((preset) => preset!.label);
-      const focusLabels = presetIds
-        .map((id) => PERFORMANCE_PRESET_LOOKUP[id])
-        .filter((preset) => preset?.tone === 'focus')
-        .map((preset) => preset!.label);
-      const dimensionSummary = dimensionScores
-        .map((item) => {
-          const meta = PERFORMANCE_DIMENSIONS.find((dimension) => dimension.id === item.dimension);
-          return `${meta?.label ?? item.dimension}${item.score}分`;
-        })
-        .join('｜');
-      const commentParts = [dimensionSummary];
-      if (highlightLabels.length) commentParts.push(`亮点：${highlightLabels.join('、')}`);
-      if (focusLabels.length) commentParts.push(`关注：${focusLabels.join('、')}`);
-      if (entry.comment) commentParts.push(entry.comment);
-
-      notes.push({
-        id: noteId,
-        studentId: student.id,
-        rating: entry.stars,
-        comments: commentParts.join(' / '),
-        tags: highlightLabels,
-      });
-    });
+    const { performanceEntries, notes } = buildPerformanceArtifacts(now);
 
     const record: SessionRecord = {
       ...session,
@@ -1411,6 +1546,71 @@ export function ClassDetailPage() {
     });
   };
 
+
+
+  useEffect(() => {
+    if (!session || session.closed) return;
+    const overrides = Object.entries(consumeOverrides)
+      .filter(([, value]) => value !== undefined)
+      .map(([studentId, consume]) => ({
+        studentId,
+        consume: Number(consume),
+      }));
+    const executedBlockIds = Object.entries(blockCompletion)
+      .filter(([, done]) => done)
+      .map(([blockId]) => blockId);
+    const now = new Date().toISOString();
+    const { performanceEntries, notes } = buildPerformanceArtifacts(now);
+    const record: SessionRecord = {
+      ...session,
+      attendance,
+      speed: speedRows.map((row) => ({
+        id: `${row.studentId}-${row.mode}-${row.window}`,
+        studentId: row.studentId,
+        mode: row.mode,
+        window: row.window,
+        reps: row.reps,
+      })),
+      freestyle: freestyle.map((item) => ({
+        id: item.id,
+        studentId: item.studentId,
+        moveId: item.moveId,
+        passed: item.passed,
+        note: item.note,
+      })),
+      notes,
+      performance: performanceEntries,
+      consumeOverrides: overrides.length ? overrides : undefined,
+      executedBlockIds: executedBlockIds.length ? executedBlockIds : undefined,
+      highlights: deriveHighlights(),
+      attendanceEnergyAwarded: attendanceAwarded,
+    };
+    void (async () => {
+      try {
+        await sessionsRepo.upsert(record);
+      } catch (error) {
+        console.error('保存课堂进度失败', error);
+      }
+    })();
+  }, [
+    session,
+    attendance,
+    speedRows,
+    freestyle,
+    consumeOverrides,
+    blockCompletion,
+    buildPerformanceArtifacts,
+    deriveHighlights,
+    attendanceAwarded,
+  ]);
+
+  useEffect(() => {
+    setSession((prev) => {
+      if (!prev || prev.closed) return prev;
+      if (prev.attendanceEnergyAwarded === attendanceAwarded) return prev;
+      return { ...prev, attendanceEnergyAwarded: attendanceAwarded };
+    });
+  }, [attendanceAwarded]);
 
   const handleAttendanceEnergy = async () => {
     const presentStudentIds = attendance
@@ -2290,6 +2490,44 @@ export function ClassDetailPage() {
             </div>
             <div className="grid gap-6 xl:grid-cols-[1.05fr,1.4fr]">
               <div className="space-y-4">
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-600 shadow-sm">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <label className="flex-1 text-xs font-semibold text-slate-500">
+                      <span className="block text-[11px] uppercase tracking-[0.3em] text-slate-400">
+                        添加临时学员
+                      </span>
+                      <select
+                        value={pendingStudentId}
+                        onChange={(event) => setPendingStudentId(event.target.value)}
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none"
+                      >
+                        <option value="">选择勇士加入课堂</option>
+                        {availableStudentsToAdd.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {student.name} · 段位 L{student.currentRank ?? '-'}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddStudent}
+                      disabled={!pendingStudentId || !availableStudentsToAdd.length}
+                      className="rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      添加到课堂
+                    </button>
+                  </div>
+                  {availableStudentsToAdd.length ? (
+                    <p className="mt-2 text-[11px] text-slate-400">
+                      临时添加的勇士仅参与本次课堂，不会改变训练营常规名单。
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-[11px] text-slate-400">
+                      所有勇士均已在课堂中，可在成长册中创建新学员后再加入。
+                    </p>
+                  )}
+                </div>
                 <AttendanceGrid
                   students={students}
                   value={attendance}
