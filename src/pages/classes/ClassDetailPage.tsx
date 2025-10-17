@@ -258,6 +258,7 @@ export function ClassDetailPage() {
   const [activePerformanceStudentId, setActivePerformanceStudentId] = useState<string | null>(null);
   const [freestyle, setFreestyle] = useState<FreestyleDraft[]>([]);
   const [session, setSession] = useState<SessionRecord | null>(null);
+  const lastAutoSaveRef = useRef<Promise<void> | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [blockCompletion, setBlockCompletion] = useState<
     Record<string, boolean>
@@ -1435,6 +1436,16 @@ export function ClassDetailPage() {
       return;
     }
 
+    if (lastAutoSaveRef.current) {
+      try {
+        await lastAutoSaveRef.current;
+      } catch (error) {
+        console.error('等待课堂自动保存完成失败', error);
+      } finally {
+        lastAutoSaveRef.current = null;
+      }
+    }
+
     const overrides = Object.entries(consumeOverrides)
       .filter(([, consume]) => consume !== undefined)
       .map(([studentId, consume]) => ({
@@ -1775,13 +1786,19 @@ export function ClassDetailPage() {
       highlights: deriveHighlights(),
       attendanceEnergyAwarded: attendanceAwarded,
     };
-    void (async () => {
+    const task = (async () => {
       try {
         await sessionsRepo.upsert(record);
       } catch (error) {
         console.error('保存课堂进度失败', error);
       }
     })();
+    void task.finally(() => {
+      if (lastAutoSaveRef.current === task) {
+        lastAutoSaveRef.current = null;
+      }
+    });
+    lastAutoSaveRef.current = task;
   }, [
     session,
     attendance,
