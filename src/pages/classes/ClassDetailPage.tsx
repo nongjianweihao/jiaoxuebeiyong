@@ -2727,7 +2727,7 @@ export function ClassDetailPage() {
           <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-purple-400">FlipQuest</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-purple-400">翻牌任务</p>
                 <h3 className="mt-1 text-2xl font-bold text-slate-900">翻开「{pendingFlipCard.title}」</h3>
                 <p className="mt-2 text-sm text-slate-500">
                   选择参与的勇士，能量将按人数自动平分。

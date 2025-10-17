@@ -324,7 +324,7 @@ function StageForm({ value, onChange, stages }: StageFormProps) {
         />
       </label>
       <label className="space-y-1">
-        <span className="text-xs font-semibold text-slate-500">成长路线映射 ID（rookie/warrior/elite/legend）</span>
+        <span className="text-xs font-semibold text-slate-500">成长路线映射 ID（rookie/warrior/elite/legend，对应新秀/勇士/精英/传奇）</span>
         <input
           value={value.growthRoadmapStageId ?? ''}
           onChange={(event) => onChange({ ...value, growthRoadmapStageId: event.target.value })}
@@ -1529,7 +1529,7 @@ function CycleForm({
                           <>
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[11px] font-semibold text-purple-600">
-                                难度 Lv.{template.difficulty ?? 3}
+                                难度等级 {template.difficulty ?? 3}
                               </span>
                               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
                                 总能量 {template.totalEnergy ?? template.cards.reduce((sum, card) => sum + (card.reward?.energy ?? 0), 0)}⚡
@@ -1683,7 +1683,7 @@ function PuzzleForm({ value, cardsJson, onChange, onCardsJsonChange }: PuzzleFor
           >
             {[1, 2, 3, 4, 5].map((level) => (
               <option key={level} value={level}>
-                Lv.{level}
+                等级 {level}
               </option>
             ))}
           </select>

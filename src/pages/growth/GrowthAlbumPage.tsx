@@ -1,7 +1,7 @@
 const growthMilestones = [
   {
-    title: 'Speed 等级提升',
-    detail: '张星语从 Speed Lv2 升至 Lv3，连续完成 5 张极速挑战卡。',
+    title: '极速等级提升',
+    detail: '张星语从极速等级2升至等级3，连续完成 5 张极速挑战卡。',
     reward: '获得「闪电勇士」勋章',
   },
   {
@@ -11,7 +11,7 @@ const growthMilestones = [
   },
   {
     title: '团队荣誉徽章',
-    detail: 'Jump Rangers 小队完成团队任务卡 8/8。',
+    detail: '跳跃游侠小队完成团队任务卡 8/8。',
     reward: '新增团队徽章「协奏之心」',
   },
 ];
@@ -22,7 +22,7 @@ export function GrowthAlbumPage() {
       <header className="rounded-3xl bg-white/80 p-8 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="uppercase tracking-[0.4em] text-slate-400">Growth Chronicle</p>
+            <p className="uppercase tracking-[0.4em] text-slate-400">成长纪事</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">勇士成长册</h1>
             <p className="mt-2 text-sm text-slate-500">任务完成、星级晋升、勋章收集，一册记录全部精彩瞬间。</p>
           </div>

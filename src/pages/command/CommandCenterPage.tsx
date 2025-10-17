@@ -346,7 +346,7 @@ export function CommandCenterPage() {
       <header className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="uppercase tracking-[0.4em] text-slate-400">Growth Command</p>
+            <p className="uppercase tracking-[0.4em] text-slate-400">成长指挥塔</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">成长指挥塔 · 运营驾驶舱</h1>
             <p className="mt-2 text-sm text-slate-500">
               连接课消、营收、课包与学员分层的核心指标，帮助迅速定位增长机会与风险点。
@@ -524,7 +524,7 @@ export function CommandCenterPage() {
                   <h2 className="text-xl font-semibold text-slate-900">课包剩余预警</h2>
                   <p className="text-sm text-slate-500">提前锁定续费窗口，保障现金流稳定。</p>
                 </div>
-                <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-500">Top 5</span>
+                <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-500">前5名</span>
               </header>
               {outstanding.length ? (
                 <ul className="space-y-3 text-xs text-slate-600">

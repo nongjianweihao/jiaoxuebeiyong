@@ -62,7 +62,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '活力热身',
-            duration: '8 min',
+            duration: '8 分钟',
             focus: '动态激活 · 节奏唤醒',
             description: '通过 SR30 拍点与多方向移动唤醒踝、膝、髋的协同发力。',
             activities: ['SR30 节奏热身', '多方向折返跑', '动态拉伸'],
@@ -70,7 +70,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '速度技巧',
-            duration: '12 min',
+            duration: '12 分钟',
             focus: '单脚交换 · 敏捷梯',
             description: '结合敏捷梯与低绳反应练习，强化脚踝稳定与步频控制。',
             activities: ['敏捷梯组合', '低绳反应跑', '单脚交换跳'],
@@ -78,7 +78,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '双摇闯关',
-            duration: '15 min',
+            duration: '15 分钟',
             focus: '双摇爆发 · 节奏衔接',
             description: '分组完成 6 × 20 秒的双摇闯关，强调呼吸节奏与爆发输出。',
             activities: ['双摇 20 秒挑战', '伙伴节奏提醒', '爆发+恢复循环'],
@@ -86,7 +86,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '整理拉伸',
-            duration: '10 min',
+            duration: '10 分钟',
             focus: '呼吸回落 · 核心放松',
             description: '以方块呼吸与静态拉伸结束课堂，帮助身体恢复到稳定状态。',
             activities: ['方块呼吸法', '腘绳肌静态拉伸', '肩带放松'],
@@ -95,7 +95,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '前两个环节可根据班级水平调整节奏梯密度。若双摇闯关压力大，可改为 15 秒执行 + 15 秒恢复，确保高质量输出。',
         energySystem: '磷酸原系统 / 糖酵解系统',
-        recommended: 'Speed Lv.2-3 · 12-15 人小班',
+        recommended: '推荐：极速等级2-3 · 12-15 人小班',
       },
       {
         id: 'session-rhythm-play',
@@ -110,7 +110,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '节奏唤醒',
-            duration: '6 min',
+            duration: '6 分钟',
             focus: '拍点同步 · 轻盈跳跃',
             description: '以拍掌与基础跳跃唤醒身体节奏，强调放松握绳。',
             activities: ['节奏拍掌', '基础单摇', '轻盈落地提醒'],
@@ -118,7 +118,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '技巧拼图',
-            duration: '14 min',
+            duration: '14 分钟',
             focus: '节奏控制 · 动作连接',
             description: '拆分交叉、侧摆等动作，通过拼图卡片组合练习。',
             activities: ['动作拼图卡', '慢速演练', '伙伴节奏提示'],
@@ -126,7 +126,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '节奏迷宫',
-            duration: '12 min',
+            duration: '12 分钟',
             focus: '空间感知 · 团队协作',
             description: '设置 3×3 网格迷宫，学生持绳按节奏前进并完成指定动作。',
             activities: ['节奏迷宫闯关', '团队协作计时', '奖励星星机制'],
@@ -134,7 +134,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '节奏冷身',
-            duration: '8 min',
+            duration: '8 分钟',
             focus: '呼吸放松 · 肌肉延展',
             description: '以节奏呼吸结合静态拉伸收尾，并鼓励学生表达课堂收获。',
             activities: ['节奏呼吸', '肩颈放松', '课堂分享'],
@@ -143,7 +143,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '技巧拼图环节可根据学员年龄增减动作难度。节奏迷宫建议使用彩色标识提升路线识别度。',
         energySystem: '有氧系统',
-        recommended: 'Coordination Lv.1-2 · 8-12 人体验课',
+        recommended: '推荐：协调等级1-2 · 8-12 人体验课',
       },
     ],
   },
@@ -166,7 +166,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '序列热身',
-            duration: '10 min',
+            duration: '10 分钟',
             focus: '核心激活 · 节奏复现',
             description: '选用旧组合片段进行慢速复现，唤醒身体记忆与控制。',
             activities: ['组合慢速回放', '核心激活', '节奏提示音'],
@@ -174,7 +174,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '重点技巧',
-            duration: '18 min',
+            duration: '18 分钟',
             focus: '难度衔接 · 空间变化',
             description: '分组针对甩交叉、托绳等难点，使用镜面演练与慢动作反馈。',
             activities: ['镜面演练', '动作分解', '即刻反馈'],
@@ -182,7 +182,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '编排走台',
-            duration: '14 min',
+            duration: '14 分钟',
             focus: '表情管理 · 空间路线',
             description: '在 8×8 米场地模拟舞台走位，强调表情和身体朝向。',
             activities: ['走台排练', '表情卡抽取', '队形调整'],
@@ -190,7 +190,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '整理复盘',
-            duration: '8 min',
+            duration: '8 分钟',
             focus: '拉伸放松 · 口头复盘',
             description: '结合同伴互评，完成重点动作的口头复盘与目标设定。',
             activities: ['伙伴互评', '重点拉伸', '目标设定卡'],
@@ -199,7 +199,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '编排走台时可录制短视频用于课后复盘。若场地受限，可使用地贴标示关键站位，确保空间感。',
         energySystem: '混合能量系统',
-        recommended: 'Freestyle Lv.3-4 · 10-14 人校队',
+        recommended: '推荐：花样等级3-4 · 10-14 人校队',
       },
       {
         id: 'session-team-sync',
@@ -214,7 +214,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '节奏校准',
-            duration: '8 min',
+            duration: '8 分钟',
             focus: '拍点统一 · 呼吸共振',
             description: '使用节拍器配合身体律动，建立团队统一节奏。',
             activities: ['节拍器热身', '呼吸共振练习', '队形转换'],
@@ -222,7 +222,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '同步技巧',
-            duration: '20 min',
+            duration: '20 分钟',
             focus: '双人技巧 · 队形变化',
             description: '重点练习双人交叉、团体托绳等同步难点，分层次推进。',
             activities: ['双人交叉练习', '托绳节奏', '同步视频反馈'],
@@ -230,7 +230,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '合作挑战',
-            duration: '17 min',
+            duration: '17 分钟',
             focus: '沟通协作 · 压力测试',
             description: '设定限时闯关任务，完成团队跳绳组合与沟通记录。',
             activities: ['限时闯关', '沟通记录卡', '能量奖励机制'],
@@ -238,7 +238,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '冷身反馈',
-            duration: '10 min',
+            duration: '10 分钟',
             focus: '呼吸回落 · 团队互评',
             description: '结合泡沫轴滚压，完成团队互评与亮点分享。',
             activities: ['泡沫轴放松', '亮点分享', '改进建议'],
@@ -247,7 +247,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '合作挑战环节建议设置“节奏指挥官”角色轮换，提升学生参与感。注意在高负荷输出后安排充分恢复时间。',
         energySystem: '糖酵解系统 / 有氧系统',
-        recommended: 'Team Lv.3-4 · 16-20 人集训课',
+        recommended: '推荐：团队等级3-4 · 16-20 人集训课',
       },
     ],
   },
@@ -270,7 +270,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '速度热身',
-            duration: '10 min',
+            duration: '10 分钟',
             focus: '神经激活 · 关节预备',
             description: '结合 A 跑与高抬腿唤醒速度姿态，并进行关节专项热身。',
             activities: ['A 跑', '高抬腿', '动态关节预备'],
@@ -278,7 +278,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '冲刺分段',
-            duration: '16 min',
+            duration: '16 分钟',
             focus: '30 秒节奏 · 60 秒耐力',
             description: '分解冲刺段落进行 4 轮节奏练习，强调起跳与落地控制。',
             activities: ['冲刺计时', '节奏分段', '数据记录'],
@@ -286,7 +286,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '力量循环',
-            duration: '16 min',
+            duration: '16 分钟',
             focus: '下肢爆发 · 核心稳定',
             description: '设置 4 站循环：壶铃深蹲、波比跳、平板支撑、箱跳。',
             activities: ['壶铃深蹲', '波比跳', '箱跳', '核心稳定'],
@@ -294,7 +294,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '恢复复盘',
-            duration: '8 min',
+            duration: '8 分钟',
             focus: '呼吸恢复 · 数据总结',
             description: '使用呼吸节奏回落，并记录今日冲刺次数与主观疲劳。',
             activities: ['呼吸恢复', '数据记录表', '目标复盘'],
@@ -303,7 +303,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '力量循环建议按 30" 动作 + 15" 转换执行，鼓励学生记录最佳成绩。必要时降低器械重量以保证动作质量。',
         energySystem: '糖酵解系统 / 有氧系统',
-        recommended: 'Exam Lv.4-5 · 12-16 人冲刺班',
+        recommended: '推荐：冲刺等级4-5 · 12-16 人冲刺班',
       },
       {
         id: 'session-endurance-flow',
@@ -318,7 +318,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         segments: [
           {
             title: '节奏热身',
-            duration: '9 min',
+            duration: '9 分钟',
             focus: '呼吸节奏 · 体态调整',
             description: '以 2-2 呼吸节奏结合基础跳跃，建立节奏呼吸意识。',
             activities: ['2-2 呼吸', '基础跳跃', '体态提示'],
@@ -326,7 +326,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '间歇训练',
-            duration: '18 min',
+            duration: '18 分钟',
             focus: '45" 输出 · 15" 恢复',
             description: '执行 6 组 45" × 15" 的节奏间歇，强调落地缓冲与肩部放松。',
             activities: ['间歇计时', '伙伴计数', '落地反馈'],
@@ -334,7 +334,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '长程控制',
-            duration: '18 min',
+            duration: '18 分钟',
             focus: '连续节奏 · 心肺耐力',
             description: '进行 2 × 6 分钟的长程跳绳，加入节奏提示音辅助控制。',
             activities: ['长程跳绳', '节奏提示音', '心率监测'],
@@ -342,7 +342,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
           },
           {
             title: '整理舒缓',
-            duration: '10 min',
+            duration: '10 分钟',
             focus: '拉伸放松 · 心态回顾',
             description: '配合泡沫轴与静态拉伸恢复，并进行心态调整分享。',
             activities: ['泡沫轴放松', '静态拉伸', '心态分享'],
@@ -351,7 +351,7 @@ const sessionTemplateGroups: SessionTemplateGroup[] = [
         ],
         coachTip: '间歇训练可根据学员情况调整为 40"×20" 或 30"×15"。长程控制阶段建议使用节拍器或音乐辅助节奏稳定。',
         energySystem: '有氧系统',
-        recommended: 'Endurance Lv.3-4 · 18 人常规班',
+        recommended: '推荐：耐力等级3-4 · 18 人常规班',
       },
     ],
   },

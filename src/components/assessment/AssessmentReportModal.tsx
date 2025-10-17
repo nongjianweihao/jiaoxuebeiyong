@@ -43,7 +43,7 @@ export function AssessmentReportModal({ open, onClose, report }: AssessmentRepor
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ExportPdfButton targetId={targetId} filename={`${report.student?.name ?? 'warrior'}-report.pdf`} />
+            <ExportPdfButton targetId={targetId} filename={`${report.student?.name ?? '勇士'}-report.pdf`} />
             <button
               type="button"
               onClick={onClose}

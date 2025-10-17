@@ -131,7 +131,7 @@ export function Layout({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="rounded-2xl bg-white/15 p-4 text-xs text-white/80 backdrop-blur">
-          <p className="font-semibold">AI Mission 提示</p>
+          <p className="font-semibold">AI 任务提示</p>
           <p className="mt-1 leading-relaxed">根据勇士表现生成挑战，完成后即可领取能量值与星星奖励。</p>
 
 

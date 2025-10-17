@@ -68,11 +68,11 @@ const PUZZLE_CATEGORY_META: Record<PuzzleCategory, { label: string; accent: stri
 };
 
 const DIFFICULTY_LABEL: Record<1 | 2 | 3 | 4 | 5, string> = {
-  1: 'Lv.1',
-  2: 'Lv.2',
-  3: 'Lv.3',
-  4: 'Lv.4',
-  5: 'Lv.5',
+  1: '等级1',
+  2: '等级2',
+  3: '等级3',
+  4: '等级4',
+  5: '等级5',
 };
 
 
@@ -1115,7 +1115,7 @@ export function TrainingLibraryPage() {
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold text-slate-800">课堂主线谜题库</h2>
                 <p className="text-sm text-slate-500">
-                  已内置 {puzzles.length} 套 FlipQuest 主线谜题，可用于课程模板、战队挑战与个人任务的翻牌激励。
+                  已内置 {puzzles.length} 套翻牌主线谜题，可用于课程模板、战队挑战与个人任务的翻牌激励。
                 </p>
                 {activeCategoryMeta && (
                   <p className="text-xs text-slate-400">当前分类：{activeCategoryMeta.description}</p>

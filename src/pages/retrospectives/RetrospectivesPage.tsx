@@ -173,7 +173,7 @@ export function RetrospectivesPage() {
     <div className="space-y-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-500">Review Engine</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-500">复盘引擎</p>
           <h1 className="text-3xl font-bold text-slate-900">复盘智库</h1>
           <p className="mt-1 max-w-xl text-sm text-slate-500">
             每次课程 3 分钟复盘：记录亮点、识别阻碍、生成下一步行动，让勇士训练营持续迭代升级。
@@ -231,7 +231,7 @@ export function RetrospectivesPage() {
           accent="text-emerald-600"
         />
         <div className="rounded-3xl border border-white/60 bg-white/90 p-5 shadow-sm backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">关注焦点 TOP</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">关注焦点榜</p>
           <ul className="mt-3 space-y-2 text-sm text-slate-600">
             {focusLeaders.length ? (
               focusLeaders.map(([tag, count]) => {
