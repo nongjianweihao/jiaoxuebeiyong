@@ -124,6 +124,32 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
       return items;
     }, [energyLeader, focusItems, highlightItems]);
 
+    const secretaryNote = useMemo(() => {
+      const presentLabel = `${presentCount} / ${totalCount}`;
+      return `已整理 ${presentLabel} 出勤信息与亮点，随时可分享给家长群。`;
+    }, [presentCount, totalCount]);
+
+    const coachNote = useMemo(() => {
+      if (focusItems.length) {
+        return `本周重点：${focusItems.slice(0, 3).join('、')}，可在下堂课继续巩固。`;
+      }
+      return '可结合学员反馈，制定下堂课的巩固小目标。';
+    }, [focusItems]);
+
+    const parentNote = useMemo(() => {
+      if (highlightItems.length) {
+        return `课堂亮点 ${highlightItems.length} 条，回家可以和孩子聊聊其中的精彩瞬间。`;
+      }
+      return '课堂数据已同步，鼓励孩子保持参与感。';
+    }, [highlightItems]);
+
+    const studentNote = useMemo(() => {
+      if (energyLeader) {
+        return `${energyLeader.name} 能量值 ${energyLeader.energy}，下次一起冲击新的纪录！`;
+      }
+      return '团队士气在线，下次课堂继续一起突破自我！';
+    }, [energyLeader]);
+
     return (
       <div
         ref={ref}
@@ -221,6 +247,8 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
             </ul>
           </section>
 
+
+
           <footer className="mt-5 text-[11px] text-slate-200">
             {allAbsent.length ? (
               <p>
@@ -228,7 +256,7 @@ export const ClassShareCard = forwardRef<HTMLDivElement, ClassShareCardProps>(
                 <span className="ml-1 text-emerald-200">期待下次并肩作战！</span>
               </p>
             ) : (
-              <p className="text-emerald-200">全员到齐，保持这份专注与默契，下一堂课继续发光！</p>
+              <p className="text-emerald-200">希望大家保持这份专注与默契，下一堂课继续发光！</p>
             )}
           </footer>
         </section>
