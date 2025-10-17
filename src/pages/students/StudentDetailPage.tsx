@@ -994,7 +994,7 @@ export function StudentDetailPage() {
           >
             编辑勇士
           </Link>
-          <ExportPdfButton targetId="student-report" filename={`${student?.name ?? 'student'}-report.pdf`} />
+          <ExportPdfButton targetId="student-report" filename={`${student?.name ?? '学员'}-report.pdf`} />
         </div>
       </div>
 
@@ -1024,7 +1024,7 @@ export function StudentDetailPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="当前速度段位" value={speedRank ? `L${speedRank}` : '未入段'} />
             <StatCard
-              label="30s 单摇 best"
+              label="30 秒单摇最好成绩"
               value={bestSingle30 ? `${bestSingle30} 次` : '暂无成绩'}
             />
             <StatCard label="勇士进阶积分" value={`${pointsSummary.total} 分`} />
@@ -1567,7 +1567,7 @@ export function StudentDetailPage() {
                 <p className="text-xs text-slate-500">课堂行为奖励、挑战积分等构成勇士荣耀值</p>
               </div>
               <div className="rounded-2xl bg-white/70 px-4 py-2 text-right shadow-sm">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-violet-400">Points</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-violet-400">积分值</p>
                 <p className="text-xl font-bold text-violet-600">{pointsSummary.total}</p>
               </div>
             </div>
@@ -1621,7 +1621,7 @@ export function StudentDetailPage() {
                 <p className="text-xs text-slate-500">记录出勤连击、任务评星、战队激励等成长值沉淀</p>
               </div>
               <div className="rounded-2xl bg-white/70 px-4 py-2 text-right shadow-sm">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-400">Energy</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-400">能量值</p>
                 <p className="text-xl font-bold text-amber-500">{energy}</p>
               </div>
             </div>
@@ -1894,7 +1894,7 @@ function FreestylePassCard({
               
               <span className="rounded-full bg-white/10 px-2 py-1 font-medium">待翻开盲卡</span>
 
-              <span className="mt-2 text-[10px] tracking-[0.25em]">KEEP TRYING</span>
+              <span className="mt-2 text-[10px] tracking-[0.25em]">继续加油</span>
             </div>
           )}
         </div>

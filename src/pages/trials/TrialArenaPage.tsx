@@ -456,7 +456,7 @@ export function TrialArenaPage() {
       <header className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="uppercase tracking-[0.4em] text-slate-400">Warrior Performance Lab</p>
+            <p className="uppercase tracking-[0.4em] text-slate-400">勇士表现实验室</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">勇士试炼场 · 体能测评塔</h1>
             <p className="mt-2 text-sm text-slate-500">
               实时汇总学员测评覆盖率、专项指标与班级体能表现，帮助教练精准安排下一轮测评计划。

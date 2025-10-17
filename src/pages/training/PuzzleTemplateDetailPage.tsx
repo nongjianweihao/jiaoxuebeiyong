@@ -121,7 +121,7 @@ export function PuzzleTemplateDetailPage() {
           <div className="rounded-3xl border border-white/60 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-xl">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-white/70">FlipQuest 主线谜题</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/70">翻牌主线谜题</p>
                 <h1 className="mt-2 text-3xl font-black lg:text-4xl">{template?.name ?? '课堂主线谜题'}</h1>
                 <p className="mt-2 max-w-2xl text-sm text-white/80">
                   {template?.description ?? '完成课程中的关键环节即可翻开卡片，集齐所有碎片，揭晓整套主线奖励。'}
@@ -132,7 +132,7 @@ export function PuzzleTemplateDetailPage() {
                       分类：{template.category.toUpperCase()}
                     </span>
                     <span className="rounded-full bg-white/20 px-3 py-1 font-semibold">
-                      难度 Lv.{template.difficulty ?? 3}
+                      难度等级 {template.difficulty ?? 3}
                     </span>
                     <span className="rounded-full bg-white/20 px-3 py-1 font-semibold">
                       {template.totalCards} 张卡片 · {template.totalEnergy ?? template.cards.reduce((sum, card) => sum + (card.reward?.energy ?? 0), 0)}⚡

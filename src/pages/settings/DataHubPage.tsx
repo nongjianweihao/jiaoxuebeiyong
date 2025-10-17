@@ -72,7 +72,7 @@ export function DataHubPage() {
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: 'application/json;charset=utf-8',
       });
-      const filename = `coach-backup-${formatDateForFile(new Date())}.json`;
+      const filename = `成长数据备份-${formatDateForFile(new Date())}.json`;
       downloadBlob(blob, filename);
       setStatus({ type: 'success', message: `已导出全部数据到 ${filename}` });
     } catch (error) {

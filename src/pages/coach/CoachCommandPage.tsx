@@ -1,7 +1,7 @@
 const roadmapSteps = [
   {
     title: '制定成长路线图',
-    description: '从任务卡库拖拽组合 Speed、Strength、Stamina 等能力模块。',
+    description: '从任务卡库拖拽组合速度、力量、耐力等能力模块。',
   },
   {
     title: '匹配勇士阶段',
@@ -14,9 +14,9 @@ const roadmapSteps = [
 ];
 
 const aiTips = [
-  'AI Mission 推荐 6 张任务卡，优先覆盖勇士短板能力。',
-  'Strength 能力套组达成率 78%，建议追加力量挑战卡。',
-  'Stamina 训练完成后，可安排团队协作任务巩固节奏。',
+  'AI 任务推荐 6 张任务卡，优先覆盖勇士短板能力。',
+  '力量能力套组达成率 78%，建议追加力量挑战卡。',
+  '耐力训练完成后，可安排团队协作任务巩固节奏。',
 ];
 
 export function CoachCommandPage() {
@@ -25,7 +25,7 @@ export function CoachCommandPage() {
       <header className="rounded-3xl bg-white/80 p-8 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="uppercase tracking-[0.4em] text-slate-400">Coach Mission Desk</p>
+            <p className="uppercase tracking-[0.4em] text-slate-400">教练任务指挥台</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-900">教练作战台</h1>
             <p className="mt-2 text-sm text-slate-500">编排课程、分配任务卡、查看 AI 推荐与成长反馈。</p>
           </div>
