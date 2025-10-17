@@ -1842,6 +1842,8 @@ export function ClassDetailPage() {
       : '尚未生成课表';
   const missionName = selectedMission?.name ?? template?.name ?? '欢乐任务卡';
   const missionBlockCount = missionBlockEntries.length;
+
+
   const sessionClosed = !!(session && session.closed);
   const shareHighlights = session?.highlights?.length
     ? session.highlights
