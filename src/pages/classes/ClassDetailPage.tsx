@@ -1253,6 +1253,7 @@ export function ClassDetailPage() {
     [attendance, performanceDrafts, students],
   );
 
+
   const handleOverrideChange = (studentId: string, consume?: number) => {
     setConsumeOverrides((prev) => {
       const next = { ...prev };

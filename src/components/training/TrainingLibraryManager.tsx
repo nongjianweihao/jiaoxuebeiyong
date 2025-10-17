@@ -19,7 +19,20 @@ import { GROWTH_ROADMAP_STAGES } from '../../config/growthRoadmap';
 
 const INTENSITY_OPTIONS = ['💧', '🌈', '⚡'] as const;
 const STIMULUS_OPTIONS = ['neural', 'strength', 'metabolic', 'technical', 'psychological'] as const;
+const STIMULUS_LABELS: Record<(typeof STIMULUS_OPTIONS)[number], string> = {
+  neural: '神经',
+  strength: '力量',
+  metabolic: '代谢',
+  technical: '技术',
+  psychological: '心理',
+};
 const PERIOD_OPTIONS = ['PREP', 'SPEC', 'COMP', 'TRANS'] as const;
+const PERIOD_LABELS: Record<(typeof PERIOD_OPTIONS)[number], string> = {
+  PREP: '备战期',
+  SPEC: '专项期',
+  COMP: '比赛期',
+  TRANS: '过渡期',
+};
 const DURATION_OPTIONS = [4, 6, 8, 10, 12] as const;
 const CATEGORY_OPTIONS = [
   { value: 'jump', label: '跳绳成长' },
@@ -335,7 +348,7 @@ function StageForm({ value, onChange, stages }: StageFormProps) {
             }
           }}
           className="h-32 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs"
-          placeholder='[ { "range": "6-8 岁", "priorities": ["节奏", "协调"], "load": "light" } ]'
+          placeholder='[ { "range": "6-8 岁", "priorities": ["节奏", "协调"], "load": "轻负荷" } ]'
         />
       </label>
       <label className="space-y-1">
@@ -355,7 +368,7 @@ function StageForm({ value, onChange, stages }: StageFormProps) {
             }
           }}
           className="h-32 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs"
-          placeholder='[ { "period": "PREP", "title": "准备期", "focus": "节奏激活", "load": "light" } ]'
+          placeholder='[ { "period": "PREP", "title": "准备期", "focus": "节奏激活", "load": "轻负荷" } ]'
         />
       </label>
       <label className="space-y-1">
@@ -472,7 +485,7 @@ function PlanForm({
           value={phasesJson}
           onChange={(event) => onPhasesChange(event.target.value)}
           className="h-32 w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-xs"
-          placeholder='[ { "id": "PREP", "name": "准备期", "durationWeeks": 2, "goal": "激活节奏", "load": "light", "focusPoints": ["节奏感", "体态"], "recommendedAges": ["6-8 岁"] } ]'
+          placeholder='[ { "id": "PREP", "name": "准备期", "durationWeeks": 2, "goal": "激活节奏", "load": "轻负荷", "focusPoints": ["节奏感", "体态"], "recommendedAges": ["6-8 岁"] } ]'
         />
       </label>
 
@@ -674,7 +687,7 @@ function DrillForm({ value, onChange }: DrillFormProps) {
         >
           {STIMULUS_OPTIONS.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {STIMULUS_LABELS[option]}
             </option>
           ))}
         </select>
@@ -686,7 +699,7 @@ function DrillForm({ value, onChange }: DrillFormProps) {
           onChange={(event) => onChange({ ...value, primaryAbilities: splitList(event.target.value) })}
           className="w-full rounded-lg border border-slate-200 px-3 py-2"
         />
-        <p className="text-[11px] text-slate-400">逗号分隔，例如：speed, power</p>
+        <p className="text-[11px] text-slate-400">逗号分隔，例如：极速(speed)、爆发力(power)</p>
       </label>
       <label className="space-y-1">
         <span className="text-xs font-semibold text-slate-500">辅助能力</span>
@@ -780,7 +793,7 @@ function GameForm({ value, onChange }: GameFormProps) {
         >
           {STIMULUS_OPTIONS.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {STIMULUS_LABELS[option]}
             </option>
           ))}
         </select>
@@ -901,7 +914,7 @@ function MissionForm({ value, blocks, onChange, onBlocksChange, drills, games, p
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {PERIOD_LABELS[option]}
               </option>
             ))}
           </select>
@@ -999,7 +1012,7 @@ function MissionForm({ value, blocks, onChange, onBlocksChange, drills, games, p
                       >
                         {STIMULUS_OPTIONS.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {STIMULUS_LABELS[option]}
                           </option>
                         ))}
                       </select>

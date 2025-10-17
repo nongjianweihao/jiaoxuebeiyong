@@ -41,6 +41,13 @@ const STIMULUS_LABEL: Record<string, string> = {
   technical: '技术',
   psychological: '心理',
 };
+const PERIOD_LABEL: Record<string, string> = {
+  PREP: '备战期',
+  SPEC: '专项期',
+  COMP: '比赛期',
+  TRANS: '过渡期',
+  ALL: '全阶段',
+};
 
 const abilityOrder: AbilityKey[] = ['speed', 'power', 'coordination', 'agility', 'endurance', 'flexibility'];
 
@@ -373,7 +380,7 @@ export function TrainingLibraryPage() {
     <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-slate-900">勇士训练资产库</h1>
-        <p className="text-sm text-slate-500">六大素质 × 动作 × 游戏 × 课节模板 × 周期模板，构建完整的 Speed Rope Performance System。</p>
+        <p className="text-sm text-slate-500">六大素质 × 动作 × 游戏 × 课节模板 × 周期模板，构建完整的勇士绳能表现体系。</p>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <button
             type="button"
@@ -600,7 +607,9 @@ export function TrainingLibraryPage() {
                               >
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-semibold text-slate-800">{theme.title}</span>
-                                  <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{theme.period}</span>
+                                <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                                  {PERIOD_LABEL[theme.period] ?? theme.period}
+                                </span>
                                 </div>
                                 <p className="mt-1 text-[11px] text-slate-500">{theme.focus}</p>
                                 <span className="mt-2 inline-flex w-fit items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
@@ -895,7 +904,7 @@ export function TrainingLibraryPage() {
                         <article key={mission.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                         <header className="flex items-start justify-between">
                           <div>
-                            <p className="text-xs text-slate-400">阶段：{mission.phase}</p>
+                            <p className="text-xs text-slate-400">阶段：{PERIOD_LABEL[mission.phase] ?? mission.phase}</p>
                             <h4 className="text-base font-semibold text-slate-800">{mission.name}</h4>
                             <p className="text-xs text-slate-500">时长 {mission.durationMin} 分钟</p>
                           </div>
@@ -965,7 +974,7 @@ export function TrainingLibraryPage() {
               {stageBuckets.map((bucket) => (
                 <div key={bucket.key} className="space-y-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Phase</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">所属阶段</p>
                     <h3 className="text-xl font-semibold text-slate-900">{bucket.title}</h3>
                     <p className="text-sm text-slate-500">{bucket.description}</p>
                   </div>
@@ -1026,7 +1035,7 @@ export function TrainingLibraryPage() {
                                 >
                                   <div className="flex items-start justify-between text-sm">
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Week {week.week}</p>
+                                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">第 {week.week} 周</p>
                                       <p className="font-semibold text-slate-800">{week.focus}</p>
                                     </div>
                                     <div className="text-right text-xs text-slate-500">

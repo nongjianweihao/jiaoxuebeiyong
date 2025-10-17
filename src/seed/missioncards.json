@@ -1,7 +1,7 @@
 [
   {
     "id": "mc-speed-ignite",
-    "name": "Speed Ignite 30",
+    "name": "极速引燃 30",
     "phase": "PREP",
     "durationMin": 45,
     "focusAbilities": ["speed", "coordination"],
@@ -15,7 +15,7 @@
   },
   {
     "id": "mc-speed-neural-boost",
-    "name": "Neural Boost 2×30",
+    "name": "神经加速 2×30",
     "phase": "SPEC",
     "durationMin": 50,
     "focusAbilities": ["speed", "agility"],
@@ -29,7 +29,7 @@
   },
   {
     "id": "mc-power-du30",
-    "name": "Power Combo DU30",
+    "name": "爆发组合 DU30",
     "phase": "SPEC",
     "durationMin": 55,
     "focusAbilities": ["power", "coordination"],
@@ -43,7 +43,7 @@
   },
   {
     "id": "mc-coord-freestyle",
-    "name": "Freestyle Flow Lab",
+    "name": "花样流动实验室",
     "phase": "SPEC",
     "durationMin": 60,
     "focusAbilities": ["coordination", "flexibility"],
@@ -57,7 +57,7 @@
   },
   {
     "id": "mc-agility-react",
-    "name": "Agility Neural Circuit",
+    "name": "敏捷神经回路",
     "phase": "PREP",
     "durationMin": 45,
     "focusAbilities": ["agility", "speed"],
@@ -71,7 +71,7 @@
   },
   {
     "id": "mc-endurance-3min",
-    "name": "Endurance Pace Builder",
+    "name": "耐力节奏建构",
     "phase": "SPEC",
     "durationMin": 55,
     "focusAbilities": ["endurance", "speed"],
@@ -85,7 +85,7 @@
   },
   {
     "id": "mc-recovery-reset",
-    "name": "Recovery Reset Day",
+    "name": "恢复重启日",
     "phase": "PREP",
     "durationMin": 40,
     "focusAbilities": ["flexibility", "psychological"],
@@ -98,7 +98,7 @@
   },
   {
     "id": "mc-competition-sim",
-    "name": "Competition Simulation",
+    "name": "竞赛模拟局",
     "phase": "COMP",
     "durationMin": 60,
     "focusAbilities": ["speed", "power", "psychological"],
@@ -112,7 +112,7 @@
   },
   {
     "id": "mc-middle-school-exam",
-    "name": "Exam Prep Standard",
+    "name": "中考冲刺标准",
     "phase": "COMP",
     "durationMin": 50,
     "focusAbilities": ["endurance", "power"],
@@ -125,7 +125,7 @@
   },
   {
     "id": "mc-coordination-campus",
-    "name": "Campus Freestyle Day",
+    "name": "校园花样日",
     "phase": "PREP",
     "durationMin": 45,
     "focusAbilities": ["coordination", "agility"],
@@ -138,7 +138,7 @@
   },
   {
     "id": "mc-team-integration",
-    "name": "Team Integration Quest",
+    "name": "团队融合任务",
     "phase": "SPEC",
     "durationMin": 60,
     "focusAbilities": ["coordination", "psychological", "endurance"],
