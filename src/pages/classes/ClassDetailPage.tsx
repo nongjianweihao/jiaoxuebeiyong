@@ -258,6 +258,7 @@ export function ClassDetailPage() {
   const [activePerformanceStudentId, setActivePerformanceStudentId] = useState<string | null>(null);
   const [freestyle, setFreestyle] = useState<FreestyleDraft[]>([]);
   const [session, setSession] = useState<SessionRecord | null>(null);
+  const [lastClosedSession, setLastClosedSession] = useState<SessionRecord | null>(null);
   const lastAutoSaveRef = useRef<Promise<void> | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [blockCompletion, setBlockCompletion] = useState<
@@ -1096,6 +1097,7 @@ export function ClassDetailPage() {
 
         const lastClosed = [...sessionHistory].filter((item) => item.closed).pop();
         setPreviousSpeedRecords(lastClosed?.speed ?? []);
+        setLastClosedSession(lastClosed ?? null);
 
         const activeSession = [...sessionHistory].filter((item) => !item.closed).pop() ?? null;
         const resolvedStudents = (() => {
@@ -1260,6 +1262,7 @@ export function ClassDetailPage() {
       lessonConsume: 1,
       attendanceEnergyAwarded: false,
     };
+    setLastClosedSession(null);
     setSession(newSession);
     fallbackSessionDateRef.current = newSession.date;
     sessionStartDateRef.current = newSession.date;
@@ -1497,12 +1500,23 @@ export function ClassDetailPage() {
     }
 
     let syncSuccessful = true;
+    let persistedRecord: SessionRecord = record;
 
     try {
       await sessionsRepo.upsert(record);
+      const latest = await sessionsRepo.get(record.id);
+      if (latest) {
+        if (!latest.closed) {
+          persistedRecord = { ...latest, closed: true };
+          await sessionsRepo.upsert(persistedRecord);
+        } else {
+          persistedRecord = latest;
+        }
+      }
     } catch (error) {
       syncSuccessful = false;
       console.error('保存课堂记录失败', error);
+      persistedRecord = record;
     }
 
     if (cyclePlan) {
@@ -1669,7 +1683,24 @@ export function ClassDetailPage() {
       setStudents((prev) => prev.map((stu) => updatedStudents.get(stu.id) ?? stu));
     }
 
-    setSession(record);
+    try {
+      const classSessions = await sessionsRepo.listByClass(classId);
+      const staleSessions = classSessions.filter(
+        (item) => !item.closed && item.id !== record.id,
+      );
+      if (staleSessions.length) {
+        await Promise.all(
+          staleSessions.map((item) => sessionsRepo.upsert({ ...item, closed: true })),
+        );
+      }
+    } catch (error) {
+      syncSuccessful = false;
+      console.error('清理未结束的课堂挑战失败', error);
+    }
+
+    const finalRecord = persistedRecord;
+
+    setSession(finalRecord);
     setPerformanceDrafts(() => {
       const map: Record<string, PerformanceDraft> = {};
       performanceEntries.forEach((entry) => {
@@ -1685,16 +1716,17 @@ export function ClassDetailPage() {
 
     setStatus(syncSuccessful ? '本次挑战已同步到成长册' : '同步出现异常，请稍后在成长册核对数据');
 
-    setPreviousSpeedRecords(record.speed);
+    setPreviousSpeedRecords(finalRecord.speed);
+    setLastClosedSession(finalRecord);
 
     const completionMap: Record<string, boolean> = {};
     missionBlockEntries.forEach((entry) => {
-      completionMap[entry.key] = record.executedBlockIds?.includes(entry.key) ?? false;
+      completionMap[entry.key] = finalRecord.executedBlockIds?.includes(entry.key) ?? false;
     });
     setBlockCompletion(completionMap);
 
     const overrideMap: Record<string, number | undefined> = {};
-    record.consumeOverrides?.forEach((item) => {
+    finalRecord.consumeOverrides?.forEach((item) => {
       overrideMap[item.studentId] = item.consume;
     });
     setConsumeOverrides(overrideMap);
@@ -1905,6 +1937,7 @@ export function ClassDetailPage() {
 
 
   const sessionClosed = !!(session && session.closed);
+  const latestClosedSession = sessionClosed ? session : lastClosedSession;
   const shareHighlights = session?.highlights?.length
     ? session.highlights
     : deriveHighlights();
@@ -2914,7 +2947,7 @@ export function ClassDetailPage() {
             </button>
           </section>
         </div>
-      ) : sessionClosed ? (
+      ) : latestClosedSession ? (
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600">
           <h3 className="text-lg font-semibold text-slate-800">本次挑战已同步完成</h3>
           <p className="text-sm text-slate-500">
